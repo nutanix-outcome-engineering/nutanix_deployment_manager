@@ -1,0 +1,15 @@
+# Repo Structure metadata file
+# Used by tree command to generate dir structure and descriptions
+# tree --gitignore -d  --noreport --info -L 2
+docs
+	directory for documentation files
+src
+	directory for application source code
+**/controllers
+	directory for API handler code
+**/lib
+	dir for custom libraries and utility files
+**/database
+	directory for knex database migrations
+**/models
+	directory for database JS objects

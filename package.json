@@ -4,6 +4,10 @@
   "description": "Reservation System and Datacenter Management Suite for Nutanix based infrastructure",
   "main": "index.js",
   "scripts": {
+    "db:fresh": "knex migrate:rollback --all && npm run db:migrate",
+    "db:migrate": "knex --knexfile ./src/database/knexfile.js migrate:latest",
+    "db:newMigration": "knex --knexfile ./src/database/knexfile.js migrate:make",
+    "db:rollback": "knex --knexfile ./src/database/knexfile.js migrate:rollback",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -13,6 +17,10 @@
   "author": "Outcome_Engineering@nutanix.com",
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.2.2"
+    "axios": "^1.2.2",
+    "dotenv": "^16.0.3",
+    "flat": "^5.0.2",
+    "knex": "^2.3.0",
+    "mysql2": "^2.3.3"
   }
 }

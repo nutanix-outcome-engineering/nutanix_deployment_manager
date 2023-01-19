@@ -1,0 +1,76 @@
+{
+  "openapi": "3.0.0",
+  "x-stoplight": {
+    "id": "fvtlepvqjqn3h"
+  },
+  "info": {
+    "title": "rx-lite",
+    "version": "1.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/import/csv": {
+      "post": {
+        "summary": "Create New User",
+        "operationId": "import.csv",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "headers": {
+                    "oneOf": [
+                      {
+                        "type": "array",
+                        "items": {}
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "csv": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "headers",
+                  "csv"
+                ]
+              }
+            }
+          },
+          "description": "Post the necessary fields for the API to create a new user."
+        },
+        "description": "Bulk import nodes and clusters via csv",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": []
+    }
+  },
+  "components": {
+    "schemas": {}
+  }
+}

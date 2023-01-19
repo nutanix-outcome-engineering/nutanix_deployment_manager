@@ -22,6 +22,9 @@ const config = {
     password: process.env.RX_MYSQL_PASSWORD,
     database: process.env.RX_MYSQL_DATABASE,
     port: Number(process.env.RX_MYSQL_PORT) || 3306
+  },
+  server: {
+    port: 8080
   }
 }
 

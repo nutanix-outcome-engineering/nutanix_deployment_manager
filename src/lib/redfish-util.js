@@ -1,6 +1,7 @@
 'use strict'
 const axios = require('axios').default
 const https = require('https')
+const util = require('util')
 const _ = require('lodash')
 
 class redfishNode {
@@ -79,18 +80,19 @@ class redfishNode {
     return _.omit(this,["axInstance", "bmcPass"])
   }
   toString() {
-    return _.omit(this, ["axInstance", "bmcPass"])
+    return util.inspect(_.omit(this, ["axInstance", "bmcPass"]), {colors: true, depth: null})
   }
 }
 module.exports = redfishNode
 // async function run() {
+//   console.log('RUNNING')
 //   const bmc = {
 //     bmcIP: '10.38.43.33',
 //     bmcUser: 'root',
 //     bmcPass: 'calvin'
 //   }
 //   let thisRF = await redfishNode.init(bmc)
-//   console.log(thisRF.toString())
+//   console.log('%s', thisRF)
 //   thisRF.verifyDellSwitchConnections('Ethernet24/2')
 // }
 

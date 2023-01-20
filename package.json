@@ -8,7 +8,10 @@
     "db:migrate": "knex --knexfile ./src/database/knexfile.js migrate:latest",
     "db:newMigration": "knex --knexfile ./src/database/knexfile.js migrate:make",
     "db:rollback": "knex --knexfile ./src/database/knexfile.js migrate:rollback",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite --config ./src/ui/frontend/vite.config.js",
+    "build": "vite build --config ./src/ui/frontend/vite.config.js",
+    "preview": "vite preview --config ./src/ui/frontend/vite.config.js"
   },
   "repository": {
     "type": "git",
@@ -17,6 +20,8 @@
   "author": "Outcome_Engineering@nutanix.com",
   "license": "MIT",
   "dependencies": {
+    "@headlessui/vue": "^1.7.7",
+    "@heroicons/vue": "^2.0.13",
     "axios": "^1.2.2",
     "busboy": "^1.6.0",
     "csv-parse": "^5.3.3",
@@ -27,9 +32,17 @@
     "knex": "^2.3.0",
     "lodash": "^4.17.21",
     "multer": "^1.4.5-lts.1",
-    "mysql2": "^2.3.3"
+    "mysql2": "^2.3.3",
+    "vue": "^3.2.45",
+    "vue-router": "^4.1.6"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20"
+    "@tailwindcss/forms": "^0.5.3",
+    "@vitejs/plugin-vue": "^4.0.0",
+    "autoprefixer": "^10.4.13",
+    "nodemon": "^2.0.20",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.2.4",
+    "vite": "^4.0.4"
   }
 }

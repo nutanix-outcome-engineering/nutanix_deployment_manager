@@ -4,10 +4,13 @@
   "description": "Reservation System and Datacenter Management Suite for Nutanix based infrastructure",
   "main": "index.js",
   "scripts": {
-    "db:fresh": "knex migrate:rollback --all && npm run db:migrate",
+    "db:fresh": "knex --knexfile ./src/database/knexfile.js migrate:rollback --all && npm run db:migrate",
     "db:migrate": "knex --knexfile ./src/database/knexfile.js migrate:latest",
+    "db:down": "knex --knexfile ./src/database/knexfile.js migrate:down",
+    "db:up": "knex --knexfile ./src/database/knexfile.js migrate:up",
     "db:newMigration": "knex --knexfile ./src/database/knexfile.js migrate:make",
     "db:rollback": "knex --knexfile ./src/database/knexfile.js migrate:rollback",
+    "db:seed": "knex --knexfile ./src/database/knexfile.js seed:run",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite --config ./src/ui/frontend/vite.config.js",
     "build": "vite build --config ./src/ui/frontend/vite.config.js",
@@ -33,6 +36,7 @@
     "lodash": "^4.17.21",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^2.3.3",
+    "netmask": "^2.0.2",
     "vue": "^3.2.45",
     "vue-router": "^4.1.6"
   },

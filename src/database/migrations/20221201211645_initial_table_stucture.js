@@ -8,6 +8,7 @@ const { type } = require('os')
 exports.up = async (knex) => {
     return knex.schema.createTable('ingestData', table => {
         table.increments('id').primary()
+        table.string('ingestTaskUUID', 50).nullable().defaultTo(null)
         table.string('ingestState', 50)
         table.json('failureReason', 50)
         table.string('serial', 25).nullable().unique()

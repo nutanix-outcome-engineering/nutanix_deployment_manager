@@ -15,25 +15,26 @@ module.exports = {
 
   ip: {
     range: async (req, res, next) => {
-    let ingestIP = ip2long(req.body.start)
-    const stop = ip2long(req.body.stop)
+      let ingestIP = ip2long(req.body.start)
+      const stop = ip2long(req.body.stop)
 
-    if (ingestIP > stop) {
-      throw new Error("Start greater than end")
-    }
+      if (ingestIP > stop) {
+        throw new Error("Start greater than end")
+      }
 
-    let nodesToIngest = []
-    do {
-      nodesToIngest.push(new IngestData({
-        ipmiIP: long2ip(ingestIP),
-        ingestState: 'pending',
-        failureReason: null
-      }))
-      ingestIP++
-    } while (ingestIP <= stop)
-    await IngestData.massInsert(nodesToIngest)
+      let nodesToIngest = []
+      do {
+        nodesToIngest.push(new IngestData({
+          ipmiIP: long2ip(ingestIP),
+          ingestState: 'pending',
+          failureReason: null
+        }))
+        ingestIP++
+      } while (ingestIP <= stop)
+      await IngestData.massInsert(nodesToIngest)
 
-    res.status(201).json({status: `ingest of ${nodesToIngest.length} queued`})
+      res.status(201).json({status: `ingest of ${nodesToIngest.length} queued`})
+    },
   },
 
   /**

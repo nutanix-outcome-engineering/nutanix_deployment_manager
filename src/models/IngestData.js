@@ -11,7 +11,7 @@ class IngestData {
     this.chassisSerial = ingestData.chassisSerial
 
     this.ipmiIP = ingestData.ipmiIP
-    this.ipmiHostname = ingestData.hostHostname
+    this.ipmiHostname = ingestData.ipmiHostname
     this.ipmiCreds = ingestData.ipmiD
 
     this.hostIP = ingestData.hostIP

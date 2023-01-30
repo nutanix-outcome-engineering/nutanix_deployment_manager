@@ -1,7 +1,9 @@
 const OpenApiValidator = require('express-openapi-validator')
 const express = require('express')
 const path = require('path')
+const _ = require('lodash')
 const { MulterCSVStorage } = require('../../lib/csv')
+
 
 const apiSpec = path.join(__dirname, 'rx-lite.json')
 
@@ -32,13 +34,13 @@ function registerAPIHandlers(app) {
         resolver: (handlersPath, route, apiDoc) => {
           const pathKey = route.openApiRoute.substring(route.basePath.length)
           const schema = apiDoc.paths[pathKey][route.method.toLowerCase()]
-          const [controller, method] = schema['operationId'].split('.')
+          const [controller, ...method] = schema['operationId'].split('.')
           const modulePath = path.join(handlersPath, controller)
-          const handler = require(modulePath)
-          if (handler[method] === undefined) {
-              throw new Error(`Could not find a [${method}] function in ${modulePath} when trying to route [${route.method} ${route.expressRoute}].`)
+          const handler = _.get(require(modulePath), method)
+          if (handler === undefined) {
+              throw new Error(`Could not find a [${method.join('.')}] function in ${modulePath} when trying to route [${route.method} ${route.expressRoute}].`)
           }
-          return catchErrors(handler[method])
+          return catchErrors(handler)
         }
       },
       fileUploader: {

@@ -13,16 +13,8 @@ module.exports = {
     res.status(201).json({status: 'ingest queued'})
   },
 
-  // This is the ideal structure. The handler resolver needs be updated to support it though
-  // ip: {
-  //   range: async (req, res, next) => {
-  //     let ingestIP = ip2long(req.body.start)
-  //     const stop = ip2long(req.body.stop)
-
-
-  //   }
-  // },
-  "ip-range": async (req, res, next) => {
+  ip: {
+    range: async (req, res, next) => {
     let ingestIP = ip2long(req.body.start)
     const stop = ip2long(req.body.stop)
 

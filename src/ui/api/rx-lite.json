@@ -68,9 +68,64 @@
         }
       },
       "parameters": []
+    },
+    "/import/ip/range": {
+      "post": {
+        "summary": "",
+        "operationId": "import.ip.range",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "string",
+                    "format": "ipv4"
+                  },
+                  "stop": {
+                    "type": "string",
+                    "format": "ipv4"
+                  }
+                },
+                "required": [
+                  "start",
+                  "stop"
+                ]
+              }
+            }
+          },
+          "description": ""
+        }
+      },
+      "parameters": []
     }
   },
   "components": {
-    "schemas": {}
+    "schemas": {},
+    "securitySchemes": {
+      "API Key - 1": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
   }
 }

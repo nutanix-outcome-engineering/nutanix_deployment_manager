@@ -9,11 +9,12 @@ class redfishNode {
     this.bmcIP = a.bmcIP
     this.bmcUser = a.bmcUser
     this.bmcPass = a.bmcPass
-    this.sysID = null
-    this.serviceTag = null
-    this.oem = null
-    this.nodeSwitchConnections = null
-    this.embeddedSwitchConnections = null
+    this.sysID = a.sysID || null
+    this.managerID = a.managerID || null
+    this.serial = a.serial || null
+    this.oem = a.oem || null
+    this.nodeSwitchConnections = a.nodeSwitchConnections || null
+    this.embeddedSwitchConnections = a.embeddedSwitchConnections || null
     this.axInstance = axios.create({
       timeout: 5000,
       httpsAgent: new https.Agent({
@@ -28,25 +29,34 @@ class redfishNode {
       baseURL: `https://${this.bmcIP}/redfish/v1`
     })
   }
+
   static async init(a) {
     const rfNode = new redfishNode(a)
     await rfNode.getServiceRoot()
     await rfNode.getSystems()
+    await rfNode.getManagers()
     await rfNode.getSwitchConnections()
     return rfNode
   }
+
   async getServiceRoot() {
     const resp = await this.axInstance.get()
     this.oem = resp.data.Vendor
     if (this.oem == 'Dell') {
-      this.serviceTag = resp.data.Oem[`${this.oem}`].ServiceTag
+      this.serial = resp.data.Oem[`${this.oem}`].ServiceTag
     }
   }
+
   async getSystems(){
     const resp = await this.axInstance.get(`/Systems`)
     const shim = resp.data.Members[0]['@odata.id']
     this.sysID = shim.substring(shim.lastIndexOf('/')+1)
+  }
 
+  async getManagers() {
+    const resp = await this.axInstance.get('/Managers')
+    const shim = resp.data.Members[0]['@odata.id']
+    this.managerID = shim.substring(shim.lastIndexOf('/')+1)
   }
 
   async getSwitchConnections() {
@@ -54,6 +64,12 @@ class redfishNode {
       await this.getDellSwitchConnections()
      }
      //TODO: other oem platforms...
+  }
+
+  async isPoweredOn() {
+    let resp = await this.axInstance.get(`/Chassis/${this.sysID}`)
+
+    return resp.data.PowerState === 'On'
   }
 
   async verifyDellSwitchConnections(switchPort) {
@@ -68,6 +84,7 @@ class redfishNode {
       console.log(`All non-embedded NICs matched the expected switchport`)
     }
   }
+
   async getDellSwitchConnections() {
     const resp = await this.axInstance.get(`/Systems/${this.sysID}/NetworkPorts/Oem/Dell/DellSwitchConnections`)
     const nodeConnections = resp.data.Members.filter(a => !a.Id.includes('Embedded'))
@@ -75,10 +92,12 @@ class redfishNode {
     this.nodeSwitchConnections = nodeConnections
     this.embeddedSwitchConnections = embeddedConnections
   }
+
   // TODO: (don't print bmcPass?)
   toJSON() {
-    return _.omit(this,["axInstance", "bmcPass"])
+    return _.omit(this,["axInstance"])
   }
+
   toString() {
     return util.inspect(_.omit(this, ["axInstance", "bmcPass"]), {colors: true, depth: null})
   }
@@ -92,8 +111,7 @@ module.exports = redfishNode
 //     bmcPass: 'calvin'
 //   }
 //   let thisRF = await redfishNode.init(bmc)
-//   console.log('%s', thisRF)
-//   thisRF.verifyDellSwitchConnections('Ethernet24/2')
+//   console.log((await thisRF.isPoweredOn()))
 // }
 
 // run()

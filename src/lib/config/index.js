@@ -23,6 +23,12 @@ const config = {
     database: process.env.RX_MYSQL_DATABASE,
     port: Number(process.env.RX_MYSQL_PORT) || 3306
   },
+  redis: {
+    host: process.env.RX_REDIS_HOST || "localhost",
+    port: Number(process.env.RX_REDIS_PORT) || 6379,
+    db: Number(process.env.RX_REDIS_DB) || 2,
+    pass: process.env.RX_REDIS_PASS
+  },
   server: {
     port: 8080
   }

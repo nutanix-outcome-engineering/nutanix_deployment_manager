@@ -9,6 +9,9 @@ const { registerAPIHandlers } = require('./api')
 const path = require('path')
 const app = express()
 
+// Register body parser middlewares
+app.use(express.json())
+
 /** Register API routes and eov middleware */
 registerAPIHandlers(app)
 

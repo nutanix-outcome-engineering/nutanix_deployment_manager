@@ -21,6 +21,10 @@ export default defineConfig({
       '/api': {
         target: `http://localhost:${config.server.port}`,
         secure: false
+      },
+      '/permissions': {
+        target: `http://localhost:${config.server.port}`,
+        secure: false
       }
     }
   }

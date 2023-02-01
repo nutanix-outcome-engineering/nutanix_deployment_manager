@@ -4,7 +4,7 @@ import axios from 'axios'
 export default function useAxios() {
   const client = axios.create({
     //TODO: Make localhost a variable
-    baseURL: `http://localhost:${location.port}/api`,
+    baseURL: `http://localhost:${location.port}/`,
     withCredentials: true,
     headers: {
       'Accept': 'application/json',

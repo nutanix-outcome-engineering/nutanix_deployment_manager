@@ -1,19 +1,36 @@
 'use strict'
 
 const express = require('express')
+const session = require('express-session')
 const http = require('http')
 
+const passport = require('../lib/passport.js')
 const config = require(`../lib/config`)
 const { registerAPIHandlers } = require('./api')
 
+
 const path = require('path')
 const app = express()
-
 // Register body parser middlewares
 app.use(express.json())
+app.use(express.urlencoded())
 
-/** Register API routes and eov middleware */
-registerAPIHandlers(app)
+app.use(
+  session({
+    //TODO: below
+    secret: 'PULLFROMENV',
+    resave: true,
+    saveUninitialized: true
+  })
+)
+
+passport(app)
+
+app.get('/permissions', (req,res,next) => {
+  if (req.isAuthenticated()) {res.status(200).send()}
+  else {res.status(401).send()}
+})
+
 
 /** Register UI Bundle Routes */
 app.use('/assets', express.static(path.resolve(__dirname,'frontend/dist/assets')))
@@ -27,6 +44,19 @@ app.use('/*', express.static(path.resolve(__dirname, 'frontend/dist'), {
       }
   }
 }))
+
+app.use((req,res,next) => {
+  if(req.isAuthenticated() || req.path=='/api/auth/login') {
+    next()
+  }
+  else {
+    res.redirect('/login')
+  }
+})
+
+/** Register API routes and eov middleware */
+registerAPIHandlers(app)
+
 
 /** Register default error handler */
 app.use((err, req, res, next) => {

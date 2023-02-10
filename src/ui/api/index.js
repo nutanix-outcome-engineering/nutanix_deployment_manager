@@ -23,6 +23,21 @@ function registerAPIHandlers(app) {
     }
   }
 
+  // Pattern for possibly injecting route specifc middleware.
+  // At least it is an example for adding /api only middleware.
+  // function protect(handler) {
+  //   return (req,res,next) => {
+  //     if(req.isAuthenticated() || req.path=='/api/auth/login') {
+  //       return handler(req, res, next)
+  //     }
+  //     else {
+  //       res.redirect('/login')
+  //     }
+  //   }
+  // }
+  // To use this change the return of operationHandlers.resolver to:
+  // return protect(catchErrors(handler))
+
   // Wire up express-openapi-validator middleware...
   app.use(
     OpenApiValidator.middleware({
@@ -41,6 +56,13 @@ function registerAPIHandlers(app) {
               throw new Error(`Could not find a [${method.join('.')}] function in ${modulePath} when trying to route [${route.method} ${route.expressRoute}].`)
           }
           return catchErrors(handler)
+        }
+      },
+      validateSecurity: {
+        handlers: {
+          PassportSession: (req, scopes, schema) => {
+            return req.isAuthenticated()
+          }
         }
       },
       fileUploader: {

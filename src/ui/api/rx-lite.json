@@ -1,11 +1,12 @@
 {
   "openapi": "3.0.0",
-  "x-stoplight": {
-    "id": "fvtlepvqjqn3h"
-  },
   "info": {
     "title": "rx-lite",
-    "version": "1.0"
+    "version": "1.0",
+    "contact": {
+      "name": "OE"
+    },
+    "description": "API for RX Lite  "
   },
   "servers": [
     {
@@ -13,6 +14,58 @@
     }
   ],
   "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "",
+        "operationId": "auth.login",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "headers": {
+              "token": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "PASETO"
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Endpoint to auth a session",
+        "security": []
+      },
+      "parameters": []
+    },
     "/import/csv": {
       "post": {
         "summary": "Create New User",
@@ -111,72 +164,283 @@
                   "stop"
                 ]
               }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
             }
           },
           "description": ""
-        }
+        },
+        "description": "Bulk import of nodes via IP Range."
       },
       "parameters": []
     },
-    "/auth/login": {
-      "post": {
-        "summary": "",
-        "operationId": "auth.login",
+    "/nodes/ingesting": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
         "responses": {
           "200": {
             "description": "OK",
-            "headers": {
-              "token": {
+            "content": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
-                },
-                "description": "PASETO"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IngestingNode"
+                  }
+                }
               }
             }
+          }
+        },
+        "operationId": "nodes.ingesting",
+        "description": "Get all currently ingesting nodes."
+      },
+      "parameters": []
+    },
+    "/nodes": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Node"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "nodes.nodes.getAll",
+        "description": "Get all Nodes."
+      },
+      "post": {
+        "summary": "",
+        "operationId": "nodes.nodes.add",
+        "responses": {
+          "201": {
+            "description": "Created"
           }
         },
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
-                }
-              }
-            },
-            "application/x-www-form-urlencoded": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string"
-                  },
-                  "password": {
-                    "type": "string"
-                  }
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Node"
                 }
               }
             }
           }
         },
-        "description": "Endpoint to auth a session"
+        "description": "Add nodes."
+      }
+    },
+    "/nodes/{serial}": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "501": {
+            "description": "Not Implemented"
+          }
+        },
+        "operationId": "nodes.nodes.get",
+        "description": "Get specific node information."
       },
-      "parameters": []
-  }
-},
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "serial",
+          "in": "path",
+          "description": "Serial Number of Node",
+          "required": true
+        }
+      ]
+    },
+    "/tasks/{taskId}": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskFlow"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "tasks.task",
+        "description": "Get TaskFlow status"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": "taskId",
+          "in": "path",
+          "required": true,
+          "description": "Task Flow UUID"
+        }
+      ]
+    }
+  },
   "components": {
-    "schemas": {},
+    "schemas": {
+      "IngestingNode": {
+        "title": "IngestingNode",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "taskData": {
+            "$ref": "#/components/schemas/TaskFlow"
+          },
+          "ingestState": {
+            "type": "string"
+          },
+          "failureReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "serial": {
+            "type": "string",
+            "nullable": true
+          },
+          "chassisSerial": {
+            "type": "string",
+            "nullable": true
+          },
+          "ipmiIP": {
+            "type": "string"
+          },
+          "ipmiHostname": {
+            "type": "string",
+            "nullable": true
+          },
+          "hostIP": {
+            "type": "string",
+            "nullable": true
+          },
+          "hostHostname": {
+            "type": "string",
+            "nullable": true
+          },
+          "cvmIP": {
+            "type": "string",
+            "nullable": true
+          },
+          "cvmHostname": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "Node": {
+        "title": "Node",
+        "type": "object",
+        "properties": {
+          "serial": {
+            "type": "string",
+            "nullable": true
+          },
+          "chassisSerial": {
+            "type": "string",
+            "nullable": true
+          },
+          "ipmiIP": {
+            "type": "string"
+          },
+          "ipmiHostname": {
+            "type": "string",
+            "nullable": true
+          },
+          "hostIP": {
+            "type": "string",
+            "nullable": true
+          },
+          "hostHostname": {
+            "type": "string",
+            "nullable": true
+          },
+          "cvmIP": {
+            "type": "string",
+            "nullable": true
+          },
+          "cvmHostname": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "serial"
+        ]
+      },
+      "TaskFlow": {
+        "title": "TaskFlow",
+        "type": "object",
+        "description": "TaskFlow object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "statistics": {
+            "type": "object",
+            "properties": {
+              "completedTasks": {
+                "type": "number"
+              },
+              "failedTasks": {
+                "type": "number"
+              },
+              "totalTasks": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
     "securitySchemes": {
-      "API Key - 1": {
-        "type": "http",
-        "scheme": "basic"
+      "PassportSession": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "connect.sid"
       }
     }
-  }
+  },
+  "security": [
+    {
+      "PassportSession": []
+    }
+  ]
 }

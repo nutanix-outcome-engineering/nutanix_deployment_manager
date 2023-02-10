@@ -1,7 +1,11 @@
 const { Graph } = require('graphology')
 const { willCreateCycle } = require('graphology-dag')
 const { v4: uuid} = require('uuid')
+const Task = require('.')
+const IngestData = require('../IngestData')
+const db = require('../../database')
 
+const TABLE = 'taskFlow'
 const TaskState = {
   Pending: 'pending',
   Scheduled: 'scheduled',
@@ -12,10 +16,18 @@ const TaskState = {
 class TaskFlow {
   constructor(graph, id) {
     this.id = id || uuid()
-    this.version = null
+    this.status = null
+    this.type = 'TaskFlow'
 
     /** @type {Graph} */
     this.graph = graph
+
+    /** @private */
+    this._record = null
+  }
+
+  static get dbTable() {
+    return TABLE
   }
 
   static graphFromJSONDefinition(definition) {
@@ -51,10 +63,20 @@ class TaskFlow {
     return graph
   }
 
-  static fromJSONDefinition(definition) {
-    const graph = this.graphFromJSONDefinition(definition)
 
-    return new TaskFlow(graph)
+  async create() {
+    return await db(TABLE).insert(this.serialize())
+  }
+
+  async update() {
+    // let serialized = this.serialize()
+    // let changes = jsondiffpatch.diff(serialized, this._record)
+    // let sparseCommit = {}
+    // for (let key in changes) {
+    //   sparseCommit[key] = serialized[key]
+    // }
+    let q = db(TABLE).where({id: this.id}).update(this.serialize())
+    return await q
   }
 
   getPendingSubtasks() {
@@ -110,11 +132,29 @@ class TaskFlow {
   }
 
   complete(task, results) {
-    this.graph.mergeNodeAttributes(task.name, { state: TaskState.Completed, results })
+    if (task) {
+      this.graph.mergeNodeAttributes(task.name, { state: TaskState.Completed, results })
+    } else {
+      if (this.graph.everyNode((node, attributes) => attributes.state == TaskState.Completed)) {
+        this.status = 'complete'
+      } else if (this.graph.someNode((node, attributes) => attributes.state == TaskState.Failed)) {
+        this.status = 'failed'
+      }
+    }
   }
 
   fail(task, failedReason) {
     this.graph.mergeNodeAttributes(task.name, { state: TaskState.Failed, failedReason })
+  }
+
+  getFailureReason() {
+    let failureReasons = this.graph.reduceNodes((reasons, node, attributes) => {
+      if (attributes.failedReason) {
+        reasons.concat(acc, ', ', attributes.failedReason)
+      }
+    }, '')
+
+    return failureReasons
   }
 
   isComplete() {
@@ -132,11 +172,42 @@ class TaskFlow {
     return doneCount == this.graph.nodes().length || failedCount > 0
   }
 
+  hasFailed() {
+    return this.status === 'failed'
+  }
+
+  serialize() {
+    return {
+      id: this.id,
+      status: this.status,
+      type: this.type,
+      graph: JSON.stringify(this.graph.export())
+    }
+  }
+
+  toJSON() {
+    let completedTasks = this.graph.filterNodes((node, attributes) => attributes.state == TaskState.Completed)
+    let failedTasks = this.graph.filterNodes((node, attributes) => attributes.state == TaskState.Failed)
+
+    return {
+      id: this.id,
+      status: this.status,
+      type: this.type,
+      failureReason: this.getFailureReason(),
+      statistics: {
+        completedTasks: completedTasks.length,
+        failedTasks: failedTasks.length,
+        totalTask: this.graph.order
+      }
+    }
+  }
+
 }
 
 class DiscoverNodeTaskFlow extends TaskFlow {
-  constructor(id, inputData) {
-    super(undefined, id)
+  constructor(graph, id, inputData) {
+    super(graph, id)
+    this.type = 'DiscoverNodeTaskFlow'
     let taskDefinition = {
       tasks: [
         {
@@ -167,15 +238,25 @@ class DiscoverNodeTaskFlow extends TaskFlow {
       ]
     }
 
-    taskDefinition.tasks.forEach(task => {
-      if (!task.needs) {
-        task.data = inputData
-      }
-    })
+    if (!graph) {
+      taskDefinition.tasks.forEach(task => {
+        if (!task.needs) {
+          task.data = inputData
+        }
+      })
 
-    this.graph = this.constructor.graphFromJSONDefinition(taskDefinition)
+      this.graph = this.constructor.graphFromJSONDefinition(taskDefinition)
+    }
   }
 
+  // TODO: maybe handle partial ingest based on what succeeded?
+  async onFailure() {
+    let node = await IngestData.getByIngestTaskUUID(this.id)
+
+    node.ingestState = 'failed'
+
+    await node.update()
+  }
 }
 
 module.exports = {

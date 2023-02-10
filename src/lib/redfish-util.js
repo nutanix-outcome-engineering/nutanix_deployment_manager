@@ -11,7 +11,10 @@ class redfishNode {
     this.bmcPass = a.bmcPass
     this.sysID = a.sysID || null
     this.managerID = a.managerID || null
-    this.serial = a.serial || null
+    this.hostName = a.hostName || null
+    this.model = a.model || null
+    this.blockSerial = a.blockSerial || null
+    this.nodeSerial = a.nodeSerial || null
     this.oem = a.oem || null
     this.nodeSwitchConnections = a.nodeSwitchConnections || null
     this.embeddedSwitchConnections = a.embeddedSwitchConnections || null
@@ -36,6 +39,7 @@ class redfishNode {
     await rfNode.getSystems()
     await rfNode.getManagers()
     await rfNode.getSwitchConnections()
+    await rfNode.getSystemDetails()
     return rfNode
   }
 
@@ -43,7 +47,7 @@ class redfishNode {
     const resp = await this.axInstance.get()
     this.oem = resp.data.Vendor
     if (this.oem == 'Dell') {
-      this.serial = resp.data.Oem[`${this.oem}`].ServiceTag
+      this.nodeSerial = resp.data.Oem[`${this.oem}`].ServiceTag
     }
   }
 
@@ -51,6 +55,15 @@ class redfishNode {
     const resp = await this.axInstance.get(`/Systems`)
     const shim = resp.data.Members[0]['@odata.id']
     this.sysID = shim.substring(shim.lastIndexOf('/')+1)
+  }
+  async getSystemDetails() {
+    //TODO: extend this to put in anything we deem important with forks for specific OEM data retrieval
+    const resp = await this.axInstance.get(`/Systems/${this.sysID}`)
+    this.hostName = resp.data.HostName
+    this.model = resp.data.Model
+    if (this.oem == 'Dell') {
+      this.blockSerial = resp.data.Oem.Dell.DellSystem.ChassisServiceTag
+    }
   }
 
   async getManagers() {
@@ -70,6 +83,43 @@ class redfishNode {
     let resp = await this.axInstance.get(`/Chassis/${this.sysID}`)
 
     return resp.data.PowerState === 'On'
+  }
+
+  async powerOn() {
+    try {
+      const resp = await this.axInstance.post(`/Systems/${this.sysID}/Actions/ComputerSystem.Reset`, {'ResetType':'On'})
+      if (resp.status == 204) {
+        return true
+      }
+    }
+    catch (err) {
+      if(err.response) {
+        const shim = err.response.data.error
+          if (shim["@Message.ExtendedInfo"][0].Message) {
+            throw new Error(shim["@Message.ExtendedInfo"][0].Message)
+          }
+        }
+      throw err
+    }
+  }
+
+  async powerOff(resetType='ForceOff') {
+    // valid options: ForceOff, GracefulRestart, PushPowerButton, NMI
+    try {
+      const resp = await this.axInstance.post(`/Systems/${this.sysID}/Actions/ComputerSystem.Reset`, {'ResetType':resetType})
+      if (resp.status == 204) {
+        return true
+      }
+    }
+    catch (err) {
+      if(err.response) {
+        const shim = err.response.data.error
+          if (shim["@Message.ExtendedInfo"][0].Message) {
+            throw new Error(shim["@Message.ExtendedInfo"][0].Message)
+          }
+        }
+      throw err
+    }
   }
 
   async verifyDellSwitchConnections(switchPort) {
@@ -99,19 +149,27 @@ class redfishNode {
   }
 
   toString() {
-    return util.inspect(_.omit(this, ["axInstance", "bmcPass"]), {colors: true, depth: null})
+    return util.inspect(_.omit(this, ["axInstance", "bmcPass", "nodeSwitchConnections", "embeddedSwitchConnections"]), {colors: true, depth: null})
   }
 }
 module.exports = redfishNode
 // async function run() {
 //   console.log('RUNNING')
 //   const bmc = {
-//     bmcIP: '10.38.43.33',
+//     bmcIP: '10.38.43.36',
 //     bmcUser: 'root',
 //     bmcPass: 'calvin'
 //   }
 //   let thisRF = await redfishNode.init(bmc)
-//   console.log((await thisRF.isPoweredOn()))
+//   console.log(thisRF.toString())
+//   if (! await thisRF.isPoweredOn()) {
+//     console.log('Node is currently OFF, powering ON')
+//     await thisRF.powerOn()
+//   }
+//   else {
+//     console.log('Detected Node currently on, powering off for test')
+//     console.log(await thisRF.powerOff())
+//   }
 // }
 
 // run()

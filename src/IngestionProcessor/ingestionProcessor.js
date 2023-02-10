@@ -47,55 +47,63 @@ let worker = new Worker(ingestionQueue.name,
 const INGESTION_LOOP_INTERVAL = 15 * 1000
 
 setTimeout(start, INGESTION_LOOP_INTERVAL)
-let taskFlows = new Map()
 async function start() {
   try {
     let pendingIngest = await IngestData.getAllWithStage('pending')
     console.log(`Number pending ingest: ${pendingIngest.length}`)
     for (let node of pendingIngest) {
       try {
-        let t = new task.DiscoverNodeTaskFlow(null, {
+        let taskFlow = new task.DiscoverNodeTaskFlow(null, null, {
           bmcInfo: {
             ipmiIP: node.ipmiIP,
             user: 'root',
             password: 'calvin'
           }
         })
-        taskFlows.set(t.id, t)
+        taskFlow.status = 'processing'
+        await taskFlow.create()
         node.ingestState = 'ingesting'
-        node.ingestTaskUUID = t.id
+        node.ingestTaskUUID = taskFlow.id
         await node.update()
       } catch (err) {
         console.log(`Unexpected error while adding node with bmcIP ${node.ipmiIP} to ingest queue: ${err}`)
       }
     }
 
-    console.log(`Number of taskFlows still processing: ${taskFlows.size}`)
-    taskFlows.forEach((t, tId, map) =>{
-      if (!t.isComplete()) {
-        let pt = t.getPendingSubtasks()
-        pt.forEach(async (tt) => {
-          let dependencyResults = t.getDependencieResults(tt)
+
+    let taskFlows = await task.getAllNotFinished()
+    console.log(`Number of taskFlows still processing: ${taskFlows.length}`)
+    taskFlows.forEach(async (taskFlow) =>{
+      if (!taskFlow.isComplete()) {
+        let pendingSubtasks = taskFlow.getPendingSubtasks()
+        pendingSubtasks.forEach(async (pendingTask) => {
+          let dependencyResults = taskFlow.getDependencieResults(pendingTask)
           let data = {
-            taskFlowId: tId,
-            ...tt.attributes.data,
+            taskFlowId: taskFlow.id,
+            ...pendingTask.attributes.data,
             ...dependencyResults
           }
-          let job = await ingestionQueue.add(`${tt.name}Task`, data)
-          t.schedule(tt, job.id)
+          let job = await ingestionQueue.add(`${pendingTask.name}Task`, data)
+          taskFlow.schedule(pendingTask, job.id)
+          await taskFlow.update()
         })
-        let at = t.getActiveSubtasks()
-        at.forEach(async (tt) => {
-          let aj = await ingestionQueue.getJob(tt.attributes.jobId)
-          let jobState = await aj.getState()
+        let activeSubtasks = taskFlow.getActiveSubtasks()
+        activeSubtasks.forEach(async (activeTask) => {
+          let job = await ingestionQueue.getJob(activeTask.attributes.jobId)
+          let jobState = await job.getState()
           if (jobState === 'completed') {
-            t.complete(tt, aj.returnvalue)
+            taskFlow.complete(activeTask, job.returnvalue)
           } else if (jobState === 'failed') {
-            t.fail(tt, aj.failedReason)
+            taskFlow.fail(activeTask, job.failedReason)
           }
+          await taskFlow.update()
         })
       } else {
-        taskFlows.delete(tId)
+        taskFlow.complete()
+        await taskFlow.update()
+        if (taskFlow.hasFailed()) {
+          await taskFlow.onFailure()
+        }
       }
     })
   } catch(err) {

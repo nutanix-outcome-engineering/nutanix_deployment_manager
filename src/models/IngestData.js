@@ -35,6 +35,10 @@ class IngestData {
     this._record = null
   }
 
+  static get dbTable() {
+    return TABLE
+  }
+
   static fromCSVRecord(ingestData) {
     let record = ingestData.record
     record.rawCSVAsJSON = record
@@ -66,6 +70,11 @@ class IngestData {
 
     return await builder
   }
+
+  static async getAll() {
+    return await this.query()
+  }
+
   static async getByID(id) {
     const builder = this.query(q => {
       q.where({id: id})
@@ -110,6 +119,28 @@ class IngestData {
     }
   }
 
+  toJSON() {
+    return {
+      id: this.id,
+      ingestTaskUUID: this.ingestTaskUUID,
+      serial: this.serial,
+      chassisSerial: this.chassisSerial,
+
+      ipmiIP: this.ipmiIP,
+      ipmiHostname: this.ipmiHostname,
+      ipmiD: this.ipmiCreds,
+
+      hostIP: this.hostIP,
+      hostHostname: this.hostHostname,
+
+      cvmIP: this.cvmIP,
+      cvmHostname: this.cvmHostname,
+
+      ingestState: this.ingestState,
+      failureReason: this.failureReason,
+    }
+  }
+
   static async query(callback = async knex => knex) {
     const query = db(TABLE)
 
@@ -132,6 +163,7 @@ class IngestData {
   }
 
   async create() {
+    // BUG: this should be changed to call serialize and persist that
     return await db(TABLE).insert({
       serial: this.serial,
       rawCSVAsJSON: JSON.stringify(this.rawCSVAsJSON)

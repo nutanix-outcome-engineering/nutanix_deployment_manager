@@ -1,7 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ClusterImport from '../views/ClusterImport.vue'
+import ClusterImport from '@/views/ClusterImport.vue'
 import Login from '../views/Login.vue'
 import useAxios from '@/composables/useAxios.js'
+const views = import.meta.glob('@/views/**/*.vue')
+
+console.log(views)
+function lazy(name) {
+  return views[`/src/views/${name}.vue`]
+}
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,6 +28,26 @@ const router = createRouter({
         auth: false,
         layout: 'Empty'
       }
+    },
+    {
+      path: '/nodes',
+      name: "nodes",
+      component: lazy('Nodes/Shell'),
+      meta: {
+        auth: true
+      },
+      children: [
+        {
+          path: '',
+          name: 'nodes.nodes',
+          component: lazy('Nodes/Nodes'),
+        },
+        {
+          path: 'ingesting',
+          name: 'nodes.ingesting',
+          component: lazy('Nodes/Ingesting'),
+        }
+      ]
     },
     {
       path: '/about',

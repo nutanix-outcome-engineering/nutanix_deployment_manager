@@ -31,7 +31,8 @@ const config = {
   },
   server: {
     port: 8080
-  }
+  },
+  fvm_ip: process.env.RX_FVM_IP
 }
 
 // Prevent startup if any required config variables are `undefined`.

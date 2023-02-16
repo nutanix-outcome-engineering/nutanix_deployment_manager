@@ -4,7 +4,6 @@ import Login from '../views/Login.vue'
 import useAxios from '@/composables/useAxios.js'
 const views = import.meta.glob('@/views/**/*.vue')
 
-console.log(views)
 function lazy(name) {
   return views[`/src/views/${name}.vue`]
 }

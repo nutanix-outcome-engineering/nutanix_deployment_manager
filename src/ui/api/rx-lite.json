@@ -197,10 +197,66 @@
             }
           }
         },
-        "operationId": "nodes.ingesting",
+        "operationId": "nodes.ingesting.getAll",
         "description": "Get all currently ingesting nodes."
       },
       "parameters": []
+    },
+    "/nodes/ingesting/retry": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "nodes.ingesting.retry",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "description": "Retry discovery of list of nodes.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ingestionIDs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "ingestionIDs"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/nodes/ingesting/{id}/retry": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "nodes.ingesting.retry",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "description": "Retry discovery process of specific node."
+      }
     },
     "/nodes": {
       "get": {
@@ -252,8 +308,15 @@
         "summary": "Your GET endpoint",
         "tags": [],
         "responses": {
-          "501": {
-            "description": "Not Implemented"
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
           }
         },
         "operationId": "nodes.nodes.get",
@@ -331,28 +394,14 @@
             "type": "string",
             "nullable": true
           },
-          "ipmiIP": {
-            "type": "string"
+          "ipmi": {
+            "$ref": "#/components/schemas/IPDefinition"
           },
-          "ipmiHostname": {
-            "type": "string",
-            "nullable": true
+          "cvm": {
+            "$ref": "#/components/schemas/IPDefinition"
           },
-          "hostIP": {
-            "type": "string",
-            "nullable": true
-          },
-          "hostHostname": {
-            "type": "string",
-            "nullable": true
-          },
-          "cvmIP": {
-            "type": "string",
-            "nullable": true
-          },
-          "cvmHostname": {
-            "type": "string",
-            "nullable": true
+          "host": {
+            "$ref": "#/components/schemas/IPDefinition"
           }
         },
         "required": [
@@ -364,35 +413,20 @@
         "type": "object",
         "properties": {
           "serial": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "chassisSerial": {
             "type": "string",
             "nullable": true
           },
-          "ipmiIP": {
-            "type": "string"
+          "ipmi": {
+            "$ref": "#/components/schemas/IPDefinition"
           },
-          "ipmiHostname": {
-            "type": "string",
-            "nullable": true
+          "host": {
+            "$ref": "#/components/schemas/IPDefinition"
           },
-          "hostIP": {
-            "type": "string",
-            "nullable": true
-          },
-          "hostHostname": {
-            "type": "string",
-            "nullable": true
-          },
-          "cvmIP": {
-            "type": "string",
-            "nullable": true
-          },
-          "cvmHostname": {
-            "type": "string",
-            "nullable": true
+          "cvm": {
+            "$ref": "#/components/schemas/IPDefinition"
           }
         },
         "required": [
@@ -426,6 +460,36 @@
                 "type": "number"
               }
             }
+          }
+        }
+      },
+      "IPDefinition": {
+        "title": "IPDefinition",
+        "x-stoplight": {
+          "id": "uq9v58mmb1ml1"
+        },
+        "type": "object",
+        "description": "Details about an IP",
+        "properties": {
+          "ip": {
+            "type": "string",
+            "nullable": true
+          },
+          "subnet": {
+            "type": "string",
+            "nullable": true
+          },
+          "gateway": {
+            "type": "string",
+            "nullable": true
+          },
+          "vlan": {
+            "type": "number",
+            "nullable": true
+          },
+          "hostname": {
+            "type": "string",
+            "nullable": true
           }
         }
       }

@@ -74,6 +74,8 @@ class foundationAPI {
     return resp.data.nodes
   }
 }
+
+module.exports = foundationAPI
 // async function run() {
 //   foundationAPI = new foundationAPI()
 //   let goodBlockSN = '87J9ZB3'

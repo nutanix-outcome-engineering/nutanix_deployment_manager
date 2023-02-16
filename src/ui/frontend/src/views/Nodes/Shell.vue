@@ -2,16 +2,16 @@
 import AppLink from '@/components/Core/AppLink.vue'
 import useNodes from '@/composables/useNodes.js'
 
-const { ingestingNodes, getIngestingNodes, nodes, getNodes } = useNodes()
+const { ingestingNodes, nodes, fetchAll, setupPoll } = useNodes()
 
-getIngestingNodes()
-getNodes()
+setupPoll('5s')
+fetchAll()
 
 </script>
 
 <template>
   <div>
-    <div class="hidden sm:block">
+    <div class="hidden sm:block pb-4">
       <div class="border-b border-gray-200 -mb-px mt-8 flex items-center justify-center gap-4">
         <nav class="-mb-px flex space-x-8" aria-label="Tabs">
           <AppLink :to="{name: 'nodes.nodes'}" class="whitespace-nowrap inline-flex py-4 px-1 border-b-2 font-medium text-sm gap-2" exact-active-class="border-indigo-500 text-indigo-600" inactive-class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-200">

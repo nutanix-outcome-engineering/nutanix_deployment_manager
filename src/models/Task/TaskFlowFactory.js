@@ -35,7 +35,7 @@ async function getAllNotFinished() {
   return await builder
 }
 async function getByID(id) {
-  const builder = this.query(q => {
+  const builder = query(q => {
     q.where({id: id})
     return q
   })

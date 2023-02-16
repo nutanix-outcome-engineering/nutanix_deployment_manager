@@ -12,13 +12,19 @@ class IngestData {
 
     this.ipmiIP = ingestData.ipmiIP
     this.ipmiHostname = ingestData.ipmiHostname
+    this.ipmiGateway = ingestData.ipmiGateway
+    this.ipmiSubnet = ingestData.ipmiSubnet
     this.ipmiCreds = ingestData.ipmiD
 
     this.hostIP = ingestData.hostIP
     this.hostHostname = ingestData.hostHostname
+    this.hostGateway = ingestData.hostGateway
+    this.hostSubnet = ingestData.hostSubnet
 
     this.cvmIP = ingestData.cvmIP
     this.cvmHostname = ingestData.cvmHostname
+    this.cvmGateway = ingestData.cvmGateway
+    this.cvmSubnet = ingestData.cvmSubnet
     this.clusterVIP = ingestData.clusterVIP
     this.clusterHostname = ingestData.clusterHostname
 
@@ -93,6 +99,16 @@ class IngestData {
     return (await builder)[0]
   }
 
+  static async retryDiscovery(ids) {
+    return await db(TABLE)
+      .whereIn('id', ids)
+      .update({
+        ingestTaskUUID: null,
+        ingestState: 'pending',
+        failureReason: null
+      })
+  }
+
   serialize() {
     return {
       id: this.id,
@@ -102,13 +118,19 @@ class IngestData {
 
       ipmiIP: this.ipmiIP,
       ipmiHostname: this.ipmiHostname,
+      ipmiGateway: this.ipmiGateway,
+      ipmiSubnet: this.ipmiSubnet,
       ipmiD: this.ipmiCreds,
 
       hostIP: this.hostIP,
       hostHostname: this.hostHostname,
+      hostGateway: this.hostGateway,
+      hostSubnet: this.hostSubnet,
 
       cvmIP: this.cvmIP,
       cvmHostname: this.cvmHostname,
+      cvmGateway: this.cvmGateway,
+      cvmSubnet: this.cvmSubnet,
       clusterVIP: this.clusterVIP,
       clusterHostname: this.clusterHostname,
 
@@ -126,15 +148,27 @@ class IngestData {
       serial: this.serial,
       chassisSerial: this.chassisSerial,
 
-      ipmiIP: this.ipmiIP,
-      ipmiHostname: this.ipmiHostname,
+      ipmi: {
+        ip: this.ipmiIP,
+        hostname: this.ipmiHostname,
+        gateway: this.ipmiGateway,
+        subnet: this.ipmiSubnet
+      },
       ipmiD: this.ipmiCreds,
 
-      hostIP: this.hostIP,
-      hostHostname: this.hostHostname,
+      host: {
+        ip: this.hostIP,
+        hostname: this.hostHostname,
+        gateway: this.hostGateway,
+        subnet: this.hostSubnet
+      },
 
-      cvmIP: this.cvmIP,
-      cvmHostname: this.cvmHostname,
+      cvm: {
+        ip: this.cvmIP,
+        hostname: this.cvmHostname,
+        gateway: this.cvmGateway,
+        subnet: this.cvmSubnet
+      },
 
       ingestState: this.ingestState,
       failureReason: this.failureReason,
@@ -163,11 +197,7 @@ class IngestData {
   }
 
   async create() {
-    // BUG: this should be changed to call serialize and persist that
-    return await db(TABLE).insert({
-      serial: this.serial,
-      rawCSVAsJSON: JSON.stringify(this.rawCSVAsJSON)
-    })
+    return await db(TABLE).insert(this.serialize())
   }
 }
 

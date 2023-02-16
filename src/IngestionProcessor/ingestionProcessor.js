@@ -99,7 +99,7 @@ async function start() {
           await taskFlow.update()
         })
       } else {
-        taskFlow.complete()
+          taskFlow.complete()
         await taskFlow.update()
         if (taskFlow.hasFailed()) {
           await taskFlow.onFailure()

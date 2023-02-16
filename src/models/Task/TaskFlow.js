@@ -1,5 +1,5 @@
 const { Graph } = require('graphology')
-const { willCreateCycle } = require('graphology-dag')
+const { willCreateCycle, topologicalSort } = require('graphology-dag')
 const { v4: uuid} = require('uuid')
 const Task = require('.')
 const IngestData = require('../IngestData')
@@ -127,6 +127,23 @@ class TaskFlow {
     return dependencies
   }
 
+  getFailureReason() {
+    let failureReasons = this.graph.reduceNodes((reasons, node, attributes) => {
+      if (attributes.failedReason) {
+        reasons.push(attributes.failedReason)
+      }
+      return reasons
+    }, [])
+
+    return failureReasons.join(', ')
+  }
+
+  getFinalResult() {
+    let finalTask = topologicalSort(this.graph)[this.graph.order - 1]
+
+    return this.graph.getNodeAttribute(finalTask, 'results')
+  }
+
   schedule(task, jobId) {
     this.graph.mergeNodeAttributes(task.name, { state: TaskState.Scheduled, jobId })
   }
@@ -145,16 +162,6 @@ class TaskFlow {
 
   fail(task, failedReason) {
     this.graph.mergeNodeAttributes(task.name, { state: TaskState.Failed, failedReason })
-  }
-
-  getFailureReason() {
-    let failureReasons = this.graph.reduceNodes((reasons, node, attributes) => {
-      if (attributes.failedReason) {
-        reasons.concat(acc, ', ', attributes.failedReason)
-      }
-    }, '')
-
-    return failureReasons
   }
 
   isComplete() {
@@ -188,12 +195,13 @@ class TaskFlow {
   toJSON() {
     let completedTasks = this.graph.filterNodes((node, attributes) => attributes.state == TaskState.Completed)
     let failedTasks = this.graph.filterNodes((node, attributes) => attributes.state == TaskState.Failed)
-
+    const rawResults = this.getFinalResult()
     return {
       id: this.id,
       status: this.status,
       type: this.type,
       failureReason: this.getFailureReason(),
+      rawResults: rawResults,
       statistics: {
         completedTasks: completedTasks.length,
         failedTasks: failedTasks.length,
@@ -213,7 +221,7 @@ class DiscoverNodeTaskFlow extends TaskFlow {
         {
           name: 'DiscoverBMC'
         },
-        {
+        {// TODO: add how to do retries here
           name: 'DiscoverCVMDirect',
           needs: ['DiscoverBMC']
           //onFailure: 'DiscoverCVMThroughBMC'

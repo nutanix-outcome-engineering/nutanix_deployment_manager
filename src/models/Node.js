@@ -8,15 +8,47 @@ class Node {
     this.serial = node.serial
     this.chassisSerial = node.chassisSerial
 
-    this.ipmiIP = node.ipmiIP
-    this.ipmiHostname = node.ipmiHostname
+    if (node.ipmi) {
+      this.ipmiIP = node.ipmi.ip
+      this.ipmiHostname = node.ipmi.hostname
+      this.ipmiGateway = node.ipmi.gateway
+      this.ipmiSubnet = node.ipmi.subnet
+    } else {
+      this.ipmiIP = node.ipmiIP
+      this.ipmiHostname = node.ipmiHostname
+      this.ipmiGateway = node.ipmiGateway
+      this.ipmiSubnet = node.ipmiSubnet
+    }
 
-    this.hostIP = node.hostIP
-    this.hostHostname = node.hostHostname
+    if (node.host) {
+      this.hostIP = node.host.ip
+      this.hostHostname = node.host.hostname
+      this.hostGateway = node.host.gateway
+      this.hostSubnet = node.host.subnet
+    } else {
+      this.hostIP = node.hostIP
+      this.hostHostname = node.hostHostname
+      this.hostGateway = node.hostGateway
+      this.hostSubnet = node.hostSubnet
 
-    this.cvmIP = node.cvmIP
-    this.cvmHostname = node.cvmHostname
+    }
+
+    if (node.cvm) {
+      this.cvmIP = node.cvm.ip
+      this.cvmHostname = node.cvm.hostname
+      this.cvmGateway = node.cvm.gateway
+      this.cvmSubnet = node.cvm.subnet
+    } else {
+      this.cvmIP = node.cvmIP
+      this.cvmHostname = node.cvmHostname
+      this.cvmGateway = node.cvmGateway
+      this.cvmSubnet = node.cvmSubnet
+    }
+
     this.clusterID = node.clusterID
+
+    this.rackID = node.rackID
+    this.rackUnit = node.rackUnit
 
 
     /** @private */
@@ -62,13 +94,19 @@ class Node {
 
       ipmiIP: this.ipmiIP,
       ipmiHostname: this.ipmiHostname,
+      ipmiGateway: this.ipmiGateway,
+      ipmiSubnet: this.ipmiSubnet,
 
       hostIP: this.hostIP,
       hostHostname: this.hostHostname,
+      hostGateway: this.hostGateway,
+      hostSubnet: this.hostSubnet,
 
       cvmIP: this.cvmIP,
       cvmHostname: this.cvmHostname,
-      clusterID: this.clusterID,
+      cvmGateway: this.cvmGateway,
+      cvmSubnet: this.cvmSubnet,
+      clusterID: this.clusterID
     }
   }
 
@@ -77,14 +115,27 @@ class Node {
       serial: this.serial,
       chassisSerial: this.chassisSerial,
 
-      ipmiIP: this.ipmiIP,
-      ipmiHostname: this.ipmiHostname,
 
-      hostIP: this.hostIP,
-      hostHostname: this.hostHostname,
+      ipmi: {
+        ip: this.ipmiIP,
+        hostname: this.ipmiHostname,
+        gateway: this.ipmiGateway,
+        subnet: this.ipmiSubnet
+      },
 
-      cvmIP: this.cvmIP,
-      cvmHostname: this.cvmHostname,
+      host: {
+        ip: this.hostIP,
+        hostname: this.hostHostname,
+        gateway: this.hostGateway,
+        subnet: this.hostSubnet
+      },
+
+      cvm: {
+        ip: this.cvmIP,
+        hostname: this.cvmHostname,
+        gateway: this.cvmGateway,
+        subnet: this.cvmSubnet
+      },
       clusterID: this.clusterID,
     }
   }

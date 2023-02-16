@@ -1,17 +1,44 @@
 const db = require('../database')
-const  { IngestData, Node, TaskFlow }  = require('../models');
+const  { IngestData, Node, TaskFlowFactory }  = require('../models');
+const lodash = require('lodash')
 
 module.exports = {
-  ingesting: async (req, res, next) => {
-    let ingestingNodes = await IngestData.getAll()
-    ingestingNodes = ingestingNodes.map(n => n.toJSON())
-    ingestingNodes = await Promise.all(ingestingNodes.map(async (node) => {
-      node.taskData = (await TaskFlow.getByID(node.ingestTaskUUID)).toJSON()
-      delete node.ingestTaskUUID
-      return node
-    }))
+  ingesting: {
+    getAll: async (req, res, next) => {
+      let ingestingNodes = await IngestData.getAll()
+      ingestingNodes = ingestingNodes.map(n => n.toJSON())
+      //BUG: need better error handling here
+      ingestingNodes = await Promise.all(ingestingNodes.map(async (node) => {
+        let taskData = await TaskFlowFactory.getByID(node.ingestTaskUUID)
+        if (taskData) {
+          node.taskData = taskData.toJSON()
+          delete node.ingestTaskUUID
+          node.failureReason = node.taskData.failureReason
+          node.nicInfo = node.taskData.rawResults?.bmcInfo.nodeSwitchConnections.map(n => {
+            return {
+              nicName: n.InstanceID,
+              switchPort: n.SwitchPortConnectionID.replace('Ethernet', ''),
+              switchMac: n.SwitchConnectionID
+            }
+          })
+        }
+        return node
+      }))
 
-    res.json(ingestingNodes)
+      res.json(ingestingNodes)
+    },
+    retry: async (req, res, next) => {
+      let retryIds = []
+      if (req.param.id) {
+        retryIds.push(req.param.id)
+      } else {
+        retryIds = req.body.ingestionIDs
+      }
+
+      await IngestData.retryDiscovery(retryIds)
+
+      res.status(204).send
+    }
   },
   nodes: {
     getAll: async(req, res, next) => {

@@ -20,6 +20,10 @@ const props = defineProps({
   }
 })
 
+form.value = {
+  ...props.node
+}
+
 function edit() {
   editing.value = !editing.value
 }
@@ -59,25 +63,25 @@ function edit() {
             <div class="px-2 grid grid-cols-8 gap-x-6 gap-y-8 sm:grid-col-2">
               <div class="sm:col-span-2">
                 <label  for="ipmiIP" class="pb-0 text-sm font-normal text-gray-500">IPMI IP</label>
-                  <input type="text" id="ipmiIP" v-model="node.ipmiIP" :disabled="!editing" placeholder="10.1.1.1"
+                  <input type="text" id="ipmiIP" v-model="form.ipmi.ip" :disabled="!editing" placeholder="10.1.1.1"
                     class="relative -left-3 mt-2 text-sm text-gray-900 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                   />
               </div>
               <div class="sm:col-span-2">
                 <label for="ipmiHostname" class="pb-1 text-sm font-normal text-gray-500">IPMI Hostname</label>
-                <input type="text" id="ipmiHostname" v-model="node.ipmiHostname" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="ipmiHostname" v-model="form.ipmi.hostname" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
               <div class="sm:col-span-2">
                 <label for="ipmiSubnet" class="pb-1 text-sm font-normal text-gray-500">IPMI Subnet</label>
-                <input type="text" id="ipmiSubnet" v-model="node.ipmiSubnet" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="ipmiSubnet" v-model="form.ipmi.subnet" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
               <div class="sm:col-span-2">
                 <label for="ipmiGateway" class="pb-1 text-sm font-normal text-gray-500">IPMI Gateway</label>
-                <input type="text" id="ipmiGateway" v-model="node.ipmiGateway" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="ipmiGateway" v-model="form.ipmi.gateway" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
@@ -88,25 +92,25 @@ function edit() {
             <div class="px-2 grid grid-cols-8 gap-x-6 gap-y-8 sm:grid-col-2">
               <div class="sm:col-span-2">
                 <label  for="hostIP" class="pb-0 text-sm font-normal text-gray-500">Host IP</label>
-                  <input type="text" id="hostIP" v-model="node.hostIP" :disabled="!editing" placeholder="10.1.1.1"
+                  <input type="text" id="hostIP" v-model="form.host.ip" :disabled="!editing" placeholder="10.1.1.1"
                     class="relative -left-3 mt-2 text-sm text-gray-900 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                   />
               </div>
               <div class="sm:col-span-2">
                 <label for="hostHostname" class="pb-1 text-sm font-normal text-gray-500">Host Hostname</label>
-                <input type="text" id="hostHostname" v-model="node.hostHostname" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="hostHostname" v-model="form.hostHostname" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
               <div class="sm:col-span-2">
                 <label for="hostSubnet" class="pb-1 text-sm font-normal text-gray-500">Host Subnet</label>
-                <input type="text" id="hostSubnet" v-model="node.hostSubnet" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="hostSubnet" v-model="form.host.subnet" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
               <div class="sm:col-span-2">
                 <label for="hostGateway" class="pb-1 text-sm font-normal text-gray-500">Host Gateway</label>
-                <input type="text" id="hostGateway" v-model="node.hostGateway" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="hostGateway" v-model="form.host.gateway" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
@@ -117,25 +121,25 @@ function edit() {
             <div class="px-2 grid grid-cols-8 gap-x-6 gap-y-8 sm:grid-col-2">
               <div class="sm:col-span-2">
                 <label  for="cvmIP" class="pb-0 text-sm font-normal text-gray-500">CVM IP</label>
-                  <input type="text" id="cvmIP" v-model="node.cvmIP" :disabled="!editing" placeholder="10.1.1.1"
+                  <input type="text" id="cvmIP" v-model="form.cvm.ip" :disabled="!editing" placeholder="10.1.1.1"
                     class="relative -left-3 mt-2 text-sm text-gray-900 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                   />
               </div>
               <div class="sm:col-span-2">
                 <label for="cvmHostname" class="pb-1 text-sm font-normal text-gray-500">CVM Hostname</label>
-                <input type="text" id="cvmHostname" v-model="node.cvmHostname" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="cvmHostname" v-model="form.cvm.hostname" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
               <div class="sm:col-span-2">
                 <label for="cvmSubnet" class="pb-1 text-sm font-normal text-gray-500">CVM Subnet</label>
-                <input type="text" id="cvmSubnet" v-model="node.cvmSubnet" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="cvmSubnet" v-model="form.cvm.subnet" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
               <div class="sm:col-span-2">
                 <label for="cvmGateway" class="pb-1 text-sm font-normal text-gray-500">CVM Gateway</label>
-                <input type="text" id="cvmGateway" v-model="node.cvmGateway" :disabled="!editing" placeholder="10.1.1.1"
+                <input type="text" id="cvmGateway" v-model="form.cvm.gateway" :disabled="!editing" placeholder="10.1.1.1"
                   class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-2 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]"
                 />
               </div>
@@ -143,7 +147,7 @@ function edit() {
           </div>
           <div v-if="isIngestingNode" class="py-4 sm:grid sm:grid-cols-8 sm:gap-4 sm:py-5 sm:px-6">
             <dt class="text-sm font-medium text-gray-500">Failure Reason</dt>
-            <dd class="mt-1 text-sm text-gray-900 sm:col-span-7 sm:mt-0">Fugiat ipsum ipsum deserunt culpa aute sint do nostrud anim incididunt cillum culpa consequat. Excepteur qui ipsum aliquip consequat sint. Sit id mollit nulla mollit nostrud in ea officia proident. Irure nostrud pariatur mollit ad adipisicing reprehenderit deserunt qui eu.</dd>
+            <dd class="mt-1 text-sm text-gray-900 sm:col-span-7 sm:mt-0">{{ form.failureReason || "No failures"}}</dd>
           </div>
         </div>
       </div>

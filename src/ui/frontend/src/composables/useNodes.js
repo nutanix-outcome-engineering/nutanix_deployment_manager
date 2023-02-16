@@ -1,4 +1,5 @@
-import { ref, computed, readonly, unref } from 'vue'
+import { ref, computed, readonly, unref , onMounted, onBeforeUnmount} from 'vue'
+import ms from 'ms'
 import useAPI from '@/composables/useAPI.js'
 
 const { axios, isLoading, data, response } = useAPI()
@@ -34,6 +35,33 @@ async function addNodes(nodes) {
   }
 }
 
+async function retryDiscovery(ids) {
+  try {
+    await axios.post('/nodes/ingesting/retry', { ingestionIDs: ids })
+    await getIngestingNodes()
+  } catch (error) {
+
+  }
+}
+
+async function fetchAll() {
+  await Promise.all([getNodes(), getIngestingNodes()])
+}
+
+async function setupPoll(interval='30s') {
+  let pollInterval = null
+
+  onMounted(() => {
+    if (!pollInterval) {
+      pollInterval = setInterval(() => fetchAll(), ms(interval))
+    }
+  })
+
+  onBeforeUnmount(() => {
+    clearInterval(pollInterval)
+  })
+}
+
 export default function useNodes() {
   return {
     ingestingNodes: readonly(ingestingNodes),
@@ -42,6 +70,9 @@ export default function useNodes() {
     getIngestingNodes,
     getNodes,
     ingestIPRange,
-    addNodes
+    addNodes,
+    retryDiscovery,
+    fetchAll,
+    setupPoll
   }
 }

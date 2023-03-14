@@ -9,6 +9,7 @@ const cors = require('cors')
 const passport = require('../lib/passport.js')
 const config = require(`../lib/config`)
 const { registerAPIHandlers } = require('./api')
+const log = require('../lib/logger.js')
 
 
 const path = require('path')
@@ -36,7 +37,7 @@ const app = express()
 // Register body parser middlewares
 app.use(cookieParser())
 app.use(express.json())
-app.use(express.urlencoded())
+app.use(express.urlencoded({extended: false}))
 
 const Redis = require('ioredis')
 const RedisStore = require('connect-redis')(session)
@@ -89,4 +90,4 @@ app.use((err, req, res, next) => {
 
 
 http.createServer(app).listen(config.server.port)
-console.log(`Http Server Setup on Port: ${config.server.port}.`)
+log.info(`Http Server Setup on Port: ${config.server.port}.`)

@@ -1,8 +1,10 @@
 import { ref, computed, readonly, unref , onMounted, onBeforeUnmount} from 'vue'
 import ms from 'ms'
 import useAPI from '@/composables/useAPI.js'
+import useToasts from '@/composables/useToasts.js'
 
 const { axios, isLoading, data, response } = useAPI()
+const { show } = useToasts()
 
 const ingestingNodes = ref([])
 const nodes = ref([])
@@ -21,6 +23,7 @@ async function ingestIPRange({start, stop}) {
   try {
     await axios.post('/import/ip/range', {start, stop})
     await getIngestingNodes()
+    show('Range ingesting', '', 'success')
   } catch (error) {
 
   }
@@ -30,6 +33,7 @@ async function addNodes(nodes) {
   try {
     await axios.post('/nodes', nodes)
     await Promise.all([getIngestingNodes(), getNodes()])
+    show('Node(s) added', '', 'success')
   } catch(error) {
 
   }
@@ -39,6 +43,7 @@ async function retryDiscovery(ids) {
   try {
     await axios.post('/nodes/ingesting/retry', { ingestionIDs: ids })
     await getIngestingNodes()
+    show('Retrying discovery', '', 'success')
   } catch (error) {
 
   }

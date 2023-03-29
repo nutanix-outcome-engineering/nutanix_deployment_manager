@@ -1,0 +1,58 @@
+# .gitlab-ci.yml file
+default:
+  image: node:16
+  tags:
+    - docker
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - test
+  - build
+
+test:
+  stage: test
+  script:
+    - echo "Currently a NOOP, we should add some."
+    - /bin/true
+  rules:
+    - when: always
+      allow_failure: false
+
+build:
+  stage: build
+  script:
+    - npm clean-install
+    - npm run build
+  needs:
+    - test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: on_success
+    - if: $CI_COMMIT_BRANCH == 'main'
+      when: on_success
+    - if: $CI_COMMIT_BRANCH
+      when: never
+  artifacts:
+    name: NutanixDeploymentManager-$CI_COMMIT_SHORT_SHA
+    expose_as: 'MRArtifact'
+    untracked: false
+    when: on_success
+    paths:
+      - src/
+      - src/ui/frontend/dist
+      - node_modules/
+      - package.json
+      - package-lock.json
+      - rhel-install.sh
+      - rhel-uninstall.sh
+    # exclude:
+    #   - src/ui/frontend/public/**/*
+    #   - src/ui/frontend/src/**/*
+    #   - src/ui/frontend/*.*
+

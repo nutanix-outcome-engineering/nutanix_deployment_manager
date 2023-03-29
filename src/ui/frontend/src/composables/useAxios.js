@@ -1,5 +1,8 @@
 import { ref, computed, readonly } from 'vue'
 import axios from 'axios'
+import useToasts from '@/composables/useToasts.js'
+
+const { show } = useToasts()
 
 export default function useAxios() {
   const client = axios.create({
@@ -35,6 +38,7 @@ export default function useAxios() {
   }, err => {
     isLoading.value = false
     error.value = err.response && err.response.data
+    show(error.value.message, 'Error', 'error')
     response.value = null
     return Promise.reject(err)
   })

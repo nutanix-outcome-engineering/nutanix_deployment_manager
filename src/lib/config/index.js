@@ -35,13 +35,16 @@ const config = {
   fvm_ip: process.env.RX_FVM_IP
 }
 
-// Prevent startup if any required config variables are `undefined`.
-const undefinedVariables = Object.entries(flat(config)).filter(([key, value]) => value === undefined)
+// Skip this check if set. Currently only set during CI/CD Pipeline
+if (process.env.NDM_SKIP_UNSET_CHECK != 'true') {
+  // Prevent startup if any required config variables are `undefined`.
+  const undefinedVariables = Object.entries(flat(config)).filter(([key, value]) => value === undefined)
 
-if (undefinedVariables.length) {
-  console.error(`The following config variables are not defined:\n\n${undefinedVariables.map(([key, value]) => `  ${key} - ENV VAR: RX_${key.toUpperCase().replace('.', '_')}`).join('\n')}\n`)
-  console.error(`Set them in your environment or in the .env in ${path.resolve(__dirname, '../../.env')}`)
-  process.exit(1)
+  if (undefinedVariables.length) {
+    console.error(`The following config variables are not defined:\n\n${undefinedVariables.map(([key, value]) => `  ${key} - ENV VAR: RX_${key.toUpperCase().replace('.', '_')}`).join('\n')}\n`)
+    console.error(`Set them in your environment or in the .env in ${path.resolve(__dirname, '../../.env')}`)
+    process.exit(1)
+  }
 }
 
 module.exports = config

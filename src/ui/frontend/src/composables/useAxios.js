@@ -6,8 +6,7 @@ const { show } = useToasts()
 
 export default function useAxios() {
   const client = axios.create({
-    //TODO: Make localhost a variable
-    baseURL: `http://localhost:${location.port}/`,
+    baseURL: `${location.origin}/`,
     withCredentials: true,
     headers: {
       'Accept': 'application/json',

@@ -50,7 +50,8 @@ app.use(
         port: config.redis.port,
         db: config.redis.db,
         keyPrefix: 'uiSession',
-        password: config.redis.pass
+        password: config.redis.pass,
+        reconnectOnError: true
       })
     }),
     secret: 'PULLFROMENV',

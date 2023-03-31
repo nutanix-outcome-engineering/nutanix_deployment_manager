@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Currently built for rocky 9 / RHEL
+# Currently built for rocky 9 / RHEL 8
 
 # exit if anything fails
+randstr() { < /dev/urandom tr -dc '/@%#$_A-Za-z0-9' | head -c 12; echo; }
 set -e
 
 [ "$UID" -eq 0 ] || exec sudo -E bash "$0" "$@"
@@ -10,34 +11,46 @@ if [ ! -f "src/.env" ]; then
 else
   cp src/.env src/.env.bk
 fi
-# Enable Code Ready Builder repo (required for EPEL)
-dnf config-manager --set-enabled crb
-dnf -y -q install epel-release
 
 # install required apps
-dnf -y -q install apg
 dnf -y -q install git
-dnf -y -q install nodejs
-dnf -y -q install redis
+dnf -y -q module install nodejs:16/common
+dnf -y -q module install redis:6/common
 
 # If I don't, I'll go insane
 dnf -y -q install vim
 
-cp /etc/redis/redis.conf /etc/redis/redis.conf.bk
-redisPass=$(apg -n 1 -m 10 -x 12)
+test -f /etc/redis.conf && redisConfFile=/etc/redis.conf
+test -f /etc/redis/redis.conf && redisConfFile=/etc/redis/redis.conf
+cp $redisConfFile $redisConfFile.bk
+redisPass=$(randstr)
 sed -i "s/REDIS_PASS.*$/REDIS_PASS=\"$redisPass\"/g" src/.env
-sed -i "s/# requirepass foobared/requirepass $redisPass/g" /etc/redis/redis.conf
+sed -i "s/# requirepass foobared/requirepass $redisPass/g" $redisConfFile
 systemctl start redis
 systemctl enable redis
 
 echo "node version: $(node -v)"
 echo "npm version: $(npm -v)"
 
-dnf -y install mariadb-server
+## Uncomment this if we need to use the MariaDB provided repo
+# cat <<EOF > /etc/yum.repos.d/MariaDB.repo
+# # MariaDB 10.6 RedHatEnterpriseLinux repository list - created 2023-03-28 18:53 UTC
+# # https://mariadb.org/download/
+# [mariadb]
+# name = MariaDB
+# # rpm.mariadb.org is a dynamic mirror if your preferred mirror goes offline. See https://mariadb.org/mirrorbits/ for details.
+# baseurl = https://rpm.mariadb.org/10.6/rhel/$releasever/$basearch
+# # baseurl = https://mirror.its.dal.ca/mariadb/yum/10.6/rhel/$releasever/$basearch
+# module_hotfixes = 1
+# gpgkey = https://rpm.mariadb.org/RPM-GPG-KEY-MariaDB
+# # gpgkey = https://mirror.its.dal.ca/mariadb/yum/RPM-GPG-KEY-MariaDB
+# gpgcheck = 1
+# EOF
+dnf -y -q module install mariadb:10.5/server
 systemctl start mariadb
 systemctl enable mariadb
 
-sqlPass=$(apg -n 1 -m 10 -x 12)
+sqlPass=$(randstr)
 sed -i "s/RX_MYSQL_PASSWORD.*$/RX_MYSQL_PASSWORD=\"$sqlPass\"/g" src/.env
 #TODO: ^ input this into my.cnf and secure my.cnf, swap user that sql uses away from root
 

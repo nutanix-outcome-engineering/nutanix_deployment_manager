@@ -45,7 +45,8 @@ systemctl stop redis
 systemctl disable redis
 systemctl stop mariadb
 systemctl disable mariadb
-dnf -y remove apg git nodejs redis mariadb-server
+dnf -y remove git
+dnf -y module remove nodejs redis mariadb-server
 
 if [ $delete -eq 1 ]; then
   rm -rf /var/lib/mysql

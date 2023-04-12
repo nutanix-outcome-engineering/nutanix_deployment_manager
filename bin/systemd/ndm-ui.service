@@ -1,0 +1,14 @@
+[Unit]
+Description=Start NDM UI Service
+StartLimitIntervalSec=1s
+StartLimitBurst=1000
+After=network.target
+PartOf=ndm.target
+[Service]
+WorkingDirectory=/opt/nutanix/ndm
+ExecStart=/usr/bin/node src/ui/ui.js
+User=ndm
+Group=ndm
+Restart=on-failure
+[Install]
+WantedBy=ndm.target

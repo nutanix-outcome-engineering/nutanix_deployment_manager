@@ -1,6 +1,8 @@
 # Repo Structure metadata file
 # Used by tree command to generate dir structure and descriptions
 # tree --gitignore -d  --noreport --info -L 2
+bin
+	directory for startup and other scripts
 docs
 	directory for documentation files
 src

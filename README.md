@@ -2,6 +2,8 @@
 ## Repository Structure
 ```
 .
+├── bin
+│    { directory for startup and other scripts
 ├── docs
 │    { directory for documentation files
 └── src

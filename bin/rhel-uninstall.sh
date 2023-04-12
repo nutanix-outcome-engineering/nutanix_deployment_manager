@@ -36,9 +36,6 @@ done
 if [ -f "src/.env" ]; then
   mv src/.env src/.env.cleanup.bk
 fi
-# Disable Code Ready Builder repo and EPEL repo
-dnf config-manager --set-disabled crb
-dnf -y remove epel-release
 
 # stop DB services and uninstall required apps
 systemctl stop redis
@@ -47,6 +44,13 @@ systemctl stop mariadb
 systemctl disable mariadb
 dnf -y remove git
 dnf -y module remove nodejs redis mariadb-server
+
+systemctl stop ndm.target
+systemctl disable ndm.target
+systemctl disable ndm-ui.service
+systemctl disable ndm-IngestionProcessor.service
+
+userdel ndm
 
 if [ $delete -eq 1 ]; then
   rm -rf /var/lib/mysql

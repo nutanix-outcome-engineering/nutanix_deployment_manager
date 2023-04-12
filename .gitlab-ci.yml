@@ -44,13 +44,12 @@ build:
     untracked: false
     when: on_success
     paths:
+      - bin/
       - src/
       - src/ui/frontend/dist
       - node_modules/
       - package.json
       - package-lock.json
-      - rhel-install.sh
-      - rhel-uninstall.sh
     # exclude:
     #   - src/ui/frontend/public/**/*
     #   - src/ui/frontend/src/**/*

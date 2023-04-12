@@ -1,0 +1,14 @@
+[Unit]
+Description=Start NDM Ingestion Processor Service
+StartLimitIntervalSec=1s
+StartLimitBurst=1000
+After=network.target
+PartOf=ndm.target
+[Service]
+WorkingDirectory=/opt/nutanix/ndm
+ExecStart=/usr/bin/node src/IngestionProcessor/ingestionProcessor.js
+User=ndm
+Group=ndm
+Restart=on-failure
+[Install]
+WantedBy=ndm.target

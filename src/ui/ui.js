@@ -3,7 +3,8 @@
 const express = require('express')
 const session = require('express-session')
 const cookieParser = require('cookie-parser')
-const http = require('http')
+const https = require('https')
+const fs = require('fs')
 const cors = require('cors')
 
 const passport = require('../lib/passport.js')
@@ -89,6 +90,12 @@ app.use((err, req, res, next) => {
   })
 })
 
+// CONFIGURE AND START WEB SERVER
+let options = {
+  key: fs.readFileSync(`${path.resolve(process.cwd(), config.server.key)}`),
+  cert: fs.readFileSync(`${path.resolve(process.cwd(), config.server.cert)}`),
+  minVersion: 'TLSv1.2'
+}
 
-http.createServer(app).listen(config.server.port)
-log.info(`Http Server Setup on Port: ${config.server.port}.`)
+https.createServer(options, app).listen(config.server.port)
+log.info(`Server Setup on Port: ${config.server.port}.`)

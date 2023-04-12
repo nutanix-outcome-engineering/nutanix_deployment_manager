@@ -64,7 +64,27 @@ FLUSH PRIVILEGES;
 CREATE DATABASE ndm;
 EOS
 
+serverName=$(hostname -f)
+sed -i "s/\(RX_SERVER_NAME=\).*/\1\"$serverName\"/g" src/.env
+sed -i "s/\(RX_SERVER_CERT=\).*/\1\"src/ui/${serverName//./_}.pem\"/g" src/.env
+sed -i "s/\(RX_SERVER_KEY=\).*/\1\"src/ui/key.pem\"/g" src/.env
+openssl req -x509 -newkey rsa:4096 -nodes -keyout src/ui/key.pem -out src/ui/${serverName//./_} -sha256 -days 365 -subj "/C=US/ST=North Carolina/L=Durham/O=Random/OU=Org/CN=$serverName"
+
 # install packages with NPM, run knex db migrations and knex db seeding
 npm install
 npm run db:migrate
 npm run db:seed
+
+# Create user
+adduser ndm --system --home /opt/nutanix/ndm --shell /sbin/nologin --comment "Nutanix Deployment Manager(NDM)"
+cp bin/systemd/* /etc/systemd/system
+mkdir -p /opt/nutanix/ndm
+cp -r . /opt/nutanix/ndm
+chown -R ndm:ndm /opt/nutanix/ndm
+
+# Enable Systemd targets and services
+systemctl daemon-reload
+systemctl enable ndm.target
+systemctl enable ndm-ui.service
+systemctl enable ndm-IngestionProcessor.service
+systemctl start ndm.target

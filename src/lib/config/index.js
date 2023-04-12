@@ -30,7 +30,10 @@ const config = {
     pass: process.env.RX_REDIS_PASS
   },
   server: {
-    port: 8080
+    name: process.env.RX_SERVER_NAME,
+    port: process.env.RX_SERVER_PORT,
+    key: process.env.RX_SERVER_KEY,
+    cert: process.env.RX_SERVER_CERT
   },
   fvm_ip: process.env.RX_FVM_IP
 }

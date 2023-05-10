@@ -2,7 +2,7 @@
 # Currently built for rocky 9 / RHEL 8
 
 # exit if anything fails
-randstr() { < /dev/urandom tr -dc '/@%#$_A-Za-z0-9' | head -c 12; echo; }
+randstr() { < /dev/urandom tr -dc '@%#$_A-Za-z0-9' | head -c 12; echo; }
 set -e
 
 [ "$UID" -eq 0 ] || exec sudo -E bash "$0" "$@"
@@ -13,12 +13,12 @@ else
 fi
 
 # install required apps
-dnf -y -q install git
-dnf -y -q module install nodejs:16/common
-dnf -y -q module install redis:6/common
+dnf -y  install git
+dnf -y  module install nodejs:16/common
+dnf -y  module install redis:6/common
 
 # If I don't, I'll go insane
-dnf -y -q install vim
+dnf -y  install vim
 
 test -f /etc/redis.conf && redisConfFile=/etc/redis.conf
 test -f /etc/redis/redis.conf && redisConfFile=/etc/redis/redis.conf
@@ -46,7 +46,7 @@ echo "npm version: $(npm -v)"
 # # gpgkey = https://mirror.its.dal.ca/mariadb/yum/RPM-GPG-KEY-MariaDB
 # gpgcheck = 1
 # EOF
-dnf -y -q module install mariadb:10.5/server
+dnf -y  module install mariadb:10.5/server
 systemctl start mariadb
 systemctl enable mariadb
 
@@ -66,9 +66,9 @@ EOS
 
 serverName=$(hostname -f)
 sed -i "s/\(RX_SERVER_NAME=\).*/\1\"$serverName\"/g" src/.env
-sed -i "s/\(RX_SERVER_CERT=\).*/\1\"src/ui/${serverName//./_}.pem\"/g" src/.env
-sed -i "s/\(RX_SERVER_KEY=\).*/\1\"src/ui/key.pem\"/g" src/.env
-openssl req -x509 -newkey rsa:4096 -nodes -keyout src/ui/key.pem -out src/ui/${serverName//./_} -sha256 -days 365 -subj "/C=US/ST=North Carolina/L=Durham/O=Random/OU=Org/CN=$serverName"
+sed -i "s%\(RX_SERVER_CERT=\).*%\1\"src/ui/${serverName//./_}.pem\"%g" src/.env
+sed -i "s%\(RX_SERVER_KEY=\).*%\1\"src/ui/key.pem\"%g" src/.env
+openssl req -x509 -newkey rsa:4096 -nodes -keyout src/ui/key.pem -out src/ui/${serverName//./_}.pem -sha256 -days 365 -subj "/C=US/ST=North Carolina/L=Durham/O=Random/OU=Org/CN=$serverName"
 
 # install packages with NPM, run knex db migrations and knex db seeding
 npm install
@@ -76,11 +76,14 @@ npm run db:migrate
 npm run db:seed
 
 # Create user
-adduser ndm --system --home /opt/nutanix/ndm --shell /sbin/nologin --comment "Nutanix Deployment Manager(NDM)"
+groupadd --system ndm
+useradd --no-create-home --system --home /opt/nutanix/ndm --shell /sbin/nologin --comment "Nutanix Deployment Manager(NDM)" --gid ndm ndm
+usermod --gid ndm ndm
 cp bin/systemd/* /etc/systemd/system
 mkdir -p /opt/nutanix/ndm
 cp -r . /opt/nutanix/ndm
 chown -R ndm:ndm /opt/nutanix/ndm
+chmod -R og-rw /opt/nutanix/ndm
 
 # Enable Systemd targets and services
 systemctl daemon-reload

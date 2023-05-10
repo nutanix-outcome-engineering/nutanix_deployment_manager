@@ -111,7 +111,7 @@ function displayNode(node) {
                           class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
                           :checked="indeterminateIngesting || selectedIngesting.length === ingestingNodes.length && ingestingNodes.length > 0"
                           :indeterminate="indeterminateIngesting"
-                          @change="selectedIngestingselectedIngesting = $event.target.checked ? ingestingNodes.map((n) => n.id) : []" />
+                          @change="selectedIngesting = $event.target.checked ? ingestingNodes.map((n) => n.id) : []" />
                       </th>
                       <th scope="col"
                         class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">

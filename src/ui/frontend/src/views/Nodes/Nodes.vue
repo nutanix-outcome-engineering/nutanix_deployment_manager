@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { Cog6ToothIcon, PaperAirplaneIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 import DisplayNodeModal from './DisplayNodeModal.vue';
+// import CreateClusterSlideOver from '../Clusters/CreateClusterSlideOver.vue';
+import Button from '@/components/Core/Button.vue'
 import useNodes from '@/composables/useNodes.js'
 
 const { getNodes, nodes, isLoading } = useNodes()
@@ -21,12 +24,22 @@ const indeterminate = computed(() => selectedNodes.value.length > 0 && selectedN
         <div class="sm:flex-auto">
           <h2 class="text-xl font-semibold text-gray-900">Nodes</h2>
         </div>
+          <!-- <div class="space-x-4">
+            <CreateClusterSlideOver :nodes="nodes.filter(node => selectedNodes.includes(node.serial))">
+              <template   #activator="{ open }">
+                <Button :disabled="!checked" @click="open">
+                  <Cog6ToothIcon class="-ml-2 mr-2 w-5 h-5 shrink-0"/>
+                  Create Cluster
+                </Button>
+              </template>
+            </CreateClusterSlideOver>
+          </div> -->
       </div>
-      <div class="mt-8 flex flex-col max-h-screen overflow-y-auto">
+      <div class="flex flex-col mt-8 ">
         <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-          <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+          <div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8">
             <div class="relative shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table v-if="nodes" class="min-w-full divide-y divide-gray-300">
+              <table v-if="nodes" class="w-full divide-y divide-gray-300">
                 <thead class="bg-gray-50">
                   <tr>
                     <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 w-12 px-6 sm:w-16 sm:px-8 backdrop-blur backdrop-filter">

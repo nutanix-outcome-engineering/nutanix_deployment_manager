@@ -15,6 +15,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite --config ./src/ui/frontend/vite.config.js",
     "build": "vite build --config ./src/ui/frontend/vite.config.js",
+    "buildDev": "vite build --config ./src/ui/frontend/vite.config.js --mode 'development'",
     "preview": "vite preview --config ./src/ui/frontend/vite.config.js"
   },
   "repository": {

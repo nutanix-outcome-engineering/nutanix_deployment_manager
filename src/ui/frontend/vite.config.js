@@ -8,7 +8,7 @@ import vue from '@vitejs/plugin-vue'
 import config from '../../lib/config'
 
 // https://vitejs.dev/config/
-export default defineConfig(({command}) => {
+export default defineConfig(({command, mode}) => {
   let viteConfig = {
     root: fileURLToPath(new URL('./', import.meta.url)),
     plugins: [vue({
@@ -43,6 +43,10 @@ export default defineConfig(({command}) => {
           changeOrigin: true
         }
       }
+    }
+  } else if (command === 'build' && mode === 'development') {
+    viteConfig.build = {
+      sourcemap: 'inline'
     }
   }
 

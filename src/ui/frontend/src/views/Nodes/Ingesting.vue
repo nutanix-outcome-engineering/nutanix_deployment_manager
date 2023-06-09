@@ -4,6 +4,7 @@ import { startCase, range } from 'lodash'
 import { Cog6ToothIcon, PaperAirplaneIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 import IngestNodesModal from '@/views/Nodes/IngestNodesModal.vue';
 import DisplayNodeModal from './DisplayNodeModal.vue';
+import DisplayNodeDrawer from './DisplayNodeDrawer.vue';
 import Button from '@/components/Core/Button.vue'
 import useNodes from '@/composables/useNodes.js'
 
@@ -27,6 +28,7 @@ const checkedIngesting = computed(() => selectedIngesting.value.length > 0)
 const indeterminateIngesting = computed(() => selectedIngesting.value.length > 0 && selectedIngesting.value.length < ingestingNodes.value.length)
 
 const selectedNode = ref(null)
+const displayNodeDetails = ref(false)
 const editing = ref(false)
 
 function edit() {
@@ -58,7 +60,7 @@ function rowClass(node, idx) {
   } else if (idx % 2 == 1) {
     cssClass = 'bg-blue-100'
   }
-  if (selectedNode?.value?.id == node.id) {
+  if (selectedNode?.value?.id == node.id && displayNodeDetails.value) {
     cssClass = 'bg-gray-100'
   }
   if (node.ingestState == 'failed') {
@@ -71,20 +73,20 @@ function rowClass(node, idx) {
 }
 
 function displayNode(node) {
-  if (selectedNode?.value?.id == node.id) {
-    selectedNode.value = null
-  } else {
-    selectedNode.value = node
+  if (selectedNode?.value?.id != node.id || (selectedNode?.value?.id == node.id && !displayNodeDetails.value)) {
+    displayNodeDetails.value = true
+  } else if (selectedNode?.value?.id == node.id) {
+    displayNodeDetails.value = false
   }
+  selectedNode.value = node
 }
 </script>
 
 <template>
-  <div class="mx-auto w-full h-full flex flex-row flex-grow">
-    <!--  Table Displays -->
-    <div class="lg:basis-3/4 lg:w-3/4 py-6 sm:px-6 lg:px-8 flex flex-col space-y-4 flex-1">
+<div class="flex flex-1 flex-row">
+  <div class="flex flex-1 flex-col p-5">
       <!-- Ingestion Processing Table -->
-      <div>
+      <div class="flex flex-auto flex-col h-0 max-h-[50%]">
         <div class="sm:flex sm:items-center">
           <div class="sm:flex-auto">
             <h2 class="text-xl font-semibold text-gray-900">Ingesting Nodes</h2>
@@ -97,12 +99,12 @@ function displayNode(node) {
             <IngestNodesModal @ingestByRange="ingestIPRange" />
           </div>
         </div>
-        <div class="mt-4 flow-root overflow-y-auto">
+        <div class="mt-4 overflow-y-auto overscroll-contain">
           <div v-if="ingestingNodes.filter(n => n.ingestState != 'pendingReview').length"
             class="-my-2 -mx-4  sm:-mx-6 lg:-mx-8">
-            <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-              <div class="relative shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                <table class="min-w-full border-separate border-spacing-0 table-fixed">
+            <div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8">
+              <div class="shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+                <table class="w-full border-separate border-spacing-0">
                   <thead class="bg-gray-200">
                     <tr>
                       <th scope="col"
@@ -128,19 +130,17 @@ function displayNode(node) {
                       </th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-gray-200 bg-white">
-                    <tr v-for="(node, idx) in ingestingNodes.filter(n => n.ingestState != 'pendingReview')"
-                      :key="node.id" :class="rowClass(node, idx)">
+                  <tbody>
+                    <tr v-for="(node, idx) in ingestingNodes.filter(n => n.ingestState != 'pendingReview')" :key="node.id"
+                      :class="rowClass(node, idx)">
                       <td class="relative w-12 px-6 sm:w-16 sm:px-8">
-                        <div v-if="selectedIngesting.includes(node.id)"
-                          class="absolute inset-y-0 left-0 w-0.5 bg-indigo-600"></div>
+                        <div v-if="selectedIngesting.includes(node.id)" class="absolute inset-y-0 left-0 w-0.5 bg-indigo-600"></div>
                         <input type="checkbox"
                           class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
                           :value="node.id" v-model="selectedIngesting" />
                       </td>
-                      <td
-                        :class="['whitespace-nowrap px-3 py-4 text-sm font-medium', selectedIngesting.includes(node.id) ? 'text-indigo-600' : 'text-gray-900']">
-                        <!-- <DisplayNodeModal :node="node">{{ node.ipmiIP }}</DisplayNodeModal> -->
+                      <td @click="displayNode(node)"
+                        :class="['whitespace-nowrap px-3 py-4 text-sm font-medium cursor-pointer hover:underline decoration-from-font', selectedIngesting.includes(node.id) ? 'text-indigo-600' : 'text-gray-900']">
                         {{ node.ipmi.ip }}
                       </td>
                       <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -163,9 +163,8 @@ function displayNode(node) {
         </div>
       </div>
       <!--Ingestion Processing Table End-->
-
-      <!--<div> Pending Review Table -->
-      <div>
+      <!-- Pending Review Table -->
+      <div class="flex flex-auto flex-col h-0 max-h-[50%]">
         <div class="sm:flex sm:items-center mt-4">
           <div class="sm:flex-auto">
             <h2 class="text-xl font-semibold text-gray-900">Nodes Pending Review</h2>
@@ -181,12 +180,12 @@ function displayNode(node) {
             </Button>
           </div>
         </div>
-        <div class="mt-8 overflow-y-auto">
+        <div class="mt-4 overflow-y-auto overscroll-contain">
           <div v-if="pendingReview.length" class="-my-2 -mx-4  sm:-mx-6 lg:-mx-8">
-            <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
+            <div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8">
               <div class="relative shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
                 <div class="relative shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                  <table class="min-w-full border-separate border-spacing-0 table-fixed ">
+                  <table class="w-full border-separate border-spacing-0">
                     <thead class="bg-gray-200">
                       <tr>
                         <th scope="col"
@@ -226,18 +225,16 @@ function displayNode(node) {
                         </th>
                       </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white">
+                    <tbody class="divide-y divide-gray-200">
                       <tr v-for="(node, idx) in pendingReview" :key="node.id" :class="rowClass(node, idx)">
                         <td class="relative w-12 px-6 sm:w-16 sm:px-8">
-                          <div v-if="selectedPendingReview.includes(node.id)"
-                            class="absolute inset-y-0 left-0 w-0.5 bg-indigo-600"></div>
+                          <div v-if="selectedPendingReview.includes(node.id)" class="absolute inset-y-0 left-0 w-0.5 bg-indigo-600"></div>
                           <input type="checkbox"
                             class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
                             :value="node.id" v-model="selectedPendingReview" />
                         </td>
                         <td @click="displayNode(node)"
-                          :class="['whitespace-nowrap px-3 py-4 text-sm font-medium', selectedPendingReview.includes(node.id) ? 'text-indigo-600' : 'text-gray-900']">
-                          <!-- <DisplayNodeModal :node="node">{{ node.ipmiIP }}</DisplayNodeModal> -->
+                          :class="['whitespace-nowrap px-3 py-4 text-sm font-medium cursor-pointer hover:underline decoration-from-font', selectedPendingReview.includes(node.id) ? 'text-indigo-600' : 'text-gray-900']">
                           {{ node.ipmi.ip }}
                         </td>
                         <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -275,114 +272,12 @@ function displayNode(node) {
         </div>
       </div>
       <!--Pending Review Table End -->
-    </div>
-
-    <!-- Node Data Display -->
-    <div v-if="selectedNode" class="basis-1/4 w-1/4 h-full max-w-[25%] pl-2">
-      <div class="relative flex flex-row justify-between pr-2">
-        <div class="text-lg font-medium leading-6 text-gray-900">Node Information
-          <p class="mt-1 max-w-2xl text-sm text-gray-500">Details about the node.</p>
-        </div>
-        <div class="">
-          <Button @click="edit" :disabled="!checkedPendingReview">
-            <PencilSquareIcon class="-ml-2 mr-2 w-5 h-5 shrink-0"/>
-            Edit
-          </Button>
-        </div>
-      </div>
-      <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
-        <div class="sm:divide-y sm:divide-gray-200">
-          <div class="py-4 sm:py-5 sm:px-4">
-            <p class="max-w-2xl text-sm font-medium mb-1 text-gray-500 pb-1 ">Details about the IPMI</p>
-
-            <div class="px-2 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-col-2">
-              <div class="sm:col-span-1">
-                <label for="ipmiIP" class="pb-0 text-sm font-normal text-gray-500">IPMI IP</label><br />
-                <input type="text" id="ipmiIP" v-model="selectedNode.ipmi.ip" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="ipmiHostname" class="pb-1 text-sm font-normal text-gray-500">IPMI Hostname</label><br />
-                <input type="text" id="ipmiHostname" v-model="selectedNode.ipmi.hostname" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="ipmiSubnet" class="pb-1 text-sm font-normal text-gray-500">IPMI Subnet</label><br />
-                <input type="text" id="ipmiSubnet" v-model="selectedNode.ipmi.subnet" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="ipmiGateway" class="pb-1 text-sm font-normal text-gray-500">IPMI Gateway</label><br />
-                <input type="text" id="ipmiGateway" v-model="selectedNode.ipmi.gateway" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-            </div>
-          </div>
-          <div class="py-4 sm:py-5 sm:px-4">
-            <p class="max-w-2xl text-sm font-medium mb-1 text-gray-500 pb-1 ">Details about the Host</p>
-            <div class="px-2 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-col-2">
-              <div class="sm:col-span-1">
-                <label for="hostIP" class="pb-0 text-sm font-normal text-gray-500">Host IP</label><br />
-                <input type="text" id="hostIP" v-model="selectedNode.host.ip" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="hostHostname" class="pb-1 text-sm font-normal text-gray-500">Host Hostname</label><br />
-                <input type="text" id="hostHostname" v-model="selectedNode.host.hostname" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="hostSubnet" class="pb-1 text-sm font-normal text-gray-500">Host Subnet</label><br />
-                <input type="text" id="hostSubnet" v-model="selectedNode.host.subnet" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="hostGateway" class="pb-1 text-sm font-normal text-gray-500">Host Gateway</label><br />
-                <input type="text" id="hostGateway" v-model="selectedNode.host.gateway" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-            </div>
-          </div>
-          <div class="py-4 sm:py-5 sm:px-4">
-            <p class="max-w-2xl text-sm font-medium mb-1 text-gray-500 pb-1 ">Details about the CVM</p>
-            <div class="px-2 grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-col-2">
-              <div class="sm:col-span-1">
-                <label for="cvmIP" class="pb-0 text-sm font-normal text-gray-500">CVM IP</label><br />
-                <input type="text" id="cvmIP" v-model="selectedNode.cvm.ip" :disabled="!editing" placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="cvmHostname" class="pb-1 text-sm font-normal text-gray-500">CVM Hostname</label><br />
-                <input type="text" id="cvmHostname" v-model="selectedNode.cvm.hostname" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="cvmSubnet" class="pb-1 text-sm font-normal text-gray-500">CVM Subnet</label><br />
-                <input type="text" id="cvmSubnet" v-model="selectedNode.cvm.subnet" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-              <div class="sm:col-span-1">
-                <label for="cvmGateway" class="pb-1 text-sm font-normal text-gray-500">CVM Gateway</label><br />
-                <input type="text" id="cvmGateway" v-model="selectedNode.cvm.gateway" :disabled="!editing"
-                  placeholder="10.1.1.1"
-                  class="relative -left-3 mt-2 text-sm text-gray-900 sm:col-span-1 sm:mt-0 rounded-md border disabled:border-0 disabled:pt-[.5625rem]  disabled:pl-[.8125rem] disabled:pb-[.5625rem]" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
+  <div v-if="displayNodeDetails" class="basis-1/4 w-1/4 h-full max-w-[25%] pl-2">
+    <DisplayNodeDrawer :node="selectedNode" :show="displayNodeDetails"/>
+  </div>
+</div>
+
 
 </template>
 

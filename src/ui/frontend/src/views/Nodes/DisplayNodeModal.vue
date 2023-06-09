@@ -46,8 +46,8 @@ function edit() {
     <div class="overflow-hidden bg-white shadow sm:rounded-lg">
       <div class="flex items-center justify-between px-2 py-5 sm:px-2">
         <div class="relative">
-          <h3 class="text-lg font-medium leading-6 text-gray-900">{{ isIngestingNode? 'Ingesting ': '' }}Node Information</h3>
-          <p class="mt-1 max-w-2xl text-sm text-gray-500">Details about the {{ isIngestingNode? 'ingesting ': '' }}node.</p>
+          <h3 class="text-lg font-medium leading-6 text-gray-900">{{ isIngestingNode ? 'Ingesting ': '' }}Node Information</h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500">Details about the {{ isIngestingNode ? 'ingesting ': '' }}node.</p>
         </div>
         <button @click="edit">
           Edit

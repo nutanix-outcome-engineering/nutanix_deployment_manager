@@ -37,7 +37,7 @@ export default function useAxios() {
   }, err => {
     isLoading.value = false
     error.value = err.response && err.response.data
-    show(error.value.message, 'Error', 'error')
+    show(error?.value?.message, 'Error', 'error')
     response.value = null
     return Promise.reject(err)
   })

@@ -49,6 +49,14 @@ const router = createRouter({
       ]
     },
     {
+      path: '/sites',
+      name: "sites",
+      component: lazy('Sites/Sites'),
+      meta: {
+        auth: true
+      }
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting

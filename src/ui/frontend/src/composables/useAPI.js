@@ -12,6 +12,6 @@ export default function useAPI() {
     isLoading: readonly(isLoading),
     error: readonly(error),
     response: readonly(response),
-    data: readonly(data)
+    data: data
   }
 }

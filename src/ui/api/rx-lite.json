@@ -10,7 +10,7 @@
   },
   "servers": [
     {
-      "url": "http://ndm.nutanix.com:8443/api"
+      "url": "https://ndm.nutanix.com:8443/api"
     }
   ],
   "paths": {
@@ -365,6 +365,109 @@
           "description": "Task Flow UUID"
         }
       ]
+    },
+    "/sites": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SiteList"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "sites.getAll",
+        "description": "Get all Sites."
+      },
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "sites.add",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Site"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{id}": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "sites.get",
+        "description": "Get specific Site"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "description": "id of Site",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "sites.update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Site"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -491,6 +594,42 @@
             "type": "string",
             "nullable": true
           }
+        }
+      },
+      "Site": {
+        "title": "Site",
+        "type": "object",
+        "description": "Site Model",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "infraCluster": {
+            "type": "integer",
+            "nullable": true
+          },
+          "ntpServers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dnsServers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SiteList": {
+        "title": "SiteList",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/Site"
         }
       }
     },

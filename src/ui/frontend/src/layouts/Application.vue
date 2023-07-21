@@ -15,6 +15,7 @@ const user = {
 const navigation = [
   { name: 'home', displayName: "Dashboard", href: '/', current: true },
   { name: 'nodes.nodes', displayName: "Nodes",href: '/nodes', current: false },
+  { name: 'sites', displayName: "Sites",href: '/sites', current: false }
   // { name: 'Clusters', href: '#', current: false },
   // { name: 'Foundation', href: '#', current: false },
   // { name: 'Reports', href: '#', current: false },

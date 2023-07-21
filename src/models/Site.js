@@ -47,7 +47,9 @@ class Site {
   }
 
   async create() {
-    return await db(TABLE).insert(this.serialize())
+    let insertedID =  (await db(TABLE).insert(this.serialize()))[0]
+    let addedSite =  await Site.getByID(insertedID)
+    return addedSite
   }
 
   static async query(callback = async knex => knex) {

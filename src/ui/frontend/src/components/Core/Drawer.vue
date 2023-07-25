@@ -37,7 +37,7 @@ function open() {
       enter-from="translate-x-full" enter-to="translate-x-0"
       leave="transform transition ease-in-out duration-500 sm:duration-700" leave-from="translate-x-0"
       leave-to="translate-x-full">
-      <div class="h-full w-full">
+      <div class="h-full w-full border-l border-y rounded-l-md border-gray-200">
         <slot :close="close" />
       </div>
     </TransitionChild>

@@ -78,9 +78,9 @@ class Node {
     return await this.query()
   }
 
-  static async getByID(id) {
+  static async getBySerial(serial) {
     const builder = this.query(q => {
-      q.where({id: id})
+      q.where({serial: serial})
       return q
     })
 

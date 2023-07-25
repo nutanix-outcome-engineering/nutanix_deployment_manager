@@ -202,6 +202,43 @@
       },
       "parameters": []
     },
+    "/nodes/ingesting/{id}": {
+      "patch": {
+        "description": "Update data of ingesting node",
+        "operationId": "nodes.ingesting.update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IngestingNode"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Node"
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/nodes/ingesting/retry": {
       "parameters": [],
       "post": {
@@ -332,7 +369,32 @@
           "description": "Serial Number of Node",
           "required": true
         }
-      ]
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "nodes.nodes.update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Node"
+              }
+            }
+          }
+        }
+      }
     },
     "/tasks/{taskId}": {
       "get": {
@@ -630,6 +692,15 @@
         "type": "array",
         "items": {
           "$ref": "#/components/schemas/Site"
+        }
+      },
+      "Error": {
+        "title": "Error",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
         }
       }
     },

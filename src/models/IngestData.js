@@ -192,6 +192,9 @@ class IngestData {
     for (let key in changes) {
       sparseCommit[key] = serialized[key]
     }
+    if (Object.keys(sparseCommit).length === 0) {
+      return 0
+    }
     let q = db(TABLE).where({id: this.id}).update(sparseCommit)
     return await q
   }

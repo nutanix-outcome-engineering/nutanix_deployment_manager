@@ -35,6 +35,26 @@ async function addNodes(nodes) {
     await Promise.all([getIngestingNodes(), getNodes()])
     show('Node(s) added', '', 'success')
   } catch(error) {
+    throw error
+  }
+}
+
+async function updateIngestingNode(node) {
+  try {
+    await axios.patch(`/nodes/ingesting/${node.id}`, node)
+    await getIngestingNodes()
+    show('Node updated', '', 'success')
+  } catch(error) {
+
+  }
+}
+
+async function updateNode(node) {
+  try {
+    await axios.patch(`/nodes/${node.serial}`, node)
+    await getNodes()
+    show('Node updated', '', 'success')
+  } catch(error) {
 
   }
 }
@@ -76,6 +96,8 @@ export default function useNodes() {
     getNodes,
     ingestIPRange,
     addNodes,
+    updateIngestingNode,
+    updateNode,
     retryDiscovery,
     fetchAll,
     setupPoll

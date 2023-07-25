@@ -1,17 +1,20 @@
 <script setup>
-import { ref, watchEffect, computed } from 'vue'
+import { ref, unref, watchEffect, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import { isEqual } from 'lodash'
 import { XMarkIcon, Cog6ToothIcon, PaperAirplaneIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
-import { LinkIcon, PlusIcon, QuestionMarkCircleIcon } from '@heroicons/vue/20/solid'
 import Drawer from '@/components/Core/Drawer.vue'
-
 import Button from '@/components/Core/Button.vue'
+import useNodes from '@/composables/useNodes.js'
+
+const emit = defineEmits(['closeNodeDrawer', 'nodeUpdated', 'nodeAdded', 'retryDiscovery'])
+const { updateIngestingNode, addNodes, updateNode } = useNodes()
 
 const isVisible = ref(false)
 const editing = ref(false)
-const route = useRoute()
 const form = ref({})
+const isSaving = ref(false)
+const isAdding = ref(false)
 
 const props = defineProps({
   node: {
@@ -21,35 +24,128 @@ const props = defineProps({
   show: Boolean
 })
 
-const isIngestingNode = computed(() => route.name.toLowerCase().includes('ingest'))
+const isIngestingNode = computed(() => props.node?.ingestState != undefined)
+const isDiscoveringNode = computed(() => props.node?.ingestState != undefined && !['failed', 'pendingReview'].includes(props.node?.ingestState))
+const isPendingReview = computed(() => props.node?.ingestState == 'pendingReview')
+const isFormDirty = computed(() => {
+ return !isEqual(form.value, hydrateForm())
+})
 
 watchEffect(() => {
-  form.value = {
-    ...props.node
-  }
+  form.value = hydrateForm()
+  editing.value = false
   isVisible.value = props.show
 })
 
+function hydrateForm() {
+  return {
+    id: props.node.id,
+    serial: props.node.serial,
+    chassisSerial: props.node.chassisSerial,
+    ipmi: {
+      ip: props.node.ipmi.ip,
+      hostname: props.node.ipmi.hostname,
+      gateway: props.node.ipmi.gateway,
+      subnet: props.node.ipmi.subnet
+    },
+    host: {
+      ip: props.node.host.ip,
+      hostname: props.node.host.hostname,
+      gateway: props.node.host.gateway,
+      subnet: props.node.host.subnet
+    },
 
+    cvm: {
+      ip: props.node.cvm.ip,
+      hostname: props.node.cvm.hostname,
+      gateway: props.node.cvm.gateway,
+      subnet: props.node.cvm.subnet
+    }
+  }
+}
+
+async function addNode() {
+  try {
+    isAdding.value = true
+    await addNodes([form.value])
+    emit('nodeAdded')
+  } catch(error) {
+  } finally {
+    isAdding.value = false
+  }
+}
 
 function edit() {
   editing.value = !editing.value
 }
+
+async function save() {
+  try {
+    isSaving.value = true
+    let nodeIdent
+    if (isIngestingNode.value) {
+      await updateIngestingNode(form.value)
+      nodeIdent = unref(form.value.id)
+    } else {
+      await updateNode(form.value)
+      nodeIdent = unref(form.value.serial)
+    }
+    emit('nodeUpdated', nodeIdent)
+  } catch(error) {
+  } finally {
+    isSaving.value = false
+  }
+}
+
+function retry() {
+  emit('retryDiscovery', form.value.id)
+}
+
+function close() {
+  isVisible.value = false
+  emit('closeNodeDrawer')
+}
+
+function setSaveTippyContent(instance) {
+  if (instance.reference.childNodes[0].disabled) {
+    instance.setContent('No changes detected.')
+  } else {
+    instance.setContent('Save changes on node.')
+  }
+  return instance
+}
+
 </script>
 
 <template>
   <Drawer v-model="isVisible">
     <!-- Content Begin -->
-    <div class="relative flex flex-row justify-between pr-2">
-      <div class="text-lg font-medium leading-6 text-gray-900">{{ isIngestingNode ? 'Ingesting ' : '' }}Node Information
-        <p class="mt-1 max-w-2xl text-sm text-gray-500">Details about the {{ isIngestingNode ? 'ingesting ' : '' }}node.
-        </p>
+    <div class="flex flex-row justify-between px-2 mt-1 mb-1">
+      <div class="flex flex-col font-medium leading-6">
+        <p class="text-lg text-gray-900">{{ isIngestingNode ? 'Ingesting ' : '' }}Node Information</p>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">Details about the {{ isIngestingNode ? 'ingesting ' : '' }}node.</p>
       </div>
-      <div class="">
-        <Button @click="edit" :disabled="form.ingestState != 'pendingReview'">
-          <PencilSquareIcon class="-ml-2 mr-2 w-5 h-5 shrink-0" />
-          Edit
+      <div class="flex mt-1 space-x-1">
+        <Button v-if="isPendingReview" v-tippy="{content: 'Adds node to inventory'}" kind="primary" @click="addNode" :loading="isAdding">
+          <PaperAirplaneIcon class="hidden lg:block -ml-2 mr-2 w-5 h-5 shrink-0"/>
+          Add
         </Button>
+        <Transition mode="out-in">
+          <Button v-if="!editing && (isPendingReview || !isIngestingNode)" @click="edit" :disabled="!isPendingReview && isIngestingNode">
+            <PencilSquareIcon class="hidden lg:block -ml-2 w-5 h-5 shrink-0" />
+            Edit
+          </Button>
+          <Button v-else-if="!isPendingReview && isIngestingNode" @click="retry" :disabled="isDiscoveringNode">
+            <Cog6ToothIcon class="hidden lg:block -ml-2 mr-2 w-5 h-5 shrink-0"/>
+            Retry
+          </Button>
+          <Button v-else v-tippy="{onShow: setSaveTippyContent }" name="saveBtn" @click="save" kind="primary" :loading="isSaving" :disabled="!isFormDirty">
+            Save
+          </Button>
+        </Transition>
+        <button @click="close">
+          <XMarkIcon class="-mt-1.5 w-5 h-5 shrink-0" />
+        </button>
       </div>
     </div>
     <div class="border-t border-gray-200 px-4 py-5 sm:p-0">

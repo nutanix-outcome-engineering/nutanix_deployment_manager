@@ -27,17 +27,43 @@ module.exports = {
 
       res.json(ingestingNodes)
     },
+    update: async (req, res, next) => {
+      try {
+        let id = req.params.id
+        let ingestingNode = await IngestData.getByID(id)
+
+        ingestingNode.ipmiIP = req.body?.ipmi?.ip
+        ingestingNode.ipmiHostname = req.body?.ipmi?.hostname
+        ingestingNode.ipmiGateway = req.body?.ipmi?.gateway
+        ingestingNode.ipmiSubnet = req.body?.ipmi?.subnet
+
+        ingestingNode.hostIP = req.body?.host?.ip
+        ingestingNode.hostHostname = req.body?.host?.hostname
+        ingestingNode.hostGateway = req.body?.host?.gateway
+        ingestingNode.hostSubnet = req.body?.host?.subnet
+
+        ingestingNode.cvmIP = req.body?.cvm?.ip
+        ingestingNode.cvmHostname = req.body?.cvm?.hostname
+        ingestingNode.cvmGateway = req.body?.cvm?.gateway
+        ingestingNode.cvmSubnet = req.body?.cvm?.subnet
+
+        await ingestingNode.update()
+        res.json(ingestingNode.toJSON())
+      } catch (err) {
+        next(err)
+      }
+    },
     retry: async (req, res, next) => {
       let retryIds = []
-      if (req.param.id) {
-        retryIds.push(req.param.id)
+      if (req.params.id) {
+        retryIds.push(req.params.id)
       } else {
         retryIds = req.body.ingestionIDs
       }
 
       await IngestData.retryDiscovery(retryIds)
 
-      res.status(204).send
+      res.status(204).send()
     }
   },
   nodes: {
@@ -45,7 +71,6 @@ module.exports = {
       const nodes = await Node.getAll()
 
       res.json(nodes.map(n => n.toJSON()))
-      // res.json([{"serial":"87JCZB3","chassisSerial":null,"ipmiIP":"10.38.43.33","ipmiHostname":null,"ipmiD":null,"hostIP":null,"hostHostname":null,"cvmIP":"1","cvmHostname":null},{"serial":"87JFZB3","chassisSerial":null,"ipmiIP":"10.38.43.34","ipmiHostname":null,"ipmiD":null,"hostIP":null,"hostHostname":null,"cvmIP":"1","cvmHostname":null},{"serial":"87JDZB3","chassisSerial":null,"ipmiIP":"10.38.43.35","ipmiHostname":null,"ipmiD":null,"hostIP":null,"hostHostname":null,"cvmIP":"1","cvmHostname":null},{"serial":"87JGZB3","chassisSerial":null,"ipmiIP":"10.38.43.36","ipmiHostname":null,"ipmiD":null,"hostIP":null,"hostHostname":null,"cvmIP":"1","cvmHostname":null}])
     },
     get: async(req, res, next) => {
       next({message: 'Not Implemented', status: 501})
@@ -61,5 +86,31 @@ module.exports = {
 
       res.status(201).send()
     },
+    update: async(req, res, next) => {
+      try {
+        let node = await Node.getBySerial(req.params.serial)
+        //BUG: This doesn't work as expected if you are wanting to do a PATCH; it behaves more like a PUT. Basically value is overwritten if left out.
+        // Would probably be a good idea to create a generic class method that would handle this for re-usability
+        node.ipmiIP = req.body?.ipmi?.ip
+        node.ipmiHostname = req.body?.ipmi?.hostname
+        node.ipmiGateway = req.body?.ipmi?.gateway
+        node.ipmiSubnet = req.body?.ipmi?.subnet
+
+        node.hostIP = req.body?.host?.ip
+        node.hostHostname = req.body?.host?.hostname
+        node.hostGateway = req.body?.host?.gateway
+        node.hostSubnet = req.body?.host?.subnet
+
+        node.cvmIP = req.body?.cvm?.ip
+        node.cvmHostname = req.body?.cvm?.hostname
+        node.cvmGateway = req.body?.cvm?.gateway
+        node.cvmSubnet = req.body?.cvm?.subnet
+
+        await node.update()
+        res.json(node.toJSON())
+      } catch (err) {
+        next(err)
+      }
+    }
   }
 }

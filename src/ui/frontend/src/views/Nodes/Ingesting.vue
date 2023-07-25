@@ -3,7 +3,6 @@ import { ref, computed } from 'vue'
 import { startCase, range } from 'lodash'
 import { Cog6ToothIcon, PaperAirplaneIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 import IngestNodesModal from '@/views/Nodes/IngestNodesModal.vue';
-import DisplayNodeModal from './DisplayNodeModal.vue';
 import DisplayNodeDrawer from './DisplayNodeDrawer.vue';
 import Button from '@/components/Core/Button.vue'
 import useNodes from '@/composables/useNodes.js'
@@ -15,7 +14,6 @@ const { getIngestingNodes,
   addNodes,
   retryDiscovery
 } = useNodes()
-
 
 const selectedPendingReview = ref([])
 const checkedPendingReview = computed(() => selectedPendingReview.value.length > 0)
@@ -31,11 +29,6 @@ const selectedNode = ref(null)
 const displayNodeDetails = ref(false)
 const editing = ref(false)
 
-function edit() {
-  editing.value = !editing.value
-}
-
-// setTimeout(getIngestingNodes, 5000)
 async function addChecked() {
   const nodesToAdd = ingestingNodes.value.filter(node => selectedPendingReview.value.includes(node.id))
 
@@ -79,6 +72,25 @@ function displayNode(node) {
     displayNodeDetails.value = false
   }
   selectedNode.value = node
+}
+
+function nodeAdded() {
+  displayNodeDetails.value = false
+  selectedNode.value = null
+}
+
+function nodeUpdated(id) {
+  selectedNode.value = ingestingNodes.value.filter(node => node.id == id)[0]
+}
+
+function closeNodeDrawer() {
+  displayNodeDetails.value = false
+}
+
+async function retryDiscoverNode(id) {
+  await retryDiscovery([id])
+  displayNodeDetails.value = false
+  selectedIngesting.value.splice(selectedIngesting.value.indexOf(id), 1)
 }
 </script>
 
@@ -192,9 +204,9 @@ function displayNode(node) {
                           class="z-10 sticky border-b border-gray-300 top-0 w-12 px-6 sm:w-16 sm:px-8 backdrop-blur backdrop-filter">
                           <input type="checkbox"
                             class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
-                            :checked="indeterminatePendingReview || selectedPendingReview.length === ingestingNodes.length && ingestingNodes.length > 0"
+                            :checked="indeterminatePendingReview || selectedPendingReview.length === pendingReview.length && pendingReview.length > 0"
                             :indeterminate="indeterminatePendingReview"
-                            @change="selectedPendingReview = $event.target.checked ? ingestingNodes.map((n) => n.id) : []" />
+                            @change="selectedPendingReview = $event.target.checked ? pendingReview.map((n) => n.id) : []" />
                         </th>
                         <th scope="col"
                           class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">
@@ -273,8 +285,11 @@ function displayNode(node) {
       </div>
       <!--Pending Review Table End -->
   </div>
-  <div v-if="displayNodeDetails" class="basis-1/4 w-1/4 h-full max-w-[25%] pl-2">
-    <DisplayNodeDrawer :node="selectedNode" :show="displayNodeDetails"/>
+  <div v-if="displayNodeDetails" class="basis-1/4 w-1/4 h-full max-w-[25%] -ml-2">
+    <DisplayNodeDrawer @nodeAdded="nodeAdded" @nodeUpdated="nodeUpdated"
+      @closeNodeDrawer="closeNodeDrawer" @retryDiscovery="retryDiscoverNode"
+      :node="selectedNode" :show="displayNodeDetails"
+    />
   </div>
 </div>
 

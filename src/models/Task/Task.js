@@ -1,5 +1,6 @@
 const ms = require('ms')
 const { promises: dns } = require('dns')
+const { DelayedError } = require('bullmq')
 const IngestData = require('../IngestData')
 const redfishNode = require('../../lib/redfish-util')
 const foundation = require('../../lib/foundation-util')
@@ -43,7 +44,10 @@ class DiscoverCVMDirectTask {
       const isPoweredOn = await node.isPoweredOn()
       if (!isPoweredOn) {
         await node.powerOn()
-        await job.moveToDelayed(ms('5m'), token)
+        // Delay job while we wait for power on. The function takes a epoch timestamp of the time to move it back to the wait queue
+        await job.moveToDelayed((Date.now() + ms('5m')), token)
+        // This error needs to be thrown otherwise the worker errors with a weird message
+        throw new DelayedError('Waiting for node to power on.')
       } else {
         const fvm = new foundation()
         cvmInfo = await fvm.discoverNodesByBlockSN(node.blockSerial)

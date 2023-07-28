@@ -57,8 +57,8 @@ async function start() {
         let taskFlow = new task.DiscoverNodeTaskFlow(null, null, {
           bmcInfo: {
             ipmiIP: node.ipmiIP,
-            user: 'root',
-            password: 'calvin'
+            user: 'ADMIN',
+            password: 'ADMIN'
           }
         })
         taskFlow.status = 'processing'

@@ -1,5 +1,5 @@
 module.exports = {
-  ...require('./Task'),
+  ...require('./DiscoveryTasks'),
   ...require('./TaskFlow'),
   ...require('./TaskFlowFactory'),
   TaskFlowFactory: {

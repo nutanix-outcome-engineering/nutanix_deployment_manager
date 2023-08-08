@@ -55,10 +55,9 @@ async function start() {
     for (let node of pendingIngest) {
       try {
         let taskFlow = new task.DiscoverNodeTaskFlow(null, null, {
+          ingestDataId: node.id,
           bmcInfo: {
-            ipmiIP: node.ipmiIP,
-            user: 'ADMIN',
-            password: 'ADMIN'
+            ipmiIP: node.ipmiIP
           }
         })
         taskFlow.status = 'processing'

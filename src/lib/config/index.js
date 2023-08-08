@@ -10,6 +10,7 @@ dotenv.config({path: path.resolve(__dirname, '../../.env')})
 
 const config = {
   secret: process.env.RX_SECRET,
+  cipher: process.env.RX_CIPHER || 'aes-256-gcm',
   env_prefix: process.env.RX_ENV_PREFIX || 'prod',
   logging: {
     use_console_logging: Boolean(process.env.RX_LOGGING_USE_CONSOLE_LOGGING === 'true'),

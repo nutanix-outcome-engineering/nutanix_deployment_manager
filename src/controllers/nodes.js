@@ -14,13 +14,7 @@ module.exports = {
           node.taskData = taskData.toJSON()
           delete node.ingestTaskUUID
           node.failureReason = node.taskData.failureReason
-          node.nicInfo = node.taskData.rawResults?.bmcInfo.nodeSwitchConnections.map(n => {
-            return {
-              nicName: n.InstanceID,
-              switchPort: n.SwitchPortConnectionID.replace('Ethernet', ''),
-              switchMac: n.SwitchConnectionID
-            }
-          })
+          node.nicInfo = node.taskData?.rawResults?.nics
         }
         return node
       }))

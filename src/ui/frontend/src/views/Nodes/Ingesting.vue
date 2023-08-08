@@ -260,13 +260,13 @@ async function retryDiscoverNode(id) {
                         </td>
                         <template v-for="nic in range(maxNicCount)">
                           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {{ node.nicInfo[nic]?.nicName || "N/A" }}
+                            {{ node?.nicInfo?.[nic]?.nicName || "N/A" }}
                           </td>
                           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {{ node.nicInfo[nic]?.switchPort || "N/A" }}
+                            {{ node?.nicInfo?.[nic]?.switchPort || "N/A" }}
                           </td>
                           <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {{ node.nicInfo[nic]?.switchMac || "N/A" }}
+                            {{ node?.nicInfo?.[nic]?.switchMac || "N/A" }}
                           </td>
                         </template>
                         <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

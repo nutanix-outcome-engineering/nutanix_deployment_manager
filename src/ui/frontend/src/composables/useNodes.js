@@ -19,9 +19,9 @@ async function getNodes() {
   nodes.value = data.value
 }
 
-async function ingestIPRange({start, stop}) {
+async function ingestIPRange({start, stop, credentials}) {
   try {
-    await axios.post('/import/ip/range', {start, stop})
+    await axios.post('/import/ip/range', {start, stop, credentials})
     await getIngestingNodes()
     show('Range ingesting', '', 'success')
   } catch (error) {

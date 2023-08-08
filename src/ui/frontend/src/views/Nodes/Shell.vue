@@ -4,7 +4,7 @@ import useNodes from '@/composables/useNodes.js'
 
 const { ingestingNodes, nodes, fetchAll, setupPoll } = useNodes()
 
-setupPoll('5s')
+setupPoll('60s')
 fetchAll()
 
 </script>

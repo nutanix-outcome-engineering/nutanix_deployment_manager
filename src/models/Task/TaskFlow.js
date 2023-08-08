@@ -226,15 +226,16 @@ class DiscoverNodeTaskFlow extends TaskFlow {
           needs: ['DiscoverBMC']
           //onFailure: 'DiscoverCVMThroughBMC'
         },
-        // {
-        //   name: 'DiscoverCVMThroughBMC',
-        //   needs: ['DiscoverBMC']
-        // },
+        {
+          name: 'FetchLLDP',
+          needs: ['DiscoverCVMDirect']
+        },
         {
           name: 'IngestNode',
           needs:[
             'DiscoverBMC',
             'DiscoverCVMDirect',
+            'FetchLLDP'
             // 'DiscoverCVMThroughBMC'
           ]/** {
             'oneOf': [

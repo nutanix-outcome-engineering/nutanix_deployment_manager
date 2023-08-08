@@ -157,6 +157,17 @@
                   "stop": {
                     "type": "string",
                     "format": "ipv4"
+                  },
+                  "credentials": {
+                    "type": "object",
+                    "properties": {
+                      "ipmi": {
+                        "$ref": "#/components/schemas/Credential"
+                      },
+                      "host": {
+                        "$ref": "#/components/schemas/Credential"
+                      }
+                    }
                   }
                 },
                 "required": [
@@ -702,6 +713,22 @@
             "type": "string"
           }
         }
+      },
+      "Credential": {
+        "title": "Credential",
+        "x-stoplight": {
+          "id": "6a2b29f0b122d"
+        },
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "description": "Username password tupple object"
       }
     },
     "securitySchemes": {

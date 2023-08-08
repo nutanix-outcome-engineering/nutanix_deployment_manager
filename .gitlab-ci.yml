@@ -26,6 +26,9 @@ test:
 
 build:
   stage: build
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
   script:
     - npm clean-install
     - npm run build

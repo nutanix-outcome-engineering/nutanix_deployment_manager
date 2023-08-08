@@ -27,7 +27,8 @@ module.exports = {
         nodesToIngest.push(new IngestData({
           ipmiIP: long2ip(ingestIP),
           ingestState: 'pending',
-          failureReason: null
+          failureReason: null,
+          credentials: req.body.credentials
         }))
         ingestIP++
       } while (ingestIP <= stop)

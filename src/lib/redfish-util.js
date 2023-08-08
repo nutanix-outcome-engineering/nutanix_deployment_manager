@@ -43,12 +43,23 @@ class redfishNode {
     return rfNode
   }
 
+  async get(path) {
+    return (await this.axInstance.get(path)).data
+  }
+
   async getServiceRoot() {
     const resp = await this.axInstance.get()
-    this.oem = resp.data.Vendor
-    if (this.oem == 'Dell') {
-      this.nodeSerial = resp.data.Oem[`${this.oem}`].ServiceTag
+    this.oem = this._determineVendor(resp.data)
+  }
+
+  _determineVendor(data) {
+    let vendor = data.Vendor
+
+    if (!vendor) {
+      vendor = data.Oem.hasOwnProperty('Supermicro') && 'Supermicro'
     }
+
+    return vendor
   }
 
   async getSystems(){
@@ -62,7 +73,11 @@ class redfishNode {
     this.hostName = resp.data.HostName
     this.model = resp.data.Model
     if (this.oem == 'Dell') {
+      this.nodeSerial = resp.data.Oem.Dell.DellSystem.NodeID //resp.data.Oem[`${this.oem}`].ServiceTag
       this.blockSerial = resp.data.Oem.Dell.DellSystem.ChassisServiceTag
+    } else if (this. oem == 'Supermicro' && resp.data.Manufacturer == 'Nutanix') {
+      this.blockSerial = resp.data.SerialNumber
+      // /Chassis/${this.sysID} - Oem.Supermicro.BoardSerialNumber
     }
   }
 
@@ -80,7 +95,7 @@ class redfishNode {
   }
 
   async isPoweredOn() {
-    let resp = await this.axInstance.get(`/Chassis/${this.sysID}`)
+    let resp = await this.axInstance.get(`/Systems/${this.sysID}`)
 
     return resp.data.PowerState === 'On'
   }
@@ -143,9 +158,8 @@ class redfishNode {
     this.embeddedSwitchConnections = embeddedConnections
   }
 
-  // TODO: (don't print bmcPass?)
   toJSON() {
-    return _.omit(this,["axInstance"])
+    return _.omit(this,["axInstance", "bmcPass"])
   }
 
   toString() {

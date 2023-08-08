@@ -1,4 +1,5 @@
 const OpenApiValidator = require('express-openapi-validator')
+const traverse = require('json-schema-traverse')
 const express = require('express')
 const path = require('path')
 const _ = require('lodash')
@@ -6,6 +7,11 @@ const { MulterCSVStorage } = require('../../lib/csv')
 
 
 const apiSpec = path.join(__dirname, 'rx-lite.json')
+const apiSpecCleaned = require(apiSpec)
+traverse(apiSpecCleaned, { allKeys: true }, (schema) => {
+  if ('x-stoplight' in schema) {
+    delete schema['x-stoplight']
+  }})
 
 function registerAPIHandlers(app) {
   app.use('/spec', express.static(apiSpec, {
@@ -41,7 +47,7 @@ function registerAPIHandlers(app) {
   // Wire up express-openapi-validator middleware...
   app.use(
     OpenApiValidator.middleware({
-      apiSpec,
+      apiSpec: apiSpecCleaned,
       validateResponses: process.env.NODE_ENV !== 'production',
       validateRequests: true,
       operationHandlers: {

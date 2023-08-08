@@ -541,6 +541,55 @@
           }
         }
       }
+    },
+    "/cluster": {
+      "post": {
+        "summary": "Create new cluster from nodes",
+        "tags": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cluster"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "cluster.create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Cluster"
+              }
+            }
+          }
+        },
+        "description": "Create new Cluster"
+      },
+      "parameters": [],
+      "get": {
+        "summary": "Get All Clusters",
+        "operationId": "cluster.getAll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Cluster"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -729,6 +778,54 @@
           }
         },
         "description": "Username password tupple object"
+      },
+      "Cluster": {
+        "title": "Cluster",
+        "x-stoplight": {
+          "id": "3gfoymtygym9b"
+        },
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "cluster": {
+            "$ref": "#/components/schemas/IPDefinition"
+          },
+          "vcenter": {
+            "$ref": "#/components/schemas/IPDefinition"
+          },
+          "prismCentral": {
+            "$ref": "#/components/schemas/IPDefinition"
+          },
+          "nodes": {
+            "type": "array",
+            "minItems": 0,
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            }
+          },
+          "hypervisor": {
+            "type": "string"
+          },
+          "aos": {
+            "type": "string"
+          },
+          "ingestDate": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          }
+        }
       }
     },
     "securitySchemes": {

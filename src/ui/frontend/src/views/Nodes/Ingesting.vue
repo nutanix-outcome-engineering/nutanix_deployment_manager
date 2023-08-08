@@ -17,8 +17,8 @@ const { getIngestingNodes,
 
 const selectedPendingReview = ref([])
 const checkedPendingReview = computed(() => selectedPendingReview.value.length > 0)
-const indeterminatePendingReview = computed(() => selectedPendingReview.value.length > 0 && selectedPendingReview.value.length < ingestingNodes.value.length)
 const pendingReview = computed(() => ingestingNodes.value.filter(n => n.ingestState == 'pendingReview'))
+const indeterminatePendingReview = computed(() => selectedPendingReview.value.length > 0 && selectedPendingReview.value.length < pendingReview.value.length)
 const maxNicCount = computed(() => pendingReview.value.reduce((maxSize, current) => current.nicInfo?.length > maxSize ? current.nicInfo.length : maxSize, 0))
 
 const selectedIngesting = ref([])

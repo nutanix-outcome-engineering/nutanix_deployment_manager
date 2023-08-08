@@ -4,12 +4,14 @@
  * @param {Knex} knex
  */
 exports.up = async (knex) => {
-  //
+  // return knex.schema.table('TABLENAME', table => {
+  // })
 }
 
 /**
  * @param {Knex} knex
  */
 exports.down = async (knex) => {
-  //
+  // return knex.schema.table('TABLENAME', table => {
+  // })
 }

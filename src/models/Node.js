@@ -87,6 +87,15 @@ class Node {
     return (await builder)[0]
   }
 
+  static async getByClusterID(id) {
+    const builder = this.query(q => {
+      q.where({clusterID: id})
+      return q
+    })
+
+    return await builder
+  }
+
   serialize() {
     return {
       serial: this.serial,
@@ -150,7 +159,7 @@ class Node {
     return records.map(this.fromDB)
   }
 
-  async update() {
+  async update(transaction) {
     let serialized = this.serialize()
     let changes = jsondiffpatch.diff(serialized, this._record)
     let sparseCommit = {}
@@ -158,6 +167,9 @@ class Node {
       sparseCommit[key] = serialized[key]
     }
     let q = db(TABLE).where({serial: this.serial}).update(sparseCommit)
+    if (transaction) {
+      q.transacting(transaction)
+    }
     return await q
   }
 

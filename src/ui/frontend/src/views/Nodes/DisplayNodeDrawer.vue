@@ -230,9 +230,10 @@ function setSaveTippyContent(instance) {
         </div>
         <div v-if="isIngestingNode" class="py-4 sm:grid sm:grid-cols-8 sm:gap-4 sm:py-5 sm:px-6">
           <p class="max-w-2xl text-sm font-medium text-gray-500 col-span-8">Failure Reason</p>
-          <p class="px-4 text-sm text-gray-900 sm:col-span-7 sm:mt-0">{{ form.failureReason || "No failures"}}</p>
+          <p class="px-4 text-sm text-gray-900 sm:col-span-7 sm:mt-0">{{ node.failureReason || "No failures"}}</p>
         </div>
       </div>
     </div>
     <!-- Content End -->
-  </Drawer></template>
+  </Drawer>
+</template>

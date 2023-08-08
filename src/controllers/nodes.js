@@ -73,6 +73,7 @@ module.exports = {
       let nodes = req.body.map(n => (new Node(n)).serialize())
       let removeFromIngestion = req.body.map(n => n.serial)
 
+      // TODO: Follow scheme in cluster create of passing transaction around to Class function
       await db.transaction(async (tr) => {
         await db(Node.dbTable).insert(nodes).transacting(tr)
         await db(IngestData.dbTable).whereIn('serial', removeFromIngestion).del().transacting(tr)

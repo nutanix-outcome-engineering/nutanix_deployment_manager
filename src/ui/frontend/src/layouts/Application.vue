@@ -1,7 +1,7 @@
 <script setup>
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/vue'
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/vue/24/outline'
-import ClusterImport from '../views/ClusterImport.vue'
+import Dashboard from '../views/Dashboard.vue'
 import AppLink from '../components/Core/AppLink.vue'
 import imgUrl from '/src/assets/Will-Whitt_01_web.jpg'
 
@@ -13,9 +13,10 @@ const user = {
   imgUrl,
 }
 const navigation = [
-  { name: 'home', displayName: "Dashboard", href: '/', current: true },
-  { name: 'nodes.nodes', displayName: "Nodes",href: '/nodes', current: false },
-  { name: 'sites', displayName: "Sites",href: '/sites', current: false }
+  // { name: 'sites', displayName: "Dashboard", href: '/', current: true },
+  { name: 'sites', displayName: "Sites", href: '/sites', current: true },
+  { name: 'nodes.nodes', displayName: "Nodes", href: '/nodes', current: false },
+  { name: 'clusters', displayName: "Clusters", href: '/clusters', current: false },
   // { name: 'Clusters', href: '#', current: false },
   // { name: 'Foundation', href: '#', current: false },
   // { name: 'Reports', href: '#', current: false },

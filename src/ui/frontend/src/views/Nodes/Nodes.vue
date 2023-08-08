@@ -1,13 +1,18 @@
 <script setup>
 import { ref, computed } from 'vue'
 import DisplayNodeDrawer from './DisplayNodeDrawer.vue';
+import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
+import CreateClusterSlideOver from '../Clusters/CreateClusterSlideOver.vue';
+import Button from '@/components/Core/Button.vue'
 import useNodes from '@/composables/useNodes.js'
 
-const { nodes } = useNodes()
+const { nodes, getNodes } = useNodes()
 
 
 const selectedNodes = ref([])
-const indeterminate = computed(() => selectedNodes.value.length > 0 && selectedNodes.value.length < nodes.value.length)
+const checked = computed(() => selectedNodes.value.length > 0)
+const selectableNodes = computed(() => nodes.value.filter(n => !n.clusterID))
+const indeterminate = computed(() => selectedNodes.value.length > 0 && selectedNodes.value.length < selectableNodes.value.length)
 
 const selectedNode = ref(null)
 const displayNodeDetails = ref(false)
@@ -29,6 +34,11 @@ function nodeUpdated(serial) {
   selectedNode.value = nodes.value.filter(node => node.serial == serial)[0]
 }
 
+async function clusterAdded(id) {
+  selectedNodes.value = []
+  await getNodes()
+}
+
 
 </script>
 
@@ -39,6 +49,16 @@ function nodeUpdated(serial) {
         <div class="sm:flex-auto">
           <h2 class="text-xl font-semibold text-gray-900">Nodes</h2>
         </div>
+          <div class="space-x-4">
+            <CreateClusterSlideOver :nodes="nodes.filter(node => selectedNodes.includes(node.serial))" @clusterAdded="clusterAdded">
+              <template   #activator="{ open }">
+                <Button :disabled="!checked" @click="open">
+                  <Cog6ToothIcon class="-ml-2 mr-2 w-5 h-5 shrink-0"/>
+                  Create Cluster
+                </Button>
+              </template>
+            </CreateClusterSlideOver>
+          </div>
       </div>
       <div class="flex flex-auto flex-col mt-8 h-0 overflow-y-auto overscroll-contain">
         <div class="-my-2 -mx-4  sm:-mx-6 lg:-mx-8">
@@ -49,9 +69,9 @@ function nodeUpdated(serial) {
                   <tr>
                     <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 w-12 px-6 sm:w-16 sm:px-8 backdrop-blur backdrop-filter">
                       <input type="checkbox" class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
-                        :checked="indeterminate || selectedNodes.length === nodes.length  && nodes.length > 0"
+                        :checked="indeterminate || selectedNodes.length === selectableNodes.length  && selectableNodes.length > 0"
                         :indeterminate="indeterminate"
-                        @change="selectedNodes = $event.target.checked ? nodes.map((n) => n.serial) : []" />
+                        @change="selectedNodes = $event.target.checked ? nodes.filter(n => !n.clusterID).map((n) => n.serial) : []" />
                     </th>
                     <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">IPMI IP</th>
                     <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">Serial</th>
@@ -67,7 +87,7 @@ function nodeUpdated(serial) {
                   <tr v-for="node in nodes" :key="node.serial" :class="[selectedNodes.includes(node.serial) && 'bg-gray-50']">
                     <td class="relative w-12 px-6 sm:w-16 sm:px-8">
                       <div v-if="selectedNodes.includes(node.id)" class="absolute inset-y-0 left-0 w-0.5 bg-indigo-600"></div>
-                      <input type="checkbox"
+                      <input type="checkbox" v-if="!node.clusterID"
                         class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
                         :value="node.serial" v-model="selectedNodes" />
                     </td>

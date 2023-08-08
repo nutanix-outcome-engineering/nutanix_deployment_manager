@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ClusterImport from '@/views/ClusterImport.vue'
+import Dashboard from '@/views/Dashboard.vue'
 import Login from '../views/Login.vue'
 import useAxios from '@/composables/useAxios.js'
 const views = import.meta.glob('@/views/**/*.vue')
@@ -14,7 +14,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: ClusterImport,
+      component: lazy('Sites/Sites'),
       meta: {
         auth: true
       }
@@ -26,6 +26,14 @@ const router = createRouter({
       meta: {
         auth: false,
         layout: 'Empty'
+      }
+    },
+    {
+      path: '/clusters',
+      name: "clusters",
+      component: lazy('Clusters/Cluster'),
+      meta: {
+        auth: true
       }
     },
     {

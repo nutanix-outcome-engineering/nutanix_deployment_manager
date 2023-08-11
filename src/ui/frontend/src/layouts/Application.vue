@@ -13,10 +13,11 @@ const user = {
   imgUrl,
 }
 const navigation = [
-  // { name: 'sites', displayName: "Dashboard", href: '/', current: true },
   { name: 'sites', displayName: "Sites", href: '/sites', current: true },
+  { name: 'racks', displayName: "Racks",href: '/racks', current: false },
+  { name: 'switches', displayName: "Switches",href: '/switches', current: false },
   { name: 'nodes.nodes', displayName: "Nodes", href: '/nodes', current: false },
-  { name: 'clusters', displayName: "Clusters", href: '/clusters', current: false },
+  { name: 'clusters', displayName: "Clusters", href: '/clusters', current: false }
   // { name: 'Clusters', href: '#', current: false },
   // { name: 'Foundation', href: '#', current: false },
   // { name: 'Reports', href: '#', current: false },

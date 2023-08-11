@@ -213,6 +213,40 @@
       },
       "parameters": []
     },
+    "/nodes/ingesting/retry": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "nodes.ingesting.retry",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "description": "Retry discovery of list of nodes.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ingestionIDs": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "ingestionIDs"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/nodes/ingesting/{id}": {
       "patch": {
         "description": "Update data of ingesting node",
@@ -249,40 +283,6 @@
           "required": true
         }
       ]
-    },
-    "/nodes/ingesting/retry": {
-      "parameters": [],
-      "post": {
-        "summary": "",
-        "operationId": "nodes.ingesting.retry",
-        "responses": {
-          "204": {
-            "description": "No Content"
-          }
-        },
-        "description": "Retry discovery of list of nodes.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "ingestionIDs": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                      "type": "integer"
-                    }
-                  }
-                },
-                "required": [
-                  "ingestionIDs"
-                ]
-              }
-            }
-          }
-        }
-      }
     },
     "/nodes/ingesting/{id}/retry": {
       "parameters": [
@@ -542,6 +542,219 @@
         }
       }
     },
+    "/racks/{id}": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rack"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "racks.get",
+        "description": "Get specific Rack"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "description": "id of Site",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "racks.update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rack"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Rack"
+              }
+            }
+          }
+        },
+        "description": "Update single rack"
+      }
+    },
+    "/switches/{id}": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Switch"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "switches.get",
+        "description": "Get specific Switch"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "description": "id of Site",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "switches.update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Switch"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Switch"
+              }
+            }
+          }
+        },
+        "description": "Update single switch"
+      }
+    },
+    "/racks": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "nullable": true,
+                  "items": {
+                    "$ref": "#/components/schemas/Rack"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "racks.getAll",
+        "description": "Get List of Racks"
+      },
+      "post": {
+        "summary": "",
+        "operationId": "racks.add",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Rack"
+                }
+              }
+            }
+          }
+        },
+        "description": "Add Rack",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Rack"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/switches": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Switch"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "switches.getAll",
+        "description": "Get All Switches"
+      },
+      "post": {
+        "summary": "",
+        "operationId": "switches.add",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Switch"
+                }
+              }
+            }
+          }
+        },
+        "description": "Add Switch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Switch"
+              }
+            }
+          }
+        }
+      }
+    },
     "/cluster": {
       "post": {
         "summary": "Create new cluster from nodes",
@@ -760,6 +973,60 @@
         "properties": {
           "message": {
             "type": "string"
+          }
+        }
+      },
+      "Rack": {
+        "title": "Rack",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "siteID": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "row": {
+            "type": "string",
+            "nullable": true
+          },
+          "column": {
+            "type": "string",
+            "nullable": true
+          },
+          "datahall": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "Switch": {
+        "title": "Switch",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "type": {
+            "type": "string"
+          },
+          "rackID": {
+            "type": "integer"
+          },
+          "ip": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "rackUnit": {
+            "type": "integer",
+            "nullable": true
           }
         }
       },

@@ -1,15 +1,16 @@
 const db = require('../database')
 const jsondiffpatch = require('jsondiffpatch')
 
-const TABLE = 'site'
+const TABLE = 'rack'
 
-class Site {
-  constructor(site) {
-    this.id = site.id
-    this.name = site.name
-    this.infraCluster = site.infraCluster
-    this.ntpServers = typeof site.ntpServers == 'string' ? JSON.parse(site.ntpServers) : site.ntpServers
-    this.dnsServers = typeof site.dnsServers == 'string' ? JSON.parse(site.dnsServers) : site.dnsServers
+class Rack {
+  constructor(rack) {
+    this.id = rack.id
+    this.siteID = rack.siteID
+    this.name = rack.name
+    this.row = rack.row
+    this.column = rack.column
+    this.datahall = rack.datahall
 
     /** @private */
     this._record = null
@@ -18,20 +19,22 @@ class Site {
   serialize() {
     return {
       id: this.id,
+      siteID: this.siteID,
       name: this.name,
-      infraCluster: this.infraCluster,
-      ntpServers: JSON.stringify(this.ntpServers),
-      dnsServers: JSON.stringify(this.dnsServers)
+      row: this.row,
+      column: this.column,
+      datahall: this.datahall
     }
   }
 
   toJSON() {
     return {
       id: this.id,
+      siteID: this.siteID,
       name: this.name,
-      infraCluster: this.infraCluster,
-      ntpServers: this.ntpServers,
-      dnsServers: this.dnsServers
+      row: this.row,
+      column: this.column,
+      datahall: this.datahall
     }
   }
 
@@ -53,8 +56,8 @@ class Site {
 
   async create() {
     let insertedID = (await db(TABLE).insert(this.serialize()))[0]
-    let addedSite = await Site.getByID(insertedID)
-    return addedSite
+    let addedRack = await Rack.getByID(insertedID)
+    return addedRack
   }
 
   static async query(callback = async knex => knex) {
@@ -72,10 +75,9 @@ class Site {
   }
 
   static fromDB(record) {
-    let site = new Site(record)
-    // reiview TODO: couldn't this be in the constructor as a permutation of this._record = site?
-    site._record = record
-    return site
+    let rack = new Rack(record)
+    rack._record = record
+    return rack
   }
 
   static async getAll() {
@@ -92,4 +94,4 @@ class Site {
   }
 }
 
-module.exports = Site
+module.exports = Rack

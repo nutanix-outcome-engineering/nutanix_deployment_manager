@@ -16,10 +16,10 @@ module.exports = {
   },
   update: async(req, res, next) => {
     const existing = await Site.getByID(req.params.id)
-    existing.name = req.body.name
-    existing.dnsServers = req.body.dnsServers
-    existing.ntpServers = req.body.ntpServers
-    existing.infraCluster = req.body.infraCluster
+    existing.name = req.body.name || existing.name
+    existing.dnsServers = req.body.dnsServers || existing.dnsServers
+    existing.ntpServers = req.body.ntpServers || existing.ntpServers
+    existing.infraCluster = req.body.infraCluster || existing.infraCluster
     const resp = await existing.update()
     res.status(200).json(existing.toJSON())
   }

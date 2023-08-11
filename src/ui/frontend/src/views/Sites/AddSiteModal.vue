@@ -77,7 +77,6 @@ function handleSubmit() {
       <form class="pb-2">
         <div class="flex flex-1 flex-col">
           <span class="pt-2 pb-2 text-sm font-medium leading-6 text-gray-700">Site Name</span>
-          <!-- TODO: Needed this click prevention to stop the propagation down to the textlists -->
           <input type="text" id="name" class=" pt-2 pb-2 text-sm text-gray-700" v-model="form.site.name" placeholder="mySiteName" label="Name" v-on:keydown.enter.prevent/>
           <TextList label="NTP Servers" class="pt-2 pb-2" placeholder="x.x.x.x" hint="Enter an NTP server" v-model="form.site.ntpServers" />
           <TextList label="DNS Servers" class="pt-2 pb-2" placeholder="x.x.x.x" hint="Enter a DNS server" v-model="form.site.dnsServers" />

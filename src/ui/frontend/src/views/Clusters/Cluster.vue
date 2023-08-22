@@ -132,7 +132,7 @@ getClusters()
                 <div class="flex-1 px-3 py-1 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 border border-gray-300 rounded-md  hadow-sm overflow-hidden">
                   <label for="email" class="sr-only block text-sm font-medium text-gray-700">Filter</label>
                   <div class="flex items-center">
-                    <ClearQueryButton>
+                    <ClearQueryButton class="-ml-1 mr-1">
                       <XCircleIcon class="w-5 h-5 text-red-400" v-tippy content="Reset Filter"/>
                     </ClearQueryButton>
                     <div class="space-x-2 flex items-center">

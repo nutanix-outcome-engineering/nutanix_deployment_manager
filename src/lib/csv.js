@@ -1,7 +1,8 @@
 const { parse } = require('csv-parse')
+const { parse: parseSync } = require('csv-parse/sync')
 const  IngestData  = require('../models/IngestData.js');
 
-async function readData(csv, headers, cb=()=>{}) {
+async function readData(csv, headers, cb=(data)=>{ return data.record }) {
   const parser = parse({
     columns: headers || true,
     raw: true,
@@ -19,6 +20,17 @@ async function readData(csv, headers, cb=()=>{}) {
   return records
 }
 
+
+function parseCSV(csv, headers) {
+  return parseSync(csv, {
+    columns: headers || true,
+    raw: false,
+    from: headers ? 2 : 1,
+    skip_records_with_empty_values: true,
+    skip_empty_lines: true,
+    relax_column_count: true
+  })
+}
 
 async function readHeader(csv) {
   let header
@@ -54,5 +66,6 @@ class MulterCSVStorage {
 module.exports = {
   readData,
   readHeader,
+  parseCSV,
   MulterCSVStorage
 }

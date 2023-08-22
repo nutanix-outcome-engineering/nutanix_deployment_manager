@@ -105,6 +105,11 @@ class FetchLLDPTask {
         throw new Error(`Unknown hypervisor type: ${hypervisorInfo.os}`)
       }
 
+      if(lldpInfo.some(nic => nic.info.linkState == 'up' && nic.lldp.neighbor <= 0)) {
+        await job.moveToDelayed((Date.now() + ms('30s')), token)
+        throw new DelayedError('Waiting for LLDP Neighbor Info')
+      }
+
       return { lldpInfo }
     } catch (err) {
       throw err
@@ -121,17 +126,20 @@ class IngestNodeTask {
     const nics = lldpInfo.map(nic => {
       let lldpNeigbor = nic.lldp.neighbor
       let switchInfo = null
-      if (lldpNeigbor.length > 0)
-      switchInfo = {
-        portID: _.filter(lldpNeigbor, {type: '2'})?.[0]?.value,
-        switchMAC: _.filter(lldpNeigbor, {type: '1'})?.[0]?.value,
-        switchName: _.filter(lldpNeigbor, {type: '5'})?.[0]?.value,
-        switchIP: _.filter(lldpNeigbor, {type: '8'})?.[0]?.value,
+      if (lldpNeigbor.length > 0) {
+        switchInfo = {
+          portID: _.filter(lldpNeigbor, {type: '2'})?.[0]?.value,
+          switchMAC: _.filter(lldpNeigbor, {type: '1'})?.[0]?.value,
+          switchName: _.filter(lldpNeigbor, {type: '5'})?.[0]?.value,
+          switchIP: _.filter(lldpNeigbor, {type: '8'})?.[0]?.value,
+        }
       }
       let nicInfo = {
-        linkState: nic.NICStatus['Link State'],
+        linkState: nic.info.linkState,
+        adminState: nic.info.adminState,
         name: nic.name,
-        nicMAC: _.filter(nic.lldp.local, {type: '2'})?.[0]?.value,
+        nicMAC: nic.info.mac,
+        pciDevice: nic.info.pciDevice,
         switchInfo
       }
       return nicInfo

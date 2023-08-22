@@ -88,6 +88,7 @@ async function getUplinkPortIDs(hostInfo, vSwitchName) {
 async function enableLLDP(hostInfo, nicInfo) {
   let commands = [
     `esxcfg-vswitch -B both vSwitch0`,
+    `esxcfg-vswitch -B both vSwitchNDMTemp`,
     ...nicInfo.map(nic => `vsish -e set /net/portsets/${nic.vSwitchName}/ports/${nic.portID}/lldp/enable 1`)
   ]
 

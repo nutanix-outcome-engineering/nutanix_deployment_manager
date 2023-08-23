@@ -17,7 +17,7 @@ async function fetchLLDPESXi({host, username, password}, logger=undefined) {
   }
 
   if (vSwitchConfig.uplinksNotInVSwitch.length > 0) {
-    await addUplinksToVSwitch(hostInfo, vSwitchConfig.uplinksNotInVSwitch)
+    await addUplinksToNDMVSwitch(hostInfo, vSwitchConfig.uplinksNotInVSwitch)
   }
 
   let uplinkIDs = (await getUplinkPortIDs(hostInfo, 'vSwitch0')).split(',')
@@ -65,7 +65,7 @@ async function createNDMVSwitch(hostInfo) {
   await exec(hostInfo, `esxcli network vswitch standard add -v vSwitchNDMTemp`)
 }
 
-async function addUplinksToVSwitch(hostInfo, uplinksNotInVSwitch) {
+async function addUplinksToNDMVSwitch(hostInfo, uplinksNotInVSwitch) {
   let addNICToVSwitchCommands = [
     ...uplinksNotInVSwitch.flatMap(nic => `esxcli network vswitch standard uplink add -u ${nic.Name} -v vSwitchNDMTemp`)
   ]

@@ -128,10 +128,10 @@ class IngestNodeTask {
       let switchInfo = null
       if (lldpNeigbor.length > 0) {
         switchInfo = {
-          portID: _.filter(lldpNeigbor, {type: '2'})?.[0]?.value,
-          switchMAC: _.filter(lldpNeigbor, {type: '1'})?.[0]?.value,
-          switchName: _.filter(lldpNeigbor, {type: '5'})?.[0]?.value,
-          switchIP: _.filter(lldpNeigbor, {type: '8'})?.[0]?.value,
+          portID: _.filter(lldpNeigbor, {type: '2'})[0]?.value,
+          switchMAC: _.filter(lldpNeigbor, {type: '1'})[0]?.value,
+          switchName: _.filter(lldpNeigbor, {type: '5'})[0]?.value,
+          switchIP: _.filter(lldpNeigbor, {type: '8'})[0]?.value,
         }
       }
       let nicInfo = {

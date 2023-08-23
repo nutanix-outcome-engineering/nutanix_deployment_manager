@@ -124,14 +124,14 @@ class IngestNodeTask {
     const lldpInfo = job.data.lldpInfo
     const bmcNicInfo = bmcInfo?.nodeSwitchConnections
     const nics = lldpInfo.map(nic => {
-      let lldpNeigbor = nic.lldp.neighbor
+      let lldpNeighbor = nic.lldp.neighbor
       let switchInfo = null
-      if (lldpNeigbor.length > 0) {
+      if (lldpNeighbor.length > 0) {
         switchInfo = {
-          portID: _.filter(lldpNeigbor, {type: '2'})[0]?.value,
-          switchMAC: _.filter(lldpNeigbor, {type: '1'})[0]?.value,
-          switchName: _.filter(lldpNeigbor, {type: '5'})[0]?.value,
-          switchIP: _.filter(lldpNeigbor, {type: '8'})[0]?.value,
+          portID: _.filter(lldpNeighbor, {type: '2'})[0]?.value,
+          switchMAC: _.filter(lldpNeighbor, {type: '1'})[0]?.value,
+          switchName: _.filter(lldpNeighbor, {type: '5'})[0]?.value,
+          switchIP: _.filter(lldpNeighbor, {type: '8'})[0]?.value,
         }
       }
       let nicInfo = {

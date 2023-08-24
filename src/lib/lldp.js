@@ -27,9 +27,11 @@ async function fetchLLDPESXi({host, username, password}, logger=undefined) {
     let portIDInfo = uplinkIDs.find(uplink => uplink.includes(nic.Name))
     if (portIDInfo) {
       nic.vSwitchName = 'vSwitch0'
+      nic.inBond = true
     } else {
       portIDInfo = uplinkIDsTemp.find(uplink => uplink.includes(nic.Name))
       nic.vSwitchName = 'vSwitchNDMTemp'
+      nic.inBond = false
     }
     nic.portID = portIDInfo.split(':')[1]
   })

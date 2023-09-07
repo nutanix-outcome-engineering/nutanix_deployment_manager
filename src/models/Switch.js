@@ -92,6 +92,16 @@ class Switch {
 
     return (await builder)[0]
   }
+
+  static async getByIPandType(ip, type=undefined) {
+    const builder = this.query(q => {
+      q.where({ip: ip})
+      if(type) {q.where({type:type})}
+      return q
+    })
+
+    return (await builder)[0]
+  }
 }
 
 module.exports = Switch

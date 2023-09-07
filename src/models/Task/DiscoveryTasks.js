@@ -4,6 +4,9 @@ const { DelayedError } = require('bullmq')
 const _ = require('lodash')
 const IngestData = require('../IngestData')
 const redfishNode = require('../../lib/redfish-util')
+const Rack = require('../Rack')
+const Site = require('../Site')
+const Switch = require('../Switch')
 const Foundation = require('nutanix_foundation')
 const { fetchLLDPESXi } = require('../../lib/lldp.js')
 const config = require('../../lib/config')
@@ -123,7 +126,11 @@ class IngestNodeTask {
     const blockInfo = job.data.blockInfo
     const lldpInfo = job.data.lldpInfo
     const bmcNicInfo = bmcInfo?.nodeSwitchConnections
-    const nics = lldpInfo.map(nic => {
+    let discoveredRacks = new Set()
+    let discoveredSites = new Set()
+    let discoveredSwitches = []
+    let unMappedSwitches = new Set()
+    const nics = await Promise.all(lldpInfo.map(async (nic) => {
       let lldpNeighbor = nic.lldp.neighbor
       let switchInfo = null
       if (lldpNeighbor.length > 0) {
@@ -131,7 +138,30 @@ class IngestNodeTask {
           portID: _.filter(lldpNeighbor, {type: '2'})[0]?.value,
           switchMAC: _.filter(lldpNeighbor, {type: '1'})[0]?.value,
           switchName: _.filter(lldpNeighbor, {type: '5'})[0]?.value,
-          switchIP: _.filter(lldpNeighbor, {type: '8'})[0]?.value,
+          switchIP: _.filter(lldpNeighbor, {type: '8'})[0]?.value
+        }
+        if (switchInfo.switchIP) {
+          let thisSwitch = await Switch.getByIPandType(switchInfo.switchIP, 'tor')
+          if(thisSwitch) {
+            switchInfo.id = thisSwitch.id
+            switchInfo.type = thisSwitch.type
+            // TODO: Question as to whether we denote any difference between LLDP name and name in NDM switch table?
+            switchInfo.name = thisSwitch.name
+            // Capturing for now...
+            if(switchInfo.name != switchInfo.switchName) {
+              switchInfo.switchNameMismatch = true
+            }
+            const thisRack = await Rack.getByID(thisSwitch.rackID)
+            const thisSite = await Site.getByID(thisRack.siteID)
+            thisSwitch.rack = thisRack
+            thisSwitch.site = thisSite
+            discoveredRacks.add(thisRack)
+            discoveredSites.add(thisSite)
+            discoveredSwitches.push(thisSwitch)
+          }
+          else {
+            unMappedSwitches.add(switchInfo)
+          }
         }
       }
       let nicInfo = {
@@ -143,8 +173,15 @@ class IngestNodeTask {
         switchInfo
       }
       return nicInfo
-    })
+    }))
+    job.data.rackIDMismatch = discoveredRacks.size > 1
+    job.data.unMappedSwitches = unMappedSwitches.size ? [...unMappedSwitches] : undefined
     job.data.nics = nics
+    job.data.discoveredRacks = [...discoveredRacks]
+    job.data.discoveredSites = [...discoveredSites]
+    job.data.discoveredSwitches = discoveredSwitches
+    // If you find the same TOR twice, that's probably a misconfig, may tweak this for expected links beyond 2
+    job.data.duplicateSwitchConnectionPresent = new Set(discoveredSwitches).size !== discoveredSwitches.length
     await job.update(job.data)
 
     let node = await IngestData.getByIngestTaskUUID(job.data.taskFlowId)

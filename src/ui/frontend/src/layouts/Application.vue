@@ -17,7 +17,8 @@ const navigation = [
   { name: 'racks', displayName: "Racks",href: '/racks', current: false },
   { name: 'switches', displayName: "Switches",href: '/switches', current: false },
   { name: 'nodes.nodes', displayName: "Nodes", href: '/nodes', current: false },
-  { name: 'clusters', displayName: "Clusters", href: '/clusters', current: false }
+  { name: 'clusters', displayName: "Clusters", href: '/clusters', current: false },
+  { name: 'discovery', displayName: "Discovery", href: '/discovery', current: false }
   // { name: 'Clusters', href: '#', current: false },
   // { name: 'Foundation', href: '#', current: false },
   // { name: 'Reports', href: '#', current: false },

@@ -25,6 +25,10 @@
   "author": "Outcome_Engineering@nutanix.com",
   "license": "MIT",
   "dependencies": {
+    "@ag-grid-community/client-side-row-model": "^30.1.0",
+    "@ag-grid-community/core": "^30.1.0",
+    "@ag-grid-community/styles": "^30.1.0",
+    "@ag-grid-community/vue3": "^30.1.0",
     "@headlessui/vue": "^1.7.7",
     "@heroicons/vue": "^2.0.13",
     "axios": "^1.2.2",

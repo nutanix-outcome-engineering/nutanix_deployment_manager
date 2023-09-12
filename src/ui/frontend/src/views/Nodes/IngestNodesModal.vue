@@ -1,5 +1,5 @@
 <script setup>
-import { ref, unref, reactive, computed } from 'vue'
+import { ref, unref, reactive, watch, computed } from 'vue'
 import { ArrowUpTrayIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
 import Dialog from '@/components/Core/Dialog.vue'
@@ -8,7 +8,16 @@ import IpAddress from '@/components/Core/Form/IpAddress.vue'
 import PasswordField from '@/components/Core/Form/PasswordField.vue'
 import TextField from '@/components/Core/Form/TextField.vue'
 
-const emit = defineEmits(['ingestByRange'])
+const emit = defineEmits(['ingestByRange', 'ingestByDiscovery'])
+const props = defineProps({
+  nodes: {
+    type: Array,
+    required: false
+  },
+  disabled: {
+    type: Boolean
+  }
+})
 
 const isVisible = ref(false)
 const form = ref(formDefault())
@@ -21,6 +30,7 @@ function formDefault() {
         stop: ''
       }
     },
+    nodes: props.nodes || [],
     credentials: {
       ipmi: {
         username: '',
@@ -34,13 +44,29 @@ function formDefault() {
   }
 }
 
+watch(isVisible, () => {
+  if(isVisible.value) {
+    form.value = formDefault()
+  }
+})
+
 function ingest(by) {
-  if (by == 'byRange') {
-    let data = {
-      ...form.value.ip.range,
-      credentials: form.value.credentials
-    }
-    emit('ingestByRange', data)
+  let data
+  switch (by) {
+    case 'byRange':
+      data = {
+        ...form.value.ip.range,
+        credentials: form.value.credentials
+      }
+      emit('ingestByRange', data)
+      break;
+      case 'byDiscovery':
+      data = {
+        nodes: form.value.nodes,
+        credentials: form.value.credentials
+      }
+      emit('ingestByDiscovery', data)
+      break;
   }
 
   form.value = formDefault()
@@ -70,7 +96,7 @@ const canIngestByRange = computed(() => { return Boolean(form.value.ip.range.sta
 <template>
   <Dialog v-model="isVisible" heading="Ingest Nodes">
     <template #activator="{ open }">
-      <Button @click="open" >
+      <Button @click="open" :disabled="props.disabled">
         <ArrowUpTrayIcon class="-ml-2 mr-2 w-5 h-5 shrink-0" />
         <span>Import Nodes</span>
       </Button>
@@ -78,13 +104,20 @@ const canIngestByRange = computed(() => { return Boolean(form.value.ip.range.sta
 
     <div class="pb-2">
       <div>
-        <div class="flex justify-between">
-          <span class=" text-lg font-medium leading-6 text-gray-900">Ingest By BMC IP Range</span>
-        </div>
-        <div class=" grid grid-flow-row grid-cols-2 space-x-2 py-2">
-          <IpAddress class="text-gray-900" v-model="form.ip.range.start" placeholder="x.x.x.x" label="Start IP" required/>
-          <IpAddress class="text-gray-900" v-model="form.ip.range.stop"  placeholder="x.x.x.x" label="Stop IP"  required/>
-        </div>
+        <template v-if="form.nodes.length > 0">
+          <div class="flex justify-between">
+            <span class=" text-lg font-medium leading-6 text-gray-900">Ingest {{ props.nodes.length }} Nodes</span>
+          </div>
+        </template>
+        <template v-else>
+          <div class="flex justify-between">
+            <span class=" text-lg font-medium leading-6 text-gray-900">Ingest By BMC IP Range</span>
+          </div>
+          <div class=" grid grid-flow-row grid-cols-2 space-x-2 py-2">
+            <IpAddress class="text-gray-900" v-model="form.ip.range.start" placeholder="x.x.x.x" label="Start IP" required/>
+            <IpAddress class="text-gray-900" v-model="form.ip.range.stop"  placeholder="x.x.x.x" label="Stop IP"  required/>
+          </div>
+        </template>
       </div>
       <div class="pt-2">
         <div class="flex justify-between">
@@ -128,7 +161,8 @@ const canIngestByRange = computed(() => { return Boolean(form.value.ip.range.sta
       </div>
     </div>
       <div class="flex justify-end">
-        <Button kind="primary" @click="ingest('byRange')" :disabled="!canIngestByRange">Ingest By Range</Button>
+        <Button v-if="form.nodes.length > 0" kind="primary" @click="ingest('byDiscovery')">Ingest Nodes</Button>
+        <Button v-else kind="primary" @click="ingest('byRange')" :disabled="!canIngestByRange">Ingest By Range</Button>
       </div>
   </Dialog>
 </template>

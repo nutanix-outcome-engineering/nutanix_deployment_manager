@@ -1,4 +1,4 @@
-import { ref, computed, readonly, unref , onMounted, onBeforeUnmount} from 'vue'
+import { ref, computed, readonly, unref , onMounted, onBeforeUnmount, reactive} from 'vue'
 import ms from 'ms'
 import useAPI from '@/composables/useAPI.js'
 import useToasts from '@/composables/useToasts.js'
@@ -8,6 +8,7 @@ const { show } = useToasts()
 
 const ingestingNodes = ref([])
 const nodes = ref([])
+const discoveredNodes = ref([])
 
 async function getIngestingNodes() {
   await axios.get('/nodes/ingesting')
@@ -25,6 +26,35 @@ async function ingestIPRange({start, stop, credentials}) {
     await getIngestingNodes()
     show('Range ingesting', '', 'success')
   } catch (error) {
+
+  }
+}
+
+async function ingestDiscovery(data) {
+  try {
+    await axios.post('/import/nodes', data)
+    show('Nodes ingesting', '', 'success')
+  } catch (error) {
+
+  }
+}
+
+async function foundationDiscoverNodes() {
+  try {
+    await axios.get('/import/foundation/discover')
+
+    discoveredNodes.value = data.value
+  } catch (err) {
+
+  }
+}
+
+async function foundationReconfigureNodes(nodes) {
+  try {
+    await axios.post('/import/foundation/provision-network', nodes)
+    show('Nodes reconfigured', '', 'success')
+    await foundationDiscoverNodes()
+  } catch (err) {
 
   }
 }
@@ -75,6 +105,7 @@ async function fetchAll() {
 
 async function setupPoll(interval='30s') {
   let pollInterval = null
+  fetchAll()
 
   onMounted(() => {
     if (!pollInterval) {
@@ -92,9 +123,13 @@ export default function useNodes() {
     ingestingNodes: readonly(ingestingNodes),
     nodes: readonly(nodes),
     isLoading: readonly(isLoading),
+    discoveredNodes: readonly(discoveredNodes),
+    foundationDiscoverNodes,
+    foundationReconfigureNodes,
     getIngestingNodes,
     getNodes,
     ingestIPRange,
+    ingestDiscovery,
     addNodes,
     updateIngestingNode,
     updateNode,

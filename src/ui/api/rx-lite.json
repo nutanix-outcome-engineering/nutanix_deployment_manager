@@ -122,6 +122,64 @@
       },
       "parameters": []
     },
+    "/import/foundation/provision-network": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "import.foundation.provision-network",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Node"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/import/foundation/discover": {
+      "get": {
+        "summary": "Start Discovery via Foundation",
+        "operationId": "import.foundation.discover",
+        "responses": {
+          "200": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": []
+    },
     "/import/ip/range": {
       "post": {
         "summary": "",
@@ -173,6 +231,70 @@
                 "required": [
                   "start",
                   "stop"
+                ]
+              }
+            },
+            "application/xml": {
+              "schema": {
+                "type": "object",
+                "properties": {}
+              }
+            }
+          },
+          "description": ""
+        },
+        "description": "Bulk import of nodes via IP Range."
+      },
+      "parameters": []
+    },
+    "/import/nodes": {
+      "post": {
+        "summary": "",
+        "operationId": "import.nodes",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "credentials": {
+                    "type": "object",
+                    "properties": {
+                      "ipmi": {
+                        "$ref": "#/components/schemas/Credential"
+                      },
+                      "host": {
+                        "$ref": "#/components/schemas/Credential"
+                      }
+                    }
+                  },
+                  "nodes": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Node"
+                    }
+                  }
+                },
+                "required": [
+                  "nodes"
                 ]
               }
             },
@@ -856,6 +978,12 @@
           "chassisSerial": {
             "type": "string",
             "nullable": true
+          },
+          "ipv6Address": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
           },
           "ipmi": {
             "$ref": "#/components/schemas/IPDefinition"

@@ -2,7 +2,11 @@
 const busboy = require('busboy')
 const { Netmask, ip2long, long2ip } = require('netmask')
 const { readData } = require('../lib/csv.js')
-const  IngestData  = require('../models/IngestData.js');
+const IngestData  = require('../models/IngestData.js');
+const Node = require('../models/Node.js');
+const Foundation = require('nutanix_foundation')
+const _ = require('lodash')
+const config = require('../lib/config')
 
 
 module.exports = {
@@ -36,6 +40,106 @@ module.exports = {
 
       res.status(201).json({status: `ingest of ${nodesToIngest.length} queued`})
     },
+  },
+  nodes: async (req, res, next) => {
+    let nodesToIngest = []
+    let nodes = req.body.nodes
+    // TODO: duplicate detection of IPs
+
+    nodes.forEach(node => {
+      nodesToIngest.push(new IngestData({
+        serial: node.serial,
+        chassisSerial: node.chassisSerial,
+
+        ipmiIP: node.ipmi.ip,
+        ipmiGateway: node.ipmi.gateway,
+        ipmiSubnet: node.ipmi.subnet,
+
+        cvmIP: node.cvm.ip,
+        cvmGateway: node.cvm.gateway,
+        cvmSubnet: node.cvm.subnet,
+
+        hostIP: node.host.ip,
+        hostGateway: node.host.gateway,
+        hostSubnet: node.host.subnet,
+
+        ingestState: 'pending',
+        credentials: req.body.credentials
+      }))
+    })
+    await IngestData.massInsert(nodesToIngest)
+    res.status(201).json({status: `ingest of ${nodesToIngest.length} queued`})
+  },
+  foundation: {
+    discover: async (req, res, next) => {
+      const fvm = new Foundation(config.fvm_ip)
+
+      const discoveredNodes = (await fvm.discoverNodes({},{fetchNetworkInfo: true})).flatMap(block => {
+        let retVal = []
+        block.nodes.forEach(node => {
+          let separated = {
+            serial: node.node_serial,
+            chassisSerial: block.block_id,
+            ipv6Address: node.ipv6_address,
+            position: node.node_position,
+            ipmi: {
+              ip: node.ipmi_ip,
+              gateway: node.ipmi_gateway,
+              subnet: node.ipmi_netmask
+            },
+            cvm: {
+              ip: node.cvm_ip,
+              gateway: node.cvm_gateway,
+              subnet: node.cvm_netmask,
+              vlan: Number(node.current_cvm_vlan_tag)
+            },
+            host: {
+              ip: node.hypervisor_ip,
+              gateway: node.hypervisor_gateway,
+              subnet: node.hypervisor_netmask,
+              hostname: node.hypervisor_hostname
+            }
+          }
+          retVal.push(separated)
+        })
+        return retVal
+      })
+      const allNodes  = (await Promise.all([IngestData.getAll(), Node.getAll()])).flat()
+
+      res.status(200).json(discoveredNodes.filter(node => !allNodes.find(n => Boolean(n.serial == node.serial))))
+    },
+    'provision-network': async (req, res, next) => {
+      const fvm = new Foundation(config.fvm_ip)
+      let nodesToReconfigure = req.body.map(node => {
+        return {
+          "ipv6_address": node.ipv6Address,
+          "ipmi_ip": node.ipmi.ip,
+          "ipmi_gateway": node.ipmi.gateway,
+          "ipmi_netmask": node.ipmi.subnet,
+
+          "cvm_ip": node.cvm.ip,
+          "cvm_gateway": node.cvm.gateway,
+          "cvm_netmask": node.cvm.subnet,
+          "cvm_vlan_id": `${node.cvm.vlan}`,
+
+          "hypervisor_hostname": node.host.hostname,
+          "hypervisor_ip": node.host.ip,
+          "hypervisor_gateway": node.host.gateway,
+          "hypervisor_netmask": node.host.subnet
+        }
+      })
+      try {
+        let resp = await fvm.provisionNetwork(nodesToReconfigure)
+        // Maybe handle partial successes and error. Currently dunno how to test so leaving as is.
+        res.status(200).json(resp.data || {})
+      } catch (err) {
+        if (err.response.data) {
+          next({message: err.response.data.message})
+        } else {
+          next(err)
+        }
+      }
+    }
   },
 
   /**

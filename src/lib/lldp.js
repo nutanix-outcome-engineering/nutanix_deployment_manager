@@ -1,9 +1,94 @@
 const { exec } = require('./ssh.js')
 const csv = require('./csv.js')
 const { long2ip } = require('netmask')
+const _ = require('lodash')
 
 module.exports = {
-  fetchLLDPESXi
+  fetchLLDPESXi,
+  fetchLLDPAHV
+}
+
+async function fetchLLDPAHV({host, username, password}, logger=undefined) {
+  const hostInfo = {host, username, password}
+  // Get interface list and ovs bridge config, add stragglers
+  let nicList = await getPhysicalNicsAHV(hostInfo, logger)
+  const commandOutput = await exec(hostInfo,`lldpcli show neighbors details -f json0`)
+  const lldpOutput = commandOutput.stdout
+  let nicArray = JSON.parse(lldpOutput).lldp[0].interface
+  nicList.forEach(nic => {
+    let thisNic = _.find(nicArray,{'name':`${nic.name}`})
+    nic.info = {
+      linkState: nic.carrier == 1 ? 'up' : 'down',
+      adminState: nic.operState == 'up' ? 'enabled' : 'disabled',
+      mac: nic.mac,
+      pciDevice: nic.pciDevice,
+      speed: nic.speed,
+      inBond: nic.bondName != 'undefined' ? true : false,
+      bondName: nic.bondName
+    }
+    if (thisNic) {
+      nic.lldp = {
+        neighbor: [{
+          portID: thisNic.port[0].id[0].value,
+          portDescr: thisNic.port[0].descr[0].value,
+          switchMAC: thisNic.chassis[0].id[0].value,
+          switchName: thisNic.chassis[0].name[0].value,
+          switchIP: thisNic.chassis[0]["mgmt-ip"][0].value,
+          vlan: thisNic.vlan[0]["vlan-id"]
+        }]
+      }
+      nic.switchInfo = {
+        portID: thisNic.port[0].id[0].value,
+        portDescr: thisNic.port[0].descr[0].value,
+        switchMAC: thisNic.chassis[0].id[0].value,
+        switchName: thisNic.chassis[0].name[0].value,
+        switchIP: thisNic.chassis[0]["mgmt-ip"][0].value,
+        vlan: thisNic.vlan[0]["vlan-id"]
+      }
+    }
+    else {
+      nic.lldp = {neighbor: []}
+    }
+
+  })
+  return nicList
+}
+
+async function getPhysicalNicsAHV({host, username, password}, logger=undefined) {
+  const hostInfo = {host, username, password}
+  const commandOutput = await exec(hostInfo,`find /sys/class/net -mindepth 1 -maxdepth 1 -not -lname '*virtual*' -not -lname '*usb*' -printf '%f\n'`)
+  // splitting on newline, remove trailing entry
+  let nicArray = commandOutput.stdout.trim().split('\n')
+  let nics = await Promise.all(nicArray.map(async (nic) => await getAHVNicInfo(hostInfo, nic, logger)))
+  nics = nics.map(nic => {
+    nic = nic.trim().split(',')
+    return {
+      name: nic[0],
+      mac: nic[3],
+      speed: nic[2].replaceAll(/\D/g, ''),
+      pciDevice: nic[1],
+      operState: nic[4],
+      carrier: nic[5],
+      bondName: nic[6]
+    }
+  })
+  nics.sort((n1,n2) => (n1.name > n2.name) ? 1 : (n1.name < n2.name) ? -1 : 0)
+  return nics
+
+}
+
+async function getAHVNicInfo(hostInfo, nic, logger) {
+  const commands = [
+    `pciBus=$(ethtool -i ${nic} | grep bus-info | awk '{print $2}')`,
+    `address=$(cat /sys/class/net/${nic}/address)`,
+    `speed=$(ethtool ${nic} | grep -i speed | awk '{print $2}')`,
+    `operState=$(cat /sys/class/net/${nic}/operstate)`,
+    `carrier=$(cat /sys/class/net/${nic}/carrier || echo 'unknown')`,
+    `bondName=$(ovs-vsctl iface-to-br ${nic} || echo 'undefined')`,
+    `echo ${nic},$pciBus,$speed,$address,$operState,$carrier,$bondName`
+  ]
+  const output = await exec(hostInfo, commands.join('\n'))
+  return output.stdout
 }
 
 /*** ESXi LLDP FETCH CODE ***/

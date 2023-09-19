@@ -8,7 +8,7 @@ const Rack = require('../Rack')
 const Site = require('../Site')
 const Switch = require('../Switch')
 const Foundation = require('nutanix_foundation')
-const { fetchLLDPESXi } = require('../../lib/lldp.js')
+const { fetchLLDPESXi, fetchLLDPAHV } = require('../../lib/lldp.js')
 const config = require('../../lib/config')
 
 class DiscoverBMCTask {
@@ -104,11 +104,16 @@ class FetchLLDPTask {
       let lldpInfo
       if (hypervisorInfo.os === 'esx') {
         lldpInfo = await fetchLLDPESXi(hostInfo, job.log)
-      } else {
+      }
+      else if (hypervisorInfo.os === 'kvm') {
+        lldpInfo = await fetchLLDPAHV(hostInfo, job.log)
+      }
+      else {
         throw new Error(`Unknown hypervisor type: ${hypervisorInfo.os}`)
       }
 
       if(lldpInfo.some(nic => nic.info.linkState == 'up' && nic.lldp.neighbor <= 0)) {
+        // TODO: don't loop infinitely here
         await job.moveToDelayed((Date.now() + ms('30s')), token)
         throw new DelayedError('Waiting for LLDP Neighbor Info')
       }
@@ -134,11 +139,17 @@ class IngestNodeTask {
       let lldpNeighbor = nic.lldp.neighbor
       let switchInfo = null
       if (lldpNeighbor.length > 0) {
-        switchInfo = {
-          portID: _.filter(lldpNeighbor, {type: '2'})[0]?.value,
-          switchMAC: _.filter(lldpNeighbor, {type: '1'})[0]?.value,
-          switchName: _.filter(lldpNeighbor, {type: '5'})[0]?.value,
-          switchIP: _.filter(lldpNeighbor, {type: '8'})[0]?.value
+        // ESX split, TODO: single-path this but cleaning the input data from ESX
+        if(blockInfo.nodes[0].hypervisor === 'esx') {
+          switchInfo = {
+            portID: _.filter(lldpNeighbor, {type: '2'})[0]?.value,
+            switchMAC: _.filter(lldpNeighbor, {type: '1'})[0]?.value,
+            switchName: _.filter(lldpNeighbor, {type: '5'})[0]?.value,
+            switchIP: _.filter(lldpNeighbor, {type: '8'})[0]?.value
+          }
+        }
+        else if (blockInfo.nodes[0].hypervisor === 'kvm') {
+          switchInfo = nic.switchInfo
         }
         if (switchInfo.switchIP) {
           let thisSwitch = await Switch.getByIPandType(switchInfo.switchIP, 'tor')
@@ -172,6 +183,10 @@ class IngestNodeTask {
         pciDevice: nic.info.pciDevice,
         switchInfo
       }
+      // TODO: unify these variables across hypervisors
+      if (nic.info.inBond) {nicInfo.inBond = nic.info.inBond}
+      if (nic.info.bondName) {nicInfo.bondName = nic.info.bondName}
+      if (nic.info.speed) {nicInfo.speed = nic.info.speed}
       return nicInfo
     }))
     job.data.rackIDMismatch = discoveredRacks.size > 1

@@ -10,7 +10,7 @@ import '@ag-grid-community/styles/ag-theme-alpine.css'
 import { get } from 'lodash'
 
 
-import { cellTypes } from '@/services/columnTypes'
+import { cellTypes } from '@/components/Grid/columnTypes.js'
 import Button from '@/components/Core/Button.vue'
 import useNodes from '@/composables/useNodes.js'
 import IngestNodesModal from '@/views/Nodes/IngestNodesModal.vue';
@@ -26,7 +26,8 @@ const {
   ingestDiscovery,
   fetchAll,
   ingestingNodes,
-  nodes
+  nodes,
+  allNodes
  } = useNodes()
 
 
@@ -126,7 +127,8 @@ const gridOptions = {
   },
   isExternalFilterPresent: () => { return true },
   doesExternalFilterPass: externalFilterFunction,
-  isRowSelectable: isNodeInSystem
+  isRowSelectable: isNodeInSystem,
+  getRowId: ({data}) => `${data.chassisSerial}:${data.serial}`
 }
 
 function rangeFillPlaceHolder({ colDef, node }) {
@@ -232,8 +234,7 @@ function getSortedSelectedNodes() {
 }
 
 function isNodeInSystem(rowNode) {
-  let allNodes = [...ingestingNodes.value, ...nodes.value]
-  let nodeInSystem = Boolean(!allNodes.find(node => {
+  let nodeInSystem = Boolean(!allNodes.value.find(node => {
     return node.serial == rowNode.data.serial
   }))
   return nodeInSystem
@@ -255,7 +256,7 @@ async function onGridReady(params) {
   gridAPI.value = params.api
   columnAPI.value = params.columnApi
 
-  refresh()
+  refresh(true)
 }
 
 function autoSizeColumns(params) {
@@ -269,8 +270,15 @@ async function refresh(skipDiscover) {
   }
   await fetchAll()
   findDuplicates()
-  selectedRows.value = []
-  gridAPI.value.deselectAll()
+  // Deselect all Nodes in system. This is to filter out nodes we just started
+  // ingesting without trigering a discover nodes call.
+  gridAPI.value.getSelectedNodes().forEach(rowNode => {
+    if (isNodeInSystem(rowNode)) {
+      rowNode.setSelected(false)
+    }
+  })
+  // Reset vue state of selected nodes after we've deselected nodesInSystem
+  selectedRows.value = gridAPI.value.getSelectedRows()
   gridAPI.value.refreshCells()
   gridAPI.value.onFilterChanged()
 }
@@ -288,8 +296,8 @@ async function ingestDiscoveryWrapper(data) {
 </script>
 
 <template>
-  <div>
-    <Button @click="refresh" :disabled="isLoading" kind="secondary">
+  <div class="flex flex-w flex-row">
+    <Button @click="refresh(false)" :disabled="isLoading" kind="secondary">
       <ArrowPathIcon class="-ml-2 mr-2 w-5 h-5 shrink-0"/>
       <span>Re-Discover</span>
     </Button>

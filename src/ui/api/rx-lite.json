@@ -333,7 +333,34 @@
         "operationId": "nodes.ingesting.getAll",
         "description": "Get all currently ingesting nodes."
       },
-      "parameters": []
+      "parameters": [],
+      "delete": {
+        "summary": "",
+        "operationId": "nodes.ingesting.delete",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ingestionIDs": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "description": ""
+        }
+      }
     },
     "/nodes/ingesting/retry": {
       "parameters": [],

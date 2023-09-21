@@ -204,6 +204,10 @@ class IngestData {
   async create() {
     return await db(TABLE).insert(this.serialize())
   }
+
+  async delete() {
+    return await db(TABLE).where({id: this.id}).delete()
+  }
 }
 
 module.exports = IngestData

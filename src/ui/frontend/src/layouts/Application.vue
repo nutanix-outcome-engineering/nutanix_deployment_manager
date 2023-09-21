@@ -18,7 +18,6 @@ const navigation = [
   { name: 'switches', displayName: "Switches",href: '/switches', current: false },
   { name: 'nodes.nodes', displayName: "Nodes", href: '/nodes', current: false },
   { name: 'clusters', displayName: "Clusters", href: '/clusters', current: false },
-  { name: 'discovery', displayName: "Discovery", href: '/discovery', current: false }
   // { name: 'Clusters', href: '#', current: false },
   // { name: 'Foundation', href: '#', current: false },
   // { name: 'Reports', href: '#', current: false },
@@ -31,7 +30,7 @@ const userNavigation = [
 </script>
 
 <template>
-  <div class="flex flex-1 flex-col min-h-full">
+  <div class="flex flex-1 flex-col min-h-full overscroll-none">
     <Disclosure as="nav" class="bg-gray-800 sticky top-0 z-50" v-slot="{ open }">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
@@ -109,7 +108,7 @@ const userNavigation = [
       </DisclosurePanel>
     </Disclosure>
 
-    <main class="flex flex-1 flex-col">
+    <main class="flex flex-1 flex-col overscroll-none">
       <!-- <slot/> -->
       <router-view/>
     </main>

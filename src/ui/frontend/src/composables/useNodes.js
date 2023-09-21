@@ -9,6 +9,7 @@ const { show } = useToasts()
 const ingestingNodes = ref([])
 const nodes = ref([])
 const discoveredNodes = ref([])
+const allNodes = ref([])
 
 async function getIngestingNodes() {
   await axios.get('/nodes/ingesting')
@@ -99,8 +100,19 @@ async function retryDiscovery(ids) {
   }
 }
 
+async function deleteIngestionTasks(ids) {
+  try {
+    await axios.delete('/nodes/ingesting', {data: { ingestionIDs: ids }})
+    await getIngestingNodes()
+    show('Ingestion records deleted.', '', 'success')
+  } catch (error) {
+
+  }
+}
+
 async function fetchAll() {
   await Promise.all([getNodes(), getIngestingNodes()])
+  allNodes.value = ingestingNodes.value.concat(nodes.value)
 }
 
 async function setupPoll(interval='30s') {
@@ -122,6 +134,7 @@ export default function useNodes() {
   return {
     ingestingNodes: readonly(ingestingNodes),
     nodes: readonly(nodes),
+    allNodes: allNodes,
     isLoading: readonly(isLoading),
     discoveredNodes: readonly(discoveredNodes),
     foundationDiscoverNodes,
@@ -134,6 +147,7 @@ export default function useNodes() {
     updateIngestingNode,
     updateNode,
     retryDiscovery,
+    deleteIngestionTasks,
     fetchAll,
     setupPoll
   }

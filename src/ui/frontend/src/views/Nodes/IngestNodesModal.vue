@@ -96,10 +96,14 @@ const canIngestByRange = computed(() => { return Boolean(form.value.ip.range.sta
 <template>
   <Dialog v-model="isVisible" heading="Ingest Nodes">
     <template #activator="{ open }">
-      <Button @click="open" :disabled="props.disabled">
-        <ArrowUpTrayIcon class="-ml-2 mr-2 w-5 h-5 shrink-0" />
-        <span>Import Nodes</span>
-      </Button>
+      <div  @click="open">
+        <slot>
+          <Button :disabled="props.disabled">
+            <ArrowUpTrayIcon class="-ml-2 mr-2 w-5 h-5 shrink-0" />
+            <span>Import Nodes</span>
+          </Button>
+        </slot>
+      </div>
     </template>
 
     <div class="pb-2">

@@ -21,6 +21,20 @@ module.exports = {
 
       res.json(ingestingNodes)
     },
+    delete: async (req, res, next) => {
+      let deleteIds = []
+      if (req.params.id) {
+        deleteIds.push(req.params.id)
+      } else {
+        deleteIds = req.body.ingestionIDs
+      }
+
+      let ingestDataToDelete = await Promise.all(deleteIds.map(id => IngestData.getByID(id)))
+      await Promise.all(ingestDataToDelete.map(ingestData => ingestData.delete()))
+
+      res.status(204).send()
+
+    },
     update: async (req, res, next) => {
       try {
         let id = req.params.id

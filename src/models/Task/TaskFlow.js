@@ -205,7 +205,7 @@ class TaskFlow {
       statistics: {
         completedTasks: completedTasks.length,
         failedTasks: failedTasks.length,
-        totalTask: this.graph.order
+        totalTasks: this.graph.order
       }
     }
   }

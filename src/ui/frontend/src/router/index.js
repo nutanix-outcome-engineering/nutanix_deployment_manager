@@ -50,9 +50,25 @@ const router = createRouter({
           component: lazy('Nodes/Nodes'),
         },
         {
-          path: 'ingesting',
-          name: 'nodes.ingesting',
-          component: lazy('Nodes/Ingesting'),
+          path: 'discovery',
+          name: 'nodes.discoveryShell',
+          children: [
+            {
+              path: '',
+              name: 'nodes.discovery',
+              component: lazy('Nodes/Discovery')
+            },
+            {
+              path: 'ingesting',
+              name: 'nodes.ingesting',
+              component: lazy('Nodes/Ingesting'),
+            },
+            {
+              path: 'review',
+              name: 'nodes.pendingReview',
+              component: lazy('Nodes/PendingReview')
+            }
+          ]
         }
       ]
     },
@@ -76,14 +92,6 @@ const router = createRouter({
       path: '/switches',
       name: "switches",
       component: lazy('Switches/Switches'),
-      meta: {
-        auth: true
-      }
-    },
-    {
-      path: '/discover',
-      name: 'discovery',
-      component: lazy('Discovery/Discovery'),
       meta: {
         auth: true
       }

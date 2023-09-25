@@ -85,7 +85,7 @@ export default {
 
   data() {
     return {
-      id: generateId()
+      id: this.$attrs.id || generateId()
     }
   },
 

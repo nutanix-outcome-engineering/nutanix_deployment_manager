@@ -19,6 +19,7 @@ const Ops = {
   Equality: '=',
   NotEquality: '!=',
   Contains: '~',
+  NotContains: '!~',
   GreaterThanEqualTo: '>=',
   LessThanEqualTo: '<=',
 }
@@ -65,9 +66,16 @@ export const FilterBox = {
   watch: {
     value(value, oldValue) {
       if (value.length > 0 && value !== oldValue) {
-        this.generateSuggestions()
+        this.populateSuggestions()
+        this.$emit('filterChanged')
       } else {
         this.clearSuggestions()
+        this.$emit('filterChanged')
+      }
+    },
+    filters(value, oldValue) {
+      if (value.length != oldValue.length) {
+        this.$emit('filterChanged')
       }
     }
   },
@@ -89,15 +97,21 @@ export const FilterBox = {
     const context = this.$data
 
     // Methods
-    context.go = this.go
-    context.isActive = this.isActive
-    context.select = this.select
-    context.removeFilter = this.removeFilter
-    context.removeAllFilters = this.removeAllFilters
-    context.removeLastFilter = this.removeLastFilter
-    context.clearSuggestions = this.clearSuggestions
-    context.clearActiveSuggestion = this.clearActiveSuggestion
-    context.clearSearchQuery = this.clearSearchQuery
+    this.api = {
+      go: this.go,
+      isActive: this.isActive,
+      select: this.select,
+      addFilter: this.addFilter,
+      removeFilter: this.removeFilter,
+      removeAllFilters: this.removeAllFilters,
+      removeLastFilter: this.removeLastFilter,
+      clearSuggestions: this.clearSuggestions,
+      clearActiveSuggestion: this.clearActiveSuggestion,
+      clearSearchQuery: this.clearSearchQuery,
+      doesItemMatchFilter: this.doesItemMatchFilter,
+      filterItems: this.filterItems
+    }
+    Object.assign(context, this.api)
 
     // DOM references
     context.filterQueryRef = this.filterQueryRef
@@ -110,13 +124,24 @@ export const FilterBox = {
 
   computed: {
     results() {
-      let results = this.items
+      let results = this.filterItems(this.items)
 
+      return results
+    }
+  },
+
+  methods: {
+    doesItemMatchFilter(item) {
+      let results = this.filterItems([item])
+      return Boolean(results.length)
+    },
+
+    filterItems(itemsToFilter=this.items) {
+      let results = itemsToFilter
       this.filters.forEach(filter => {
         results = results.filter(item => {
           const value = get(item, filter.field)
-
-          if (value === undefined) {
+          if (value === undefined && !filter.allowUndefined) {
             return false
           }
 
@@ -151,6 +176,19 @@ export const FilterBox = {
             return value.toString().toLowerCase().indexOf(filter.value.toString().toLowerCase()) >= 0
           }
 
+          if (filter.op === Ops.NotContains) {
+            if (Array.isArray(value)) {
+              if (value === null) {
+                return false
+              }
+
+              return value.filter(f => {
+                return f.toString().toLowerCase().indexOf(filter.value.toString().toLowerCase()) == -1
+              }).length > 0
+            }
+            return value.toString().toLowerCase().indexOf(filter.value.toString().toLowerCase()) == -1
+          }
+
           if (filter.op === Ops.GreaterThanEqualTo) {
             return value >= filter.value
           }
@@ -167,15 +205,12 @@ export const FilterBox = {
         })
       })
 
-      if (this.value.length === 0) {
-        return results
+      if (this.value.length > 0) {
+        results = search(this.value, results, this.filterable.filter(filter => filter.field).map(filter => filter.field), 9999)
       }
+      return results
+    },
 
-      return search(this.value, results, this.filterable.filter(filter => filter.field).map(filter => filter.field), 9999)
-    }
-  },
-
-  methods: {
     clearSearchQuery() {
       this.value = ''
       this.filterQueryRef.value = ''
@@ -209,20 +244,170 @@ export const FilterBox = {
           suggestions: []
         }
 
+        if (filterable.mode != 'custom' && filterable.allowUndefined) {
+          console.error(`FilterBox: filterables of mode ${filterable.mode} are not allowed to use allow undefined`)
+          filterable.allowUndefined = false
+        }
+
         // 2. For every operation we support...
-        if (filterable.mode === 'enum' && filterable.label.toLowerCase().includes(this.value.toLowerCase())) {
-          values(this.items, filterable.field).forEach(hit => {
+        if (filterable.mode == undefined || filterable.mode === 'simple') {
+          Object.values(Ops).forEach(op => {
+            let filter
+
+            // If operation is unsupported, skip it...
+            if (filterable.ops && filterable.ops.includes(op) === false) {
+              return
+            }
+
+            // Do not apply math operations to strings
+            if ([Ops.GreaterThanEqualTo, Ops.LessThanEqualTo].includes(op) && isNaN(this.value)) {
+              return
+            }
+
+            switch(op) {
+              case Ops.Equality: {
+                filter = {
+                  suggestionLabel: `Equals "${this.value}"`,
+                  label: {
+                    field: filterable.label,
+                    value: `equals "${this.value}"`,
+                    color: "blue"
+                  },
+                  mode: filterable.mode,
+                  field: filterable.field,
+                  allowUndefined: filterable.allowUndefined || false,
+                  op: "=",
+                  value: this.value
+                }
+                break
+              }
+              case Ops.NotEquality: {
+                filter = {
+                  suggestionLabel: `Not Equals "${this.value}"`,
+                  label: {
+                    field: filterable.label,
+                    value: `not equals "${this.value}"`,
+                    color: "red"
+                  },
+                  mode: filterable.mode,
+                  field: filterable.field,
+                  allowUndefined: filterable.allowUndefined || false,
+                  op: "!=",
+                  value: this.value
+                }
+                break
+              }
+              case Ops.Contains: {
+                filter = {
+                  suggestionLabel: `Contains "${this.value}"`,
+                  label: {
+                    field: filterable.label,
+                    value: `contains "${this.value}"`,
+                    color: "blue"
+                  },
+                  mode: filterable.mode,
+                  field: filterable.field,
+                  allowUndefined: filterable.allowUndefined || false,
+                  op: "~",
+                  value: this.value
+                }
+                break
+              }
+              case Ops.NotContains: {
+                filter = {
+                  suggestionLabel: `Not Contains "${this.value}"`,
+                  label: {
+                    field: filterable.label,
+                    value: `not contains "${this.value}"`,
+                    color: "blue"
+                  },
+                  mode: filterable.mode,
+                  field: filterable.field,
+                  allowUndefined: filterable.allowUndefined || false,
+                  op: "!~",
+                  value: this.value
+                }
+                break
+              }
+              case Ops.GreaterThanEqualTo: {
+                filter = {
+                  suggestionLabel: `≥ ${this.value}`,
+                  label: {
+                    field: filterable.label,
+                    value: `≥ ${this.value}`,
+                    color: "blue"
+                  },
+                  mode: filterable.mode,
+                  field: filterable.field,
+                  allowUndefined: filterable.allowUndefined || false,
+                  op: ">=",
+                  value: this.value
+                }
+                break
+              }
+              case Ops.LessThanEqualTo: {
+                filter = {
+                  suggestionLabel: `≤ ${this.value}`,
+                  label: {
+                    field: filterable.label,
+                    value: `≤ ${this.value}`,
+                    color: "blue"
+                  },
+                  mode: filterable.mode,
+                  field: filterable.field,
+                  allowUndefined: filterable.allowUndefined || false,
+                  op: "<=",
+                  value: this.value
+                }
+                break
+              }
+              default: {
+                console.error(`FilterBox: Unsupported operation ${op} while generating suggestions.`)
+              }
+            }
+
             suggestionList.suggestions.push({
-              label: `${hit}`,
+              label: filter.suggestionLabel,
+              filter
+            })
+          })
+        } else if (filterable.mode === 'enum') {
+          let hits = []
+
+          if (filterable.label.toLowerCase().includes(this.value.toLowerCase())) {
+            hits = values(this.items, filterable.field)
+          } else {
+            hits = search(this.value, values(this.items, filterable.field), [], 20)
+          }
+          hits.forEach(hit => {
+            suggestionList.suggestions.push({
+              label: hit,
               filter: {
                 label: {
-                  value: hit,
+                  value: `equals ${hit}`,
                   field: filterable.label,
                   color: "blue"
                 },
                 mode: filterable.mode,
                 field: filterable.field,
+                allowUndefined: filterable.allowUndefined || false,
                 op: "=",
+                value: hit
+              }
+            })
+
+            suggestionList.suggestions.push({
+              label: `Not ${hit}`,
+              filter: {
+                label: {
+                  value: `not equals "${hit}"`,
+                  field: filterable.label,
+                  color: "red"
+                },
+                mode: filterable.mode,
+                field: filterable.field,
+                allowUndefined: filterable.allowUndefined || false,
+                op: "!=",
                 value: hit
               }
             })
@@ -232,196 +417,68 @@ export const FilterBox = {
             label: `Contains "${this.value}"`,
             filter: {
               label: {
-                value: `Contains "${this.value}"`,
-                field: filterable.field,
+                value: `contains "${this.value}"`,
+                field: filterable.label,
                 color: "blue"
               },
               mode: filterable.mode,
               field: filterable.field,
+              allowUndefined: filterable.allowUndefined || false,
               op: "~",
               value: this.value
             }
           })
-        } else {
-          if (filterable.mode == undefined || filterable.mode === 'simple') {
-            Object.values(Ops).forEach(op => {
-              let filter
 
-              // If operation is unsupported, skip it...
-              if (filterable.ops && filterable.ops.includes(op) === false) {
-                return
-              }
-
-              // Do not apply math operations to strings
-              if ([Ops.GreaterThanEqualTo, Ops.LessThanEqualTo].includes(op) && isNaN(this.value)) {
-                return
-              }
-
-              switch(op) {
-                case Ops.Equality: {
-                  filter = {
-                    suggestionLabel: `Equals "${this.value}"`,
-                    label: {
-                      field: filterable.label,
-                      value: `${filterable.label} equals "${this.value}"`,
-                      color: "blue"
-                    },
-                    mode: filterable.mode,
-                    field: filterable.field,
-                    op: "=",
-                    value: this.value
-                  }
-                  break
-                }
-                case Ops.NotEquality: {
-                  filter = {
-                    suggestionLabel: `Not Equals "${this.value}"`,
-                    label: {
-                      field: filterable.label,
-                      value: `${filterable.label} not equals "${this.value}"`,
-                      color: "red"
-                    },
-                    mode: filterable.mode,
-                    field: filterable.field,
-                    op: "!=",
-                    value: this.value
-                  }
-                  break
-                }
-                case Ops.Contains: {
-                  filter = {
-                    suggestionLabel: `Contains "${this.value}"`,
-                    label: {
-                      field: filterable.label,
-                      value: `${filterable.label} contains "${this.value}"`,
-                      color: "blue"
-                    },
-                    mode: filterable.mode,
-                    field: filterable.field,
-                    op: "~",
-                    value: this.value
-                  }
-                  break
-                }
-                case Ops.GreaterThanEqualTo: {
-                  filter = {
-                    suggestionLabel: `≥ ${this.value}`,
-                    label: {
-                      field: filterable.label,
-                      value: `${filterable.label} ≥ ${this.value}`,
-                      color: "blue"
-                    },
-                    mode: filterable.mode,
-                    field: filterable.field,
-                    op: ">=",
-                    value: this.value
-                  }
-                  break
-                }
-                case Ops.LessThanEqualTo: {
-                  filter = {
-                    suggestionLabel: `≤ ${this.value}`,
-                    label: {
-                      field: filterable.label,
-                      value: `${filterable.label} ≤ ${this.value}`,
-                      color: "blue"
-                    },
-                    mode: filterable.mode,
-                    field: filterable.field,
-                    op: "<=",
-                    value: this.value
-                  }
-                  break
-                }
-                default: {
-                  console.error('FilterBox: Unsupported operation while generating suggestions.')
-                }
-              }
-
-              suggestionList.suggestions.push({
-                label: filter.suggestionLabel,
-                filter
-              })
-            })
-          } else if (filterable.mode === 'enum') {
-            const hits = search(this.value, values(this.items, filterable.field), [], 20)
-
-            hits.forEach(hit => {
-              suggestionList.suggestions.push({
-                label: hit,
-                filter: {
-                  label: {
-                    value: `${filterable.label} = ${hit}`,
-                    field: filterable.label,
-                    color: "blue"
-                  },
-                  mode: filterable.mode,
-                  field: filterable.field,
-                  op: "=",
-                  value: hit
-                }
-              })
-
-              suggestionList.suggestions.push({
-                label: `Not ${hit}`,
-                filter: {
-                  label: {
-                    value: `${filterable.label} not equals "${hit}"`,
-                    field: filterable.label,
-                    color: "red"
-                  },
-                  mode: filterable.mode,
-                  field: filterable.field,
-                  op: "!=",
-                  value: hit
-                }
-             })
-            })
-
+          suggestionList.suggestions.push({
+            label: `Not Contains "${this.value}"`,
+            filter: {
+              label: {
+                value: `not contains "${this.value}"`,
+                field: filterable.label,
+                color: "red"
+              },
+              mode: filterable.mode,
+              field: filterable.field,
+              allowUndefined: filterable.allowUndefined || false,
+              op: "!~",
+              value: this.value
+            }
+          })
+        } else if (filterable.mode === 'custom') {
+          if (!Array.isArray(filterable.filters)) {
+            console.error(`FilterBox: Custom filterable ${filterable.label} should provide an array of filter objects that each contain a function which return true or false.`)
+            return
+          }
+          filterable.filters.forEach(f => {
             suggestionList.suggestions.push({
-              label: `Contains "${this.value}"`,
+              label: f.suggestionLabel || f.label,
               filter: {
                 label: {
-                  value: `${filterable.label} contains "${this.value}"`,
+                  value: f.label,
                   field: filterable.label,
                   color: "blue"
                 },
                 mode: filterable.mode,
-                field: filterable.field,
-                op: "~",
+                field: f.field,
+                allowUndefined: f.allowUndefined || false,
+                op: f.function,
                 value: this.value
               }
             })
-          } else if (filterable.mode === 'custom') {
-            if (!Array.isArray(filterable.filters)) {
-              console.error(`FilterBox: Custom filterable ${filterable.label} should provide an array of filter objects that each contain a function which return true or false.`)
-              return
-            }
-            filterable.filters.forEach(f => {
-              suggestionList.suggestions.push({
-                label: f.suggestionLabel || f.label,
-                filter: {
-                  label: {
-                    value: f.label,
-                    field: filterable.label,
-                    color: "blue"
-                  },
-                  mode: filterable.mode,
-                  field: f.field,
-                  op: f.function,
-                  value: this.value
-                }
-              })
-            })
-          }
+          })
         }
+
 
         if (suggestionList.suggestions.length > 0) {
           suggestionLists.push(suggestionList)
         }
       })
 
-      this.suggestionLists = suggestionLists
+      return suggestionLists
+    },
+
+    populateSuggestions() {
+      this.suggestionLists = this.generateSuggestions()
     },
 
     /**
@@ -538,6 +595,7 @@ export const FilterBox = {
       results: this.results,
       filters: this.filters,
       suggestions: this.suggestionLists,
+      api: this.api
     })
 
     if (this.as === 'template') {

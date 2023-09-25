@@ -1,129 +1,250 @@
 <script setup>
-import { ref, computed } from 'vue'
-import DisplayNodeDrawer from './DisplayNodeDrawer.vue';
-import { Cog6ToothIcon } from '@heroicons/vue/24/outline'
-import CreateClusterSlideOver from '../Clusters/CreateClusterSlideOver.vue';
+import { computed, ref } from 'vue'
+import {
+  Menu,
+  MenuButton,
+  MenuItems,
+  MenuItem
+} from '@headlessui/vue'
+import { XCircleIcon, ChevronDoubleLeftIcon, ChevronLeftIcon, ChevronRightIcon, ChevronDoubleRightIcon } from '@heroicons/vue/24/solid'
+import { AgGridVue as AgGrid } from '@ag-grid-community/vue3'
+import { ModuleRegistry } from '@ag-grid-community/core';
+import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'
+import '@ag-grid-community/styles/ag-grid.css'
+import '@ag-grid-community/styles/ag-theme-alpine.css'
+
+ModuleRegistry.registerModules([ClientSideRowModelModule])
+
+import Badge from '@/components/Core/Badge.vue'
+import TextField from '@/components/Core/Form/TextField.vue'
+
 import Button from '@/components/Core/Button.vue'
 import useNodes from '@/composables/useNodes.js'
+import { FilterBox, FilterQuery, FilterButton, ClearQueryButton, SuggestionList, Suggestion } from '@/components/Core/FilterBox.js'
+import { cellTypes } from '@/components/Grid/columnTypes.js'
+import NodeCellRenderer from '@/components/Grid/NodeCellRenderer.vue'
 
-const { nodes, getNodes } = useNodes()
-
-
-const selectedNodes = ref([])
-const checked = computed(() => selectedNodes.value.length > 0)
-const selectableNodes = computed(() => nodes.value.filter(n => !n.clusterID))
-const indeterminate = computed(() => selectedNodes.value.length > 0 && selectedNodes.value.length < selectableNodes.value.length)
-
-const selectedNode = ref(null)
-const displayNodeDetails = ref(false)
-
-function displayNode(node) {
-  if (selectedNode?.value?.serial != node.serial || (selectedNode?.value?.serial == node.serial && !displayNodeDetails.value)) {
-    displayNodeDetails.value = true
-  } else if (selectedNode?.value?.serial == node.serial) {
-    displayNodeDetails.value = false
+const { nodes } = useNodes()
+const form = ref({
+  search: '',
+  filters: []
+})
+const filterables = [
+  {label: 'Node Serial', field: 'serial', op: ['~'], mode: 'enum'},
+  {label: 'Chassis Serial', field: 'chassisSerial', op: ['~'], mode: 'enum'},
+  {
+    label: 'Part of Cluster',
+    field: 'clusterID',
+    mode: 'custom',
+    filters: [
+      {
+        suggestionLabel: 'Part of Cluster',
+        label: 'Yes',
+        field: 'clusterID',
+        function: (item, value) => {
+          return (Boolean(item.clusterID)) === true
+        }
+      },
+      {
+        suggestionLabel: 'Not Part of Cluster',
+        label: 'No',
+        field: 'clusterID',
+        function: (item, value) => {
+          return (Boolean(item.clusterID)) === false
+        }
+      }
+    ]
   }
-  selectedNode.value = node
+]
+const gridAPI = ref(null)
+const columnAPI = ref(null)
+const currentPage = ref(0)
+const totalPages = ref(0)
+const currentPageSize = ref(0)
+const paginationControlsDisabled = computed(() => {
+  return totalPages.value === 1
+})
+
+const columns = ref([{
+  headerName: 'Node',
+  valueGetter: ({data}) => {return data},
+  cellRenderer: NodeCellRenderer
+}])
+
+const gridOptions = {
+  rowSelection: 'multiple',
+  rowMultiSelectWithClick: true,
+  editType: '',
+  dataTypeDefinitions: cellTypes,
+  multiSortKey: 'ctrl',
+  autoSizePadding: 5,
+  skipHeaderOnAutoSize: true,
+  animateRows: true,
+  pagination:true,
+  paginationPageSize: 10,
+  suppressPaginationPanel: true,
+  defaultColDef: {
+    autoHeight: true,
+    sortable: true,
+    filter: true,
+    resizable: true,
+    suppressMovable: true,
+    editable: false,
+    flex: 1,
+    cellDataType: 'text',
+    cellClassRules: {
+    }
+  },
+  getRowId: ({data}) => data.serial,
+  isExternalFilterPresent: isExternalFilterPresent
 }
 
-function closeNodeDrawer() {
-  displayNodeDetails.value = false
+async function onGridReady(params) {
+  gridAPI.value = params.api
+  columnAPI.value = params.columnApi
 }
 
-function nodeUpdated(serial) {
-  selectedNode.value = nodes.value.filter(node => node.serial == serial)[0]
+function isExternalFilterPresent() {
+  return form.value.search.length || form.value.filters.length
 }
 
-async function clusterAdded(id) {
-  selectedNodes.value = []
-  await getNodes()
+function onFilterChanged(event) {
+  if (gridAPI.value) {
+    gridAPI.value.onFilterChanged()
+  }
 }
 
+function onPaginationChange() {
+  if (gridAPI.value) {
+    currentPage.value = gridAPI.value.paginationGetCurrentPage() + 1
+    totalPages.value = gridAPI.value.paginationGetTotalPages()
+    currentPageSize.value = gridAPI.value.paginationGetPageSize()
+  }
+}
 
+function pageSelectorChanged(newPage) {
+  if (gridAPI.value) {
+    let gotoPage = Math.min(Math.max(Number(newPage), 1), totalPages.value)
+    gridAPI.value.paginationGoToPage(gotoPage - 1)
+    currentPage.value = gotoPage
+  }
+}
 </script>
 
 <template>
-  <div class="flex flex-auto flex-row">
-    <div class="flex flex-auto flex-col px-5">
-      <div class="sm:flex sm:items-center">
-        <div class="sm:flex-auto">
-          <h2 class="text-xl font-semibold text-gray-900">Nodes</h2>
-        </div>
-          <div class="space-x-4">
-            <CreateClusterSlideOver :nodes="nodes.filter(node => selectedNodes.includes(node.serial))" @clusterAdded="clusterAdded">
-              <template   #activator="{ open }">
-                <Button :disabled="!checked" @click="open">
-                  <Cog6ToothIcon class="-ml-2 mr-2 w-5 h-5 shrink-0"/>
-                  Create Cluster
-                </Button>
-              </template>
-            </CreateClusterSlideOver>
+<div class="flex flex-1 w-full">
+  <FilterBox
+    @filterChanged="onFilterChanged"
+    v-model:filters="form.filters"
+    :filterable="filterables"
+    :items="nodes"
+    v-slot="{ results, filters, suggestions, api }"
+    class="flex flex-1 w-full"
+  >
+    <div class="flex flex-1 flex-col">
+      <div class="flex flex-col relative">
+        <div class="flex flex-row my-0.5">
+          <div class="w-full px-3 py-1 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 border border-gray-300 rounded-md  shadow-sm overflow-hidden">
+            <div class="flex items-center">
+              <ClearQueryButton class="-ml-1 mr-1" v-tippy content="Reset Filter">
+                <XCircleIcon class="w-5 h-5 text-red-400"/>
+              </ClearQueryButton>
+              <div class="space-x-2 flex items-center">
+                <FilterButton v-for="(filter, index) in filters" :key="index">
+                  <Badge :label="filter.label.field" :color="filter.label.color">
+                    <div class="flex items-center">
+                      {{ filter.label.value }}
+                      <XCircleIcon class="ml-2 -mr-1 w-4 h-4 text-gray-400" />
+                    </div>
+                  </Badge>
+                </FilterButton>
+              </div>
+              <label for="filterInput" class="sr-only block text-sm font-medium text-gray-700">Filter Nodes</label>
+              <FilterQuery as="input" id="filterInput" type="text" v-model="form.search" autocomplete="off" class="focus:ring-0 focus:outline-none border-none block w-full text-sm" placeholder="Filter" />
+            </div>
           </div>
-      </div>
-      <div class="flex flex-auto flex-col mt-8 h-0 overflow-y-auto overscroll-contain">
-        <div class="-my-2 -mx-4  sm:-mx-6 lg:-mx-8">
-          <div class="inline-block w-full py-2 align-middle md:px-6 lg:px-8">
-            <div class="relative shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-              <table v-if="nodes" class="w-full divide-y divide-gray-300">
-                <thead class="bg-gray-50">
-                  <tr>
-                    <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 w-12 px-6 sm:w-16 sm:px-8 backdrop-blur backdrop-filter">
-                      <input type="checkbox" class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
-                        :checked="indeterminate || selectedNodes.length === selectableNodes.length  && selectableNodes.length > 0"
-                        :indeterminate="indeterminate"
-                        @change="selectedNodes = $event.target.checked ? nodes.filter(n => !n.clusterID).map((n) => n.serial) : []" />
-                    </th>
-                    <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">IPMI IP</th>
-                    <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">Serial</th>
-                    <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">Host Hostname</th>
-                    <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">CVM IP</th>
-                    <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 px-3 py-3.5 text-left text-sm font-semibold text-gray-900 backdrop-blur backdrop-filter">CVM Hostname</th>
-                    <th scope="col" class="z-10 sticky border-b border-gray-300 top-0 py-3.5 pl-3 pr-4 sm:pr-6 backdrop-blur backdrop-filter">
-                      <span class="sr-only">Edit</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                  <tr v-for="node in nodes" :key="node.serial" :class="[selectedNodes.includes(node.serial) && 'bg-gray-50']">
-                    <td class="relative w-12 px-6 sm:w-16 sm:px-8">
-                      <div v-if="selectedNodes.includes(node.id)" class="absolute inset-y-0 left-0 w-0.5 bg-indigo-600"></div>
-                      <input type="checkbox" v-if="!node.clusterID"
-                        class="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 sm:left-6"
-                        :value="node.serial" v-model="selectedNodes" />
-                    </td>
-                  <td @click="displayNode(node)" :class="['whitespace-nowrap px-3 py-4 text-sm font-medium cursor-pointer hover:underline decoration-from-font', selectedNodes.includes(node.serial) ? 'text-indigo-600' : 'text-gray-900']">
-                    {{ node.ipmi.ip }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ node.serial }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ node.host.hostname }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ node.cvm.ip }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ node.cvm.hostname }}
-                  </td>
-                  <td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <a href="#" class="text-indigo-600 hover:text-indigo-900"
-                      >Edit<span class="sr-only">, {{ node.ipmi.ip }}</span></a
-                    >
-                  </td>
-                  </tr>
-                </tbody>
-              </table>
+          <div class="flex flex-grow flex-row items-center text-sm px-2 space-x-2">
+            <Menu as="div" class="mx-1 relative inline-block text-left bg-green-300">
+              <MenuButton >
+                <Button size="sm" kind="secondary" type="button">
+                  Page Size<br>{{ currentPageSize==nodes.length ? 'All' : currentPageSize }}
+                </Button>
+              </MenuButton>
+              <MenuItems class="absolute z-10 origin-center translate-x-[60%] items-center text-base px-1 py-1 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-10">
+                <MenuItem as="div" class="rounded-md px-1 ui-active:bg-blue-200" @click="gridAPI.paginationSetPageSize(10)">10</MenuItem>
+                <MenuItem as="div" class="rounded-md px-1 ui-active:bg-blue-200" @click="gridAPI.paginationSetPageSize(20)">20</MenuItem>
+                <MenuItem as="div" class="rounded-md px-1 ui-active:bg-blue-200" @click="gridAPI.paginationSetPageSize(nodes.length)">All</MenuItem>
+              </MenuItems>
+            </Menu>
+            <button :disabled="paginationControlsDisabled"
+              :class="[paginationControlsDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']"
+              @click="gridAPI.paginationGoToFirstPage()"
+            >
+              <ChevronDoubleLeftIcon class="w-5 h-5"/>
+            </button>
+            <button :disabled="paginationControlsDisabled"
+              :class="[paginationControlsDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']"
+              @click="gridAPI.paginationGoToPreviousPage()"
+            >
+              <ChevronLeftIcon class="w-5 h-5"/>
+            </button>
+            <span class="text-center items-center flex whitespace-nowrap">
+              <label for="pageSelector" class="sr-only">Select page</label>
+              <TextField id='pageSelector' type="number" class="-mt-1 w-16 mr-2"
+                :debounce="Number(250)" v-model="currentPage"
+                :disabled="totalPages == 1"
+                :min="1" :max="totalPages"
+                @update:modelValue="pageSelectorChanged" @focus="e => e.target.select()"
+              />
+              of {{ totalPages }}
+            </span>
+            <button :disabled="paginationControlsDisabled"
+              :class="[paginationControlsDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']"
+              @click="gridAPI.paginationGoToNextPage()"
+            >
+              <ChevronRightIcon class="w-5 h-5"/>
+            </button>
+            <button :disabled="paginationControlsDisabled"
+              :class="[paginationControlsDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer']"
+              @click="gridAPI.paginationGoToLastPage()"
+            >
+              <ChevronDoubleRightIcon class="w-5 h-5"/>
+            </button>
+          </div>
+        </div>
+        <!-- Suggestions -->
+        <div class="absolute top-10 mt-2.5 rounded-md shadow-lg border w-full" v-if="suggestions.length">
+          <div class="rounded-md shadow-xs overflow-hidden">
+            <div class="z-20 relative grid gap-4 bg-white px-5 py-6">
+              <SuggestionList as="div" v-for="(suggestionList, listIndex) in suggestions" :key="listIndex">
+                <h3 class="mb-1 font-medium text-sm text-gray-600">{{ suggestionList.label }}</h3>
+                <div class="-mx-2 px-2">
+                  <!-- Suggestion -->
+                  <Suggestion as="button" v-for="(suggestion, index) in suggestionList.suggestions" :key="index" v-slot="{ isActive }" class="mb-2 mr-2 rounded-full focus:ring-2 focus:ring-blue-500">
+                    <Badge :color="suggestion.filter.label.color">{{ suggestion.label }}</Badge>
+                  </Suggestion>
+                </div>
+              </SuggestionList>
             </div>
           </div>
         </div>
+        <!-- Suggestions END -->
       </div>
-    </div>
-    <div v-if="displayNodeDetails" class="basis-1/4 w-1/2 h-full max-w-[25%] -ml-2">
-      <DisplayNodeDrawer
-        :node="selectedNode" :show="displayNodeDetails"
-        @closeNodeDrawer="closeNodeDrawer" @nodeUpdated="nodeUpdated"
+      <AgGrid class="ag-theme-alpine w-full h-full"
+        :columnDefs="columns" :rowData="nodes"
+        :gridOptions="gridOptions"
+        @grid-ready="onGridReady"
+        @pagination-changed="onPaginationChange"
+        :doesExternalFilterPass="(rowNode) => {return api.doesItemMatchFilter(rowNode.data)}"
       />
+
     </div>
-  </div>
+  </FilterBox>
+</div>
 </template>
+
+<style scoped>
+:deep(.ag-header ) {
+  display: none;
+}
+</style>

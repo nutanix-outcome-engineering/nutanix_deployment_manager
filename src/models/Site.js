@@ -1,5 +1,7 @@
 const db = require('../database')
 const jsondiffpatch = require('jsondiffpatch')
+const PrismCentral = require('./PrismCentral.js')
+const vCenter = require('./vCenter.js')
 
 const TABLE = 'site'
 
@@ -11,6 +13,9 @@ class Site {
     this.ntpServers = typeof site.ntpServers == 'string' ? JSON.parse(site.ntpServers) : site.ntpServers
     this.dnsServers = typeof site.dnsServers == 'string' ? JSON.parse(site.dnsServers) : site.dnsServers
 
+    this.pcServers = site.pcServers || []
+    this.vCenterServers = site.vCenterServers || []
+
     /** @private */
     this._record = null
   }
@@ -21,7 +26,9 @@ class Site {
       name: this.name,
       infraCluster: this.infraCluster,
       ntpServers: JSON.stringify(this.ntpServers),
-      dnsServers: JSON.stringify(this.dnsServers)
+      dnsServers: JSON.stringify(this.dnsServers),
+      pcServers: JSON.stringify(this.pcServers.map(pc => pc.id)),
+      vCenterServers: JSON.stringify(this.vCenterServers.map(vcsa => vcsa.id))
     }
   }
 
@@ -31,11 +38,13 @@ class Site {
       name: this.name,
       infraCluster: this.infraCluster,
       ntpServers: this.ntpServers,
-      dnsServers: this.dnsServers
+      dnsServers: this.dnsServers,
+      pcServers: this.pcServers.map(pc => pc.toJSON()),
+      vCenterServers: this.vCenterServers.map(vcsa => vcsa.toJSON())
     }
   }
 
-  async update() {
+  async update(transaction) {
     let serialized = this.serialize()
     let changes = jsondiffpatch.diff(serialized, this._record)
     let sparseCommit = {}
@@ -47,14 +56,19 @@ class Site {
     }
     else {
       let q = db(TABLE).where({id: this.id}).update(sparseCommit)
+      if (transaction) { q.transacting(transaction)}
       return await q
     }
   }
 
-  async create() {
-    let insertedID = (await db(TABLE).insert(this.serialize()))[0]
-    let addedSite = await Site.getByID(insertedID)
-    return addedSite
+  async create(transaction) {
+    let insert = db(TABLE).insert(this.serialize())
+    if (transaction) {
+      insert.transacting(transaction)
+    }
+    let insertedID = (await insert)[0]
+    this.id = insertedID
+    return this
   }
 
   static async query(callback = async knex => knex) {
@@ -64,15 +78,17 @@ class Site {
 
     const records = await query
 
-    return records.map(this.fromDB)
+    return await Promise.all(records.map(this.fromDB))
   }
 
   static get dbTable() {
     return TABLE
   }
 
-  static fromDB(record) {
-    let site = new Site(record)
+  static async fromDB(record) {
+    let pcServers = await PrismCentral.getByIds(JSON.parse(record.pcServers))
+    let vCenterServers = await vCenter.getByIds(JSON.parse(record.vCenterServers))
+    let site = new Site({...record, pcServers, vCenterServers})
     // reiview TODO: couldn't this be in the constructor as a permutation of this._record = site?
     site._record = record
     return site

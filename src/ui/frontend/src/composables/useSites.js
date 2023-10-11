@@ -43,7 +43,7 @@ fetchAll()
 
 export default function useSites() {
   return {
-    sites: readonly(sites),
+    sites: sites,
     isLoading: readonly(isLoading),
     getSites,
     addSite,

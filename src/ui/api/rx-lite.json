@@ -621,6 +621,16 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "parameters": [],
@@ -675,6 +685,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -1112,6 +1132,20 @@
             "items": {
               "type": "string"
             }
+          },
+          "pcServers": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/PrismCentral"
+            }
+          },
+          "vCenterServers": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/vCenter"
+            }
           }
         }
       },
@@ -1247,6 +1281,70 @@
             "format": "date-time",
             "readOnly": true
           }
+        }
+      },
+      "PrismCentral": {
+        "title": "PrismCentral",
+        "x-stoplight": {
+          "id": "s0xjvx812tzou"
+        },
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "hostnameOrIP": {
+            "type": "string"
+          },
+          "credentials": {
+            "$ref": "#/components/schemas/Credential"
+          },
+          "createDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "default": {
+            "type": "boolean"
+          }
+        }
+      },
+      "vCenter": {
+        "title": "vCenter",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "hostnameOrIP": {
+            "type": "string"
+          },
+          "credentials": {
+            "$ref": "#/components/schemas/Credential"
+          },
+          "createDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastModified": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "default": {
+            "type": "boolean"
+          }
+        },
+        "x-stoplight": {
+          "id": "c03aedda0f8eb"
         }
       }
     },

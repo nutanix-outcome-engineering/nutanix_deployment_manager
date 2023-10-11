@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="bg-gray-100 rounded-md">
     <label v-if="label" for="share" class="block text-sm font-medium text-gray-700">{{ label }}</label>
     <form @submit="addItem" class="mt-1 flex rounded-md shadow-sm">
       <div class="relative flex items-stretch flex-grow focus-within:z-10">
@@ -16,7 +16,7 @@
         </template>
         </div>
       </div>
-      <button class="-ml-px relative inline-flex items-center space-x-2 px-4 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+      <button class="-ml-px relative inline-flex items-center space-x-2 px-2 py-2 border border-gray-300 text-sm font-medium rounded-r-md text-gray-700 bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
         <PlusIcon class="ml-1 w-5 h-5 text-gray-700" />
       </button>
     </form>
@@ -25,7 +25,7 @@
         v-for="item in items"
         @click="remove(item)"
         :key="item"
-        class="mr-1 mt-2 flex items-center rounded-full py-1 px-3 space-x-2 bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 active:bg-red-100"
+        class="mr-1 flex items-center rounded-full py-1 px-3 space-x-2 bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 active:bg-red-100"
       >
         <p class="text-gray-800 text-xs">{{ item }}</p>
         <XMarkIcon outline class="text-red-500 flex-shrink-0 w-4 h-4" />
@@ -33,7 +33,7 @@
       <button
       v-if="form.text.length && this.items.indexOf(this.form.text) === -1"
         @click="form.text = ''"
-        class="mr-1 mt-2 flex items-center rounded-full py-1 px-3 space-x-2 bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 active:bg-red-100"
+        class="mr-1 flex items-center rounded-full py-1 px-3 space-x-2 bg-white border border-gray-300 hover:bg-red-50 hover:border-red-200 active:bg-red-100"
       >
         <p class="text-gray-800 text-xs">{{ form.text }}</p>
         <XMarkIcon outline class="text-red-500 flex-shrink-0 w-4 h-4" />

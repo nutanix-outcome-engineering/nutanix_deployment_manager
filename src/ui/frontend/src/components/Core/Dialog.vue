@@ -36,7 +36,7 @@ function open() {
 
   <TransitionRoot appear :show="isOpen" as="template">
     <Dialog as="div" @close="close">
-      <div class="fixed inset-0 z-10 overflow-y-auto">
+      <div class="fixed inset-0 z-10">
         <div class="min-h-screen px-4 text-center">
           <TransitionChild
             as="template"
@@ -68,15 +68,16 @@ function open() {
             <div
               :class="[
                 'inline-flex flex-col',
-                'max-h-[70vh] h-full w-full overflow-hidden',
-                'p-6',
+                'max-h-[70vh] h-full w-full',
+                'overflow-y-auto',
+                'px-4 pb-2 pt-1',
                 'align-bottom mb-14 sm:align-middle sm:w-auto sm:max-w-md md:max-w-[70%] 2xl:max-w-6xl',
                 'transition-all transform bg-white border shadow-xl rounded-lg'
               ]"
             >
-              <div v-if="heading" class="flex items-center justify-between pb-3">
+              <div v-if="heading" class="flex items-center justify-between">
                 <div>
-                  <Heading :level="2" v-if="heading">{{ heading }}</Heading>
+                  <h2 v-if="heading" class="text-left text-gray-900 my-2 text-xl font-semibold">{{ heading }}</h2>
                 </div>
                 <button @click="close">
                   <XMarkIcon class="w-5 h-5 shrink-0" />

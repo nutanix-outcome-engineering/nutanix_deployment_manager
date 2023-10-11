@@ -4,7 +4,7 @@ import { ref } from 'vue'
 import useSites from '@/composables/useSites.js'
 
 
-import AddSiteModal from './AddSiteModal.vue'
+import SiteModal from './SiteModal.vue'
 
 const { sites, setupPoll, addSite, editSite } = useSites()
 
@@ -21,8 +21,8 @@ setupPoll()
           <p class="mt-2 text-sm text-gray-700">List of sites</p>
         </div>
         <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <AddSiteModal @handleSubmit="addSite">
-        </AddSiteModal>
+        <SiteModal @handleSubmit="addSite">
+        </SiteModal>
         </div>
       </div>
       <div class="mt-8 flex flex-col max-h-[600px] overflow-y-auto">
@@ -50,10 +50,10 @@ setupPoll()
                     <td :class="[siteIdx !== sites.length - 1 ? 'border-b border-gray-200' : '', 'whitespace-nowrap px-3 py-4 text-sm text-gray-500']">{{ site.ntpServers }}</td>
                     <td :class="[siteIdx !== sites.length - 1 ? 'border-b border-gray-200' : '', 'whitespace-nowrap px-3 py-4 text-sm text-gray-500']">{{ site.dnsServers }}</td>
                     <td :class="[siteIdx !== sites.length - 1 ? 'border-b border-gray-200' : '', 'relative whitespace-nowrap py-4 pr-4 pl-3 text-right text-sm font-medium sm:pr-6 lg:pr-8']">
-                      <AddSiteModal @handleSubmit="editSite" :site="site">
+                      <SiteModal @handleSubmit="editSite" :site="site">
                         <span class="text-indigo-600 hover:text-indigo-900 hover:underline cursor-pointer decoration-from-font">Edit</span>
                         <span class="sr-only">, {{ site.id }}</span>
-                      </AddSiteModal>
+                      </SiteModal>
                     </td>
                   </tr>
                 </tbody>

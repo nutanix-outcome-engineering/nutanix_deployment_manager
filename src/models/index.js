@@ -5,5 +5,7 @@ module.exports = {
   Cluster: require('./Cluster.js'),
   Rack: require('./Rack.js'),
   Switch: require('./Switch.js'),
+  PrismCentral: require('./PrismCentral.js'),
+  vCenter: require('./vCenter.js'),
   ...require('./Task')
 }

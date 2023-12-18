@@ -10,6 +10,12 @@ class IngestData {
     this.ingestTaskUUID = ingestData.ingestTaskUUID
     this.serial = ingestData.serial
     this.chassisSerial = ingestData.chassisSerial
+    // Remove associated ipv6 interface from ipv6 address string for use in filtering,
+    // when using for direct reference it is needed but for matching between different
+    // FVM (or CVM) discovery the interface portion can change and mess with filters
+    this.ipv6Address = ingestData.ipv6Address ? ingestData.ipv6Address.split('%')[0] : undefined
+    this.model = ingestData.model
+    this.position = ingestData.position
 
     this.ipmiIP = ingestData.ipmiIP
     this.ipmiHostname = ingestData.ipmiHostname
@@ -117,6 +123,9 @@ class IngestData {
       ingestTaskUUID: this.ingestTaskUUID,
       serial: this.serial,
       chassisSerial: this.chassisSerial,
+      ipv6Address: this.ipv6Address,
+      model: this.model,
+      position: this.position,
 
       ipmiIP: this.ipmiIP,
       ipmiHostname: this.ipmiHostname,
@@ -150,6 +159,9 @@ class IngestData {
       ingestTaskUUID: this.ingestTaskUUID,
       serial: this.serial,
       chassisSerial: this.chassisSerial,
+      ipv6Address: this.ipv6Address,
+      model: this.model,
+      position: this.position,
 
       ipmi: {
         ip: this.ipmiIP,

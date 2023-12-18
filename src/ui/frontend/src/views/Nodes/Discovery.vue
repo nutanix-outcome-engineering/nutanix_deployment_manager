@@ -38,6 +38,7 @@ const columns = ref([
     field: 'chassisSerial',
     pinned: 'left',
     headerCheckboxSelection: true,
+    headerCheckboxSelectionFilteredOnly: true,
     checkboxSelection: true,
     editable: false,
     sort: 'asc',
@@ -59,6 +60,14 @@ const columns = ref([
     pinned: 'left',
     sort: 'asc',
     sortIndex: 2
+  },
+  {
+    headerName: 'Model',
+    cellDataType: 'text',
+    field: 'model',
+    hide: true,
+    suppressMenu: true,
+    pinned: 'left'
   },
   {//TODO: Subnet mask as CIDR
     headerName: 'IPMI',
@@ -127,7 +136,7 @@ const gridOptions = {
   },
   isExternalFilterPresent: () => { return true },
   doesExternalFilterPass: externalFilterFunction,
-  isRowSelectable: isNodeInSystem,
+  isRowSelectable: (rowNode) => !isNodeInSystem(rowNode),
   getRowId: ({data}) => `${data.chassisSerial}:${data.serial}`
 }
 
@@ -172,7 +181,7 @@ function findDuplicates() {
 
 function externalFilterFunction(rowNode) {
   let retVal = false
-  retVal ||= isNodeInSystem(rowNode)
+  retVal ||= !isNodeInSystem(rowNode)
 
   return retVal
 }
@@ -234,7 +243,7 @@ function getSortedSelectedNodes() {
 }
 
 function isNodeInSystem(rowNode) {
-  let nodeInSystem = Boolean(!allNodes.value.find(node => {
+  let nodeInSystem = Boolean(allNodes.value.find(node => {
     return node.serial == rowNode.data.serial
   }))
   return nodeInSystem

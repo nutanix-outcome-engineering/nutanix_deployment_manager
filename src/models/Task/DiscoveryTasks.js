@@ -50,6 +50,7 @@ class DiscoverCVMDirectTask {
       const ingestData = await IngestData.getByID(job.data.ingestDataId)
       let node = new redfishNode({...bmcInfo, bmcPass: ingestData.credentials.ipmi.password})
       const isPoweredOn = await node.isPoweredOn()
+      // TODO: handle scalable BMC discovery -- don't try to fetch network info for all nodes that come back in discovery when starting from BMC IP range
       if (!isPoweredOn) {
         await node.powerOn()
         // Delay job while we wait for power on. The function takes a epoch timestamp of the time to move it back to the wait queue
@@ -57,8 +58,17 @@ class DiscoverCVMDirectTask {
         // This error needs to be thrown otherwise the worker errors with a weird message
         throw new DelayedError('Waiting for node to power on.')
       } else {
-        const fvm = new Foundation(config.fvm_ip, {logger: null})
-        blockInfo = (await fvm.discoverNodes({ipmiIP: node.bmcIP}, {fetchNetworkInfo: true}))[0]
+        let fvm
+        if (ingestData.cvmIP) {
+          // Coming from node discovery, talk to CVM foundation service and include the knowledge we have from discovery
+          // long-term TODO: ... Consider if this is actually needed or if we should just rely on what is already in ingestData
+          fvm = new Foundation(ingestData.cvmIP, {logger: null})
+          blockInfo = (await fvm.discoverNodes({ipmiIP: node.bmcIP, blockSN: ingestData.chassisSerial, ipv6Address:ingestData.ipv6Address}, {fetchNetworkInfo: true}))[0]
+        }
+        else {
+          fvm = new Foundation(config.fvm_ip, {logger: null})
+          blockInfo = (await fvm.discoverNodes({ipmiIP: node.bmcIP}, {fetchNetworkInfo: true}))[0]
+        }
         const discoveredNode = blockInfo?.nodes?.[0]
 
         if (discoveredNode) {
@@ -166,6 +176,9 @@ class IngestNodeTask {
             const thisSite = await Site.getByID(thisRack.siteID)
             thisSwitch.rack = thisRack
             thisSwitch.site = thisSite
+            // TODO: this is not deduping, start from array and map to
+            // array.filter where id=id (or array.map)
+            // consider using find with custom function.
             discoveredRacks.add(thisRack)
             discoveredSites.add(thisSite)
             discoveredSwitches.push(thisSwitch)

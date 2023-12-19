@@ -50,6 +50,9 @@ module.exports = {
       nodesToIngest.push(new IngestData({
         serial: node.serial,
         chassisSerial: node.chassisSerial,
+        ipv6Address: node.ipv6Address,
+        model: node.model,
+        position: node.position,
 
         ipmiIP: node.ipmi.ip,
         ipmiGateway: node.ipmi.gateway,
@@ -62,6 +65,7 @@ module.exports = {
         hostIP: node.host.ip,
         hostGateway: node.host.gateway,
         hostSubnet: node.host.subnet,
+        hostHostname: node.host.hostname,
 
         ingestState: 'pending',
         credentials: req.body.credentials
@@ -82,6 +86,7 @@ module.exports = {
             chassisSerial: block.block_id,
             ipv6Address: node.ipv6_address,
             position: node.node_position,
+            model: node.model,
             ipmi: {
               ip: node.ipmi_ip,
               gateway: node.ipmi_gateway,

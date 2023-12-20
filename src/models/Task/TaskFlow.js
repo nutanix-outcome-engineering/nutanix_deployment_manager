@@ -3,6 +3,7 @@ const { willCreateCycle, topologicalSort } = require('graphology-dag')
 const { v4: uuid} = require('uuid')
 const IngestData = require('../IngestData')
 const AOS = require('../AOS')
+const Hypervisor = require('../Hypervisor')
 const db = require('../../database')
 
 const TABLE = 'taskFlow'
@@ -394,10 +395,10 @@ class DiscoverNodeTaskFlow extends TaskFlow {
   }
 }
 
-class UploadAOSTaskFlow extends TaskFlow {
+class UploadAosTaskFlow extends TaskFlow {
   constructor(graph, id, inputData) {
     super(graph, id)
-    this.type = 'UploadAOSTaskFlow'
+    this.type = 'UploadAosTaskFlow'
     this.ref = `AOS:${inputData?.aosUUID}`
     let taskDefinition = {
       tasks: [
@@ -429,12 +430,48 @@ class UploadAOSTaskFlow extends TaskFlow {
 
     await aos.update()
   }
+}
 
-  // async find
+class UploadHypervisorTaskFlow extends TaskFlow {
+  constructor(graph, id, inputData) {
+    super(graph, id)
+    this.type = 'UploadHypervisorTaskFlow'
+    this.ref = `Hypervisor:${inputData?.hypervisorUUID}`
+    let taskDefinition = {
+      tasks: [
+        {
+          name: 'UploadHypervisor'
+        },
+        {
+          name: 'PostUploadHypervisor',
+          needs: ['UploadHypervisor']
+        }
+      ]
+    }
+
+    if (!graph) {
+      taskDefinition.tasks.forEach(task => {
+        if (!task.needs) {
+          task.data = inputData
+        }
+      })
+
+      this.graph = this.constructor.graphFromJSONDefinition(taskDefinition)
+    }
+  }
+
+  async onFailure() {
+    let uuid = this.graph.getNodeAttribute('UploadHypervisor', 'data').hypervisorUUID
+    let hypervisor = await Hypervisor.getById(uuid)
+    hypervisor.transferStatus = 'failed'
+
+    await hypervisor.update()
+  }
 }
 
 module.exports = {
   TaskFlow,
   DiscoverNodeTaskFlow,
-  UploadAOSTaskFlow
+  UploadAosTaskFlow,
+  UploadHypervisorTaskFlow
 }

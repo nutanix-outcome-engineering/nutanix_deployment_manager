@@ -837,6 +837,145 @@
         }
       }
     },
+    "/sites/{id}/hypervisor": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "id of Site"
+        }
+      ],
+      "post": {
+        "summary": "Create new Hypervisor for site",
+        "tags": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hypervisor"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "sites.hypervisor.add",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "p0c3abp23v3nw"
+                    }
+                  },
+                  "version": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "xizxrmqelcwbx"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "m1i255bl6qiqc"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "h69l9eauhj8zm"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{id}/hypervisor/{hypervisorId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "id of the site"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "hypervisorId",
+          "in": "path",
+          "required": true,
+          "description": "id of the hypervisor"
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "sites.hypervisor.update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Hypervisor"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "4bcvi0yh88a83"
+                    }
+                  },
+                  "version": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "9cj8sngvetbov"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "nywtibe8w8uce"
+                    }
+                  },
+                  "type": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "6x8zlk20s5q0x"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": ""
+      }
+    },
     "/racks/{id}": {
       "get": {
         "summary": "Your GET endpoint",
@@ -1379,6 +1518,24 @@
             "items": {
               "$ref": "#/components/schemas/vCenter"
             }
+          },
+          "aosList": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "wln6s2vdpf9mi"
+            },
+            "items": {
+              "$ref": "#/components/schemas/AOS"
+            }
+          },
+          "hypervisorList": {
+            "type": "array",
+            "x-stoplight": {
+              "id": "fcjfvcmfe3kq5"
+            },
+            "items": {
+              "$ref": "#/components/schemas/Hypervisor"
+            }
           }
         }
       },
@@ -1655,10 +1812,76 @@
             },
             "format": "date-time"
           },
-          "uploadStatus": {
+          "transferStatus": {
             "type": "string",
             "x-stoplight": {
               "id": "oh8m6tjrnig57"
+            }
+          }
+        }
+      },
+      "Hypervisor": {
+        "title": "Hypervisor",
+        "x-stoplight": {
+          "id": "dbarcxms6e3yv"
+        },
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "hblci1eksjhyf"
+            }
+          },
+          "name": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "6jbad1b5w87oh"
+            }
+          },
+          "version": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "hxg1wsh3d78qf"
+            }
+          },
+          "type": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "n9ixvbmzk2bg7"
+            }
+          },
+          "filename": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "5kt8da1r4ehm3"
+            },
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "n8xprc0ujlqjy"
+            }
+          },
+          "lastModified": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "e5nyxh5qwyhzs"
+            },
+            "format": "date-time"
+          },
+          "createdDate": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "g58g7wqr8y7x1"
+            },
+            "format": "date-time"
+          },
+          "transferStatus": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "iltlu0jqzta0m"
             }
           }
         }

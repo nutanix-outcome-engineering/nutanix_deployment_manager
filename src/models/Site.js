@@ -2,6 +2,7 @@ const db = require('../database')
 const jsondiffpatch = require('jsondiffpatch')
 const PrismCentral = require('./PrismCentral.js')
 const vCenter = require('./vCenter.js')
+const AOS = require('./AOS.js')
 
 const TABLE = 'site'
 
@@ -16,6 +17,8 @@ class Site {
     this.pcServers = site.pcServers || []
     this.vCenterServers = site.vCenterServers || []
 
+    this.aosList = site.aosList || []
+
     /** @private */
     this._record = null
   }
@@ -28,7 +31,8 @@ class Site {
       ntpServers: JSON.stringify(this.ntpServers),
       dnsServers: JSON.stringify(this.dnsServers),
       pcServers: JSON.stringify(this.pcServers.map(pc => pc.id)),
-      vCenterServers: JSON.stringify(this.vCenterServers.map(vcsa => vcsa.id))
+      vCenterServers: JSON.stringify(this.vCenterServers.map(vcsa => vcsa.id)),
+      aosList: JSON.stringify(this.aosList.map(aos => aos.uuid))
     }
   }
 
@@ -40,7 +44,8 @@ class Site {
       ntpServers: this.ntpServers,
       dnsServers: this.dnsServers,
       pcServers: this.pcServers.map(pc => pc.toJSON()),
-      vCenterServers: this.vCenterServers.map(vcsa => vcsa.toJSON())
+      vCenterServers: this.vCenterServers.map(vcsa => vcsa.toJSON()),
+      aosList: this.aosList.map(aos => aos.toJSON())
     }
   }
 
@@ -88,7 +93,8 @@ class Site {
   static async fromDB(record) {
     let pcServers = await PrismCentral.getByIds(JSON.parse(record.pcServers))
     let vCenterServers = await vCenter.getByIds(JSON.parse(record.vCenterServers))
-    let site = new Site({...record, pcServers, vCenterServers})
+    let aosList = await AOS.getByIds(JSON.parse(record.aosList))
+    let site = new Site({...record, pcServers, vCenterServers, aosList})
     // reiview TODO: couldn't this be in the constructor as a permutation of this._record = site?
     site._record = record
     return site

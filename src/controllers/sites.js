@@ -1,5 +1,9 @@
-const { Site, PrismCentral, vCenter }  = require('../models')
+const { Site, PrismCentral, vCenter, AOS }  = require('../models')
 const db = require('../database')
+const config = require('../lib/config')
+const { v4: uuid} = require('uuid')
+const { mkdir } = require('fs/promises')
+const { resolve } = require('path')
 
 function validateBody(body) {
   const uniquePCHostnameOrIPs = new Set(body.pcServers.map(pc => pc.hostnameOrIP))
@@ -66,6 +70,11 @@ module.exports = {
         site.vCenterServers = vCenterServers
       }
       const added = await site.create(transaction)
+      if (config.filestore.local) {
+        await mkdir(resolve(config.filestore.baseDirectory, config.filestore.exportDirectory, `${added.id}`), {recursive: true})
+        await mkdir(resolve(config.filestore.baseDirectory, config.filestore.exportDirectory, `${added.id}`, 'aos'), {recursive: true})
+        await mkdir(resolve(config.filestore.baseDirectory, config.filestore.exportDirectory, `${added.id}`, 'hypervisor'), {recursive: true})
+      }
       await transaction.commit()
       res.status(201).json(added.toJSON())
     } catch (err) {
@@ -138,6 +147,34 @@ module.exports = {
     } catch (err) {
       transaction.rollback()
       next(err)
+    }
+  },
+  aos: {
+    add: async (req, res, next) => {
+      let transaction = await db.transaction()
+      try {
+        let aos = new AOS({...req.body, site: req.params.id, uuid: uuid()})
+        let site = await Site.getByID(req.params.id)
+        site.aosList.push(aos)
+        await site.update(transaction)
+        await aos.create(transaction)
+        await transaction.commit()
+        res.status(201).json(aos.toJSON())
+      } catch (err) {
+        transaction.rollback()
+        next(err)
+      }
+
+    },
+    update: async (req, res, next) => {
+      const existing = await AOS.getById(req.params.aosId)
+
+      existing.name = req.body.name || existing.name
+      existing.version = req.body.version || existing.version
+      existing.status = req.body.status || existing.status
+      await existing.update()
+
+      res.status(200).json(existing.toJSON())
     }
   }
 }

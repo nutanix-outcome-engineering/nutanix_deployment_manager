@@ -1,6 +1,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import AppLink from '@/components/Core/AppLink.vue'
 import useSites from '@/composables/useSites.js'
 
 
@@ -50,10 +51,14 @@ setupPoll()
                     <td :class="[siteIdx !== sites.length - 1 ? 'border-b border-gray-200' : '', 'whitespace-nowrap px-3 py-4 text-sm text-gray-500']">{{ site.ntpServers }}</td>
                     <td :class="[siteIdx !== sites.length - 1 ? 'border-b border-gray-200' : '', 'whitespace-nowrap px-3 py-4 text-sm text-gray-500']">{{ site.dnsServers }}</td>
                     <td :class="[siteIdx !== sites.length - 1 ? 'border-b border-gray-200' : '', 'relative whitespace-nowrap py-4 pr-4 pl-3 text-right text-sm font-medium sm:pr-6 lg:pr-8']">
-                      <SiteModal @handleSubmit="editSite" :site="site">
+                      <AppLink :to="{name: 'sites.overview', params: {id: site.id}, state: {site: JSON.parse(JSON.stringify(site))}}">
                         <span class="text-indigo-600 hover:text-indigo-900 hover:underline cursor-pointer decoration-from-font">Edit</span>
                         <span class="sr-only">, {{ site.id }}</span>
-                      </SiteModal>
+                      </AppLink>
+                      <!-- <SiteModal @handleSubmit="editSite" :site="site">
+                        <span class="text-indigo-600 hover:text-indigo-900 hover:underline cursor-pointer decoration-from-font">Edit</span>
+                        <span class="sr-only">, {{ site.id }}</span>
+                      </SiteModal> -->
                     </td>
                   </tr>
                 </tbody>

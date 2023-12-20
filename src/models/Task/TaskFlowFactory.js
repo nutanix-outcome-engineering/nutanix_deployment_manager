@@ -8,10 +8,8 @@ function fromDB(record) {
   const graph = new Graph(graphData.options)
   graph.import(graphData)
 
-  const taskFlow = new TaskFlow[record.type](graph, record.id, null)
-  taskFlow._record = record
-  taskFlow.status = record.status
-  taskFlow.type = record.type
+  let taskFlow = new TaskFlow[record.type](graph, record.id, null)
+  taskFlow = taskFlow.fromRecord(record)
   return taskFlow
 }
 
@@ -26,9 +24,12 @@ async function query(callback = async knex => knex) {
   return records.map(fromDB)
 }
 
-async function getAllNotFinished() {
+async function getAllNotFinished(type) {
   const builder = query(q => {
     q.whereNotIn('status', ['complete', 'failed'])
+    if (type) {
+      q.andWhere({type: type})
+    }
     return q
   })
 
@@ -42,6 +43,17 @@ async function getByID(id) {
 
   return (await builder)[0]
 }
+async function getLatestByTypeAndRef(type, ref) {
+  const builder = query(q => {
+    q.where({type: type})
+    .andWhere('ref', 'LIKE', `%${ref}`)
+    .orderBy('startDate', 'DESC')
+    .limit(1)
+    return q
+  })
+
+  return (await builder)[0]
+}
 
 // function fromJSONDefinition(definition) {
 //   const graph = this.graphFromJSONDefinition(definition)
@@ -50,5 +62,6 @@ async function getByID(id) {
 
 module.exports = {
   getAllNotFinished,
-  getByID
+  getByID,
+  getLatestByTypeAndRef
 }

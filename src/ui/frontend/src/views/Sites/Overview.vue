@@ -4,6 +4,7 @@ import { ArrowUpTrayIcon, XMarkIcon, PlusIcon, ArrowPathIcon } from '@heroicons/
 import { startCase } from 'lodash'
 import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 import AOSModal from './AOSModal.vue'
+import HypervisorModal from './HypervisorModal.vue'
 import Button from '@/components/Core/Button.vue'
 import Badge from '@/components/Core/Badge.vue'
 import TextList from '@/components/Core/Form/TextList.vue'
@@ -32,7 +33,8 @@ function formDefault() {
       dnsServers: [],
       pcServers: [],
       vCenterServers: [],
-      aosList: []
+      aosList: [],
+      hypervisorList: []
     },
     pc: {
       displayName: '',
@@ -68,7 +70,8 @@ function hydrateForm() {
       dnsServers: [...site.value.dnsServers],
       pcServers: [...site.value.pcServers],
       vCenterServers: [...site.value.vCenterServers],
-      aosList: [...site.value.aosList]
+      aosList: [...site.value.aosList],
+      hypervisorList: [...site.value.hypervisorList],
     }
   }
   return form
@@ -492,6 +495,24 @@ function statusColor(status) {
           </AOSModal>
         </div>
         <!-- AOS List End -->
+        <!-- Hypervisor List Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium space-y-2">
+          <div class="flex justify-between">
+            <span class="block pt-2 pb-2 text-sm font-medium">Hypervisor List</span>
+            <HypervisorModal :site="site"/>
+          </div>
+          <HypervisorModal v-for="hypervisor in site.hypervisorList" :hypervisor="hypervisor" :site="site">
+            <div class="flex p-1.5 border rounded-md bg-gray-50 space-x-1.5">
+              <span>Name:</span>
+              <span>{{ hypervisor.name }}</span>
+              <Badge :color="statusColor(hypervisor.status)">{{ startCase(hypervisor.status) }}</Badge>
+              <Badge :color="transferStatusColor(hypervisor.transferStatus)" label="Transfer Status">{{ startCase(hypervisor.transferStatus) }}</Badge>
+              <span>Version:</span>
+              <span>{{ hypervisor.version }}</span>
+            </div>
+          </HypervisorModal>
+        </div>
+        <!-- Hypervisor List End -->
       </div>
     </div>
     </form>

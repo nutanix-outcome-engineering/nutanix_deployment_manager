@@ -58,6 +58,19 @@ async function updateAOS(site, aos) {
   return updatedAOS
 }
 
+async function addHypervisor(site, hypervisor) {
+  await axios.post(`/sites/${site.id}/hypervisor`, hypervisor)
+  const newHypervisor = unref(data)
+  await getSite(site.id)
+  return newHypervisor
+}
+async function updateHypervisor(site, hypervisor) {
+  await axios.patch(`/sites/${site.id}/hypervisor/${hypervisor.uuid}`, hypervisor)
+  const updatedHypervisor = unref(data)
+  await getSite(site.id)
+  return updatedHypervisor
+}
+
 fetchAll()
 
 export default function useSites() {
@@ -71,6 +84,7 @@ export default function useSites() {
     fetchAll,
     setupPoll,
     getSite,
-    addAOS, updateAOS
+    addAOS, updateAOS,
+    addHypervisor, updateHypervisor
   }
 }

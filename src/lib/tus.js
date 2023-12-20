@@ -2,9 +2,17 @@ const { Server, EVENTS } = require('@tus/server')
 const { FileStore } = require('@tus/file-store')
 const { v4: uuid} = require('uuid')
 const { resolve } = require('path')
-const { UploadAOSTaskFlow, getLatestByTypeAndRef } = require('../models/Task')
+const { startCase } = require('lodash')
+const {
+  UploadAosTaskFlow,
+  UploadHypervisorTaskFlow,
+  getLatestByTypeAndRef
+} = require('../models/Task')
+const {
+  AOS,
+  Hypervisor,
+} = require('../models')
 const { general } = require('./workerQueues.js')
-const AOS = require('../models/AOS.js')
 const log = require('./logger.js')
 const config = require('./config')
 
@@ -15,14 +23,15 @@ const imageStore = new FileStore({
 })
 
 async function handleTaskTracking(type, id, size) {
+  let taskFlow
   switch (type) {
     case 'aos':
-      const taskFlow = await getLatestByTypeAndRef(`UploadAOSTaskFlow`, id)
+      taskFlow = await getLatestByTypeAndRef(`UploadAosTaskFlow`, id)
       if (!taskFlow || taskFlow?.isComplete()) {
         let aos = await AOS.getById(id)
         aos.transferStatus = 'uploading'
         await aos.update()
-        let uploadTaskFlow = new UploadAOSTaskFlow(null, null, {
+        let uploadTaskFlow = new UploadAosTaskFlow(null, null, {
           filepath: `${filestoreDirectory}/${aos.uuid}`,
           exportBasePath: `${resolve(filestoreDirectory, config.filestore.exportDirectory)}`,
           aosUUID: aos.uuid,
@@ -30,7 +39,24 @@ async function handleTaskTracking(type, id, size) {
         })
         await uploadTaskFlow.create()
         const jobTree = await general.flowProducer.add(uploadTaskFlow.generateJobsForQueue(general.queue.name))
-        // TODO: add jobIds to taskFlow
+        uploadTaskFlow.addJobIdsToTasks(jobTree)
+        await uploadTaskFlow.update()
+      }
+      break;
+    case 'hypervisor':
+      taskFlow = await getLatestByTypeAndRef(`UploadHypervisorTaskFlow`, id)
+      if (!taskFlow || taskFlow?.isComplete()) {
+        let hypervisor = await Hypervisor.getById(id)
+        hypervisor.transferStatus = 'uploading'
+        await hypervisor.update()
+        let uploadTaskFlow = new UploadHypervisorTaskFlow(null, null, {
+          filepath: `${filestoreDirectory}/${hypervisor.uuid}`,
+          exportBasePath: `${resolve(filestoreDirectory, config.filestore.exportDirectory)}`,
+          hypervisorUUID: hypervisor.uuid,
+          size: size
+        })
+        await uploadTaskFlow.create()
+        const jobTree = await general.flowProducer.add(uploadTaskFlow.generateJobsForQueue(general.queue.name))
         uploadTaskFlow.addJobIdsToTasks(jobTree)
         await uploadTaskFlow.update()
       }
@@ -50,7 +76,7 @@ const uploadsServer = new Server({
     return `${req.path}/${id}`
   },
   onUploadCreate: async (req, res, upload) => {
-    if (!['aos'].includes(req.headers['ndm-upload-type'])) {
+    if (!['aos', 'hypervisor'].includes(req.headers['ndm-upload-type'])) {
       throw {status_code: 500, body: `Unknown upload type ${type}`}
     }
     upload.id = upload.metadata.refId
@@ -74,7 +100,7 @@ const uploadsServer = new Server({
   onResponseError: async (req, res, error) => {
     //
     if (req.params.id && req.headers['ndm-auto-retry'] == 5) {
-      const taskFlow = await getLatestByTypeAndRef(`Upload${req.headers['ndm-upload-type'].toUpperCase()}TaskFlow`, req.params.id)
+      const taskFlow = await getLatestByTypeAndRef(`Upload${startCase(req.headers['ndm-upload-type'])}TaskFlow`, req.params.id)
       if (taskFlow) {
         let notCompletedTasks = taskFlow.getAllActivePendingSubtasks()
         let jobIds = notCompletedTasks.reduce((jobIds, task) => {

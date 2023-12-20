@@ -1,4 +1,4 @@
-const { Site, PrismCentral, vCenter, AOS }  = require('../models')
+const { Site, PrismCentral, vCenter, AOS, Hypervisor }  = require('../models')
 const db = require('../database')
 const config = require('../lib/config')
 const { v4: uuid} = require('uuid')
@@ -168,6 +168,34 @@ module.exports = {
     },
     update: async (req, res, next) => {
       const existing = await AOS.getById(req.params.aosId)
+
+      existing.name = req.body.name || existing.name
+      existing.version = req.body.version || existing.version
+      existing.status = req.body.status || existing.status
+      await existing.update()
+
+      res.status(200).json(existing.toJSON())
+    }
+  },
+  hypervisor: {
+    add: async (req, res, next) => {
+      let transaction = await db.transaction()
+      try {
+        let hypervisor = new Hypervisor({...req.body, site: req.params.id, uuid: uuid()})
+        let site = await Site.getByID(req.params.id)
+        site.hypervisorList.push(hypervisor)
+        await site.update(transaction)
+        await hypervisor.create(transaction)
+        await transaction.commit()
+        res.status(201).json(hypervisor.toJSON())
+      } catch (err) {
+        transaction.rollback()
+        next(err)
+      }
+
+    },
+    update: async (req, res, next) => {
+      const existing = await Hypervisor.getById(req.params.hypervisorId)
 
       existing.name = req.body.name || existing.name
       existing.version = req.body.version || existing.version

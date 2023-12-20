@@ -8,5 +8,6 @@ module.exports = {
   PrismCentral: require('./PrismCentral.js'),
   vCenter: require('./vCenter.js'),
   AOS: require('./AOS.js'),
+  Hypervisor: require('./Hypervisor.js'),
   ...require('./Task')
 }

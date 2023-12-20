@@ -36,6 +36,11 @@ const config = {
     key: process.env.RX_SERVER_KEY,
     cert: process.env.RX_SERVER_CERT
   },
+  filestore: {
+    local: process.env.RX_FILESTORE_LOCAL ? Boolean(process.env.RX_FILESTORE_LOCAL === 'true') : true,
+    baseDirectory: process.env.RX_FILESTORE_BASE_DIRECTORY || 'files',
+    exportDirectory: process.env.RX_FILESTORE_EXPORT_DIRECTORY || 'exports'
+  },
   fvm_ip: process.env.RX_FVM_IP
 }
 

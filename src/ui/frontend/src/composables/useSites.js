@@ -5,6 +5,7 @@ import useAPI from '@/composables/useAPI.js'
 const { axios, isLoading, data } = useAPI()
 
 const sites = ref([])
+const currentSite = ref(null)
 
 async function getSites() {
   await axios.get('/sites')
@@ -18,7 +19,7 @@ async function addSite(site) {
 
 async function editSite(site) {
   await axios.patch(`/sites/${site.id}`, site)
-  await fetchAll()
+  await getSite(site.id)
 }
 
 async function fetchAll() {
@@ -39,16 +40,37 @@ async function setupPoll(interval='30s') {
   })
 }
 
+async function getSite(id) {
+  await axios.get(`/sites/${id}`)
+  currentSite.value =  data.value
+}
+
+async function addAOS(site, aos) {
+  await axios.post(`/sites/${site.id}/aos`, aos)
+  const newAOS = unref(data)
+  await getSite(site.id)
+  return newAOS
+}
+async function updateAOS(site, aos) {
+  await axios.patch(`/sites/${site.id}/aos/${aos.uuid}`, aos)
+  const updatedAOS = unref(data)
+  await getSite(site.id)
+  return updatedAOS
+}
+
 fetchAll()
 
 export default function useSites() {
   return {
     sites: sites,
+    site: currentSite,
     isLoading: readonly(isLoading),
     getSites,
     addSite,
     editSite,
     fetchAll,
-    setupPoll
+    setupPoll,
+    getSite,
+    addAOS, updateAOS
   }
 }

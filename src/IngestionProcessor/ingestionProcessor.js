@@ -71,7 +71,7 @@ async function start() {
     }
 
 
-    let taskFlows = await task.getAllNotFinished()
+    let taskFlows = await task.getAllNotFinished('DiscoverNodeTaskFlow')
     log.debug(`Number of taskFlows still processing: ${taskFlows.length}`)
     taskFlows.forEach(async (taskFlow) =>{
       if (!taskFlow.isComplete()) {

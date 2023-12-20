@@ -81,6 +81,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/sites/:id',
+      name: 'sites.overview',
+      component: lazy('Sites/Overview'),
+      meta: {
+        auth: true
+      }
+    },
+    {
       path: '/racks',
       name: "racks",
       component: lazy('Racks/Racks'),

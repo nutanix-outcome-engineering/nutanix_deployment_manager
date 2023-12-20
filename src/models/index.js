@@ -7,5 +7,6 @@ module.exports = {
   Switch: require('./Switch.js'),
   PrismCentral: require('./PrismCentral.js'),
   vCenter: require('./vCenter.js'),
+  AOS: require('./AOS.js'),
   ...require('./Task')
 }

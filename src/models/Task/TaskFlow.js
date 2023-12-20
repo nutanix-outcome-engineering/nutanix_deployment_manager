@@ -1,8 +1,8 @@
 const { Graph } = require('graphology')
 const { willCreateCycle, topologicalSort } = require('graphology-dag')
 const { v4: uuid} = require('uuid')
-const Task = require('.')
 const IngestData = require('../IngestData')
+const AOS = require('../AOS')
 const db = require('../../database')
 
 const TABLE = 'taskFlow'
@@ -16,8 +16,11 @@ const TaskState = {
 class TaskFlow {
   constructor(graph, id) {
     this.id = id || uuid()
-    this.status = null
+    this.status = 'pending'
     this.type = 'TaskFlow'
+    this.ref = null
+    this.startDate = new Date()
+    this.stopDate = null
 
     /** @type {Graph} */
     this.graph = graph
@@ -78,6 +81,17 @@ class TaskFlow {
     let q = db(TABLE).where({id: this.id}).update(this.serialize())
     return await q
   }
+  fromRecord(record) {
+    this._record = record
+    this.status = record.status
+    this.type = record.type
+
+    this.startDate = record.startDate,
+    this.stopDate = record.stopDate
+    this.ref = record.ref
+
+    return this
+  }
 
   getPendingSubtasks() {
     return this.graph.reduceNodes((nodes, name, attributes) => {
@@ -116,6 +130,19 @@ class TaskFlow {
     }, [])
   }
 
+  getAllActivePendingSubtasks() {
+    return this.graph.reduceNodes((nodes, name, attributes) => {
+      if (attributes.state === TaskState.Scheduled || attributes.state === TaskState.Pending) {
+        nodes.push({
+          pid: this.id,
+          name,
+          attributes
+        })
+      }
+      return nodes
+    }, [])
+  }
+
   getDependencieResults(task) {
     let dependencies = this.graph.reduceInNeighbors(task.name, (results, name, attributes) => {
       return {
@@ -148,6 +175,10 @@ class TaskFlow {
     this.graph.mergeNodeAttributes(task.name, { state: TaskState.Scheduled, jobId })
   }
 
+  updateProgress(task, progress) {
+    this.graph.mergeNodeAttributes(task.name, { progress })
+  }
+
   complete(task, results) {
     if (task) {
       this.graph.mergeNodeAttributes(task.name, { state: TaskState.Completed, results })
@@ -157,11 +188,36 @@ class TaskFlow {
       } else if (this.graph.someNode((node, attributes) => attributes.state == TaskState.Failed)) {
         this.status = 'failed'
       }
+      this.stopDate = new Date()
     }
   }
 
   fail(task, failedReason) {
-    this.graph.mergeNodeAttributes(task.name, { state: TaskState.Failed, failedReason })
+    let failureReason = this.graph.getNodeAttribute(task.name, 'failedReason')
+    if (failureReason) {
+      failureReason = `${failedReason}, ${failedReason}`
+    } else {
+      failedReason = failedReason
+    }
+    this.graph.mergeNodeAttributes(task.name, { state: TaskState.Failed, failedReason: failureReason})
+  }
+
+  async finalize(queue) {
+    await Promise.all(this.graph.mapNodes(async (node, attributes) => {
+      const job = await queue.getJob(attributes.jobId)
+      const jobState = await job.getState()
+      if (jobState == 'completed') {
+        this.complete({name: job.data.taskType}, job.returnvalue)
+      } else if (jobState == 'failed') {
+        this.fail({name: job.data.taskType}, job.failedReason)
+      }
+    }))
+    this.complete()
+  }
+
+  isSubTaskPending(name) {
+    let taskState =  this.graph.getNodeAttribute(name, 'state')
+    return taskState == TaskState.Pending
   }
 
   isComplete() {
@@ -188,7 +244,10 @@ class TaskFlow {
       id: this.id,
       status: this.status,
       type: this.type,
-      graph: JSON.stringify(this.graph.export())
+      graph: JSON.stringify(this.graph.export()),
+      startDate: this.startDate,
+      stopDate: this.stopDate,
+      ref: this.ref
     }
   }
 
@@ -200,6 +259,8 @@ class TaskFlow {
       id: this.id,
       status: this.status,
       type: this.type,
+      startDate: this.startDate,
+      stopDate: this.stopDate,
       failureReason: this.getFailureReason(),
       rawResults: rawResults,
       statistics: {
@@ -208,6 +269,71 @@ class TaskFlow {
         totalTasks: this.graph.order
       }
     }
+  }
+
+  /**
+   * Failure in child fails parent
+   *
+   * Don't use this for complex dependency chains, it probably won't work as expected
+   * Example: two tasks have the same dependent task
+   * Also won't work if there isn't a single last task
+   * Example: the process has two tasks that can run in parallel
+   * TODO: fix for the above
+   *
+   */
+  generateJobsForQueue(queueName) {
+    let tasksInOrder = topologicalSort(this.graph).reverse()
+    let jobChain = {
+      name: `${tasksInOrder[0]}Task`,
+      queueName: queueName,
+      data: {
+        taskFlowId: this.id,
+        taskType: `${tasksInOrder[0]}`,
+        ...this.graph.getNodeAttribute(tasksInOrder[0], 'data')
+      },
+      children: []
+    }
+    function generateChildTasks(parentTask, parentJob) {
+      let dependencies = this.graph.inNeighbors(parentTask)
+      if (dependencies.length > 0) {
+        for (let task of dependencies) {
+          let job = {
+            name: `${task}Task`,
+            queueName: queueName,
+            data: {
+              taskFlowId: this.id,
+              taskType: task,
+              ...this.graph.getNodeAttribute(task, 'data')
+            },
+            opts: {failParentOnFailure: true},
+            children: []
+          }
+          generateChildTasks.bind(this)(task, job)
+          parentJob.children.push(job)
+        }
+      } else {
+        delete parentJob.children
+      }
+    }
+    generateChildTasks.bind(this)(tasksInOrder[0], jobChain)
+
+    return jobChain
+  }
+
+  addJobIdsToTasks(jobTree) {
+    function parseJobTree(jobTree, job=jobTree.job, jobList=[]) {
+      jobList.push([job.data.taskType, job.id])
+      if (jobTree.children) {
+        jobTree.children.forEach(child => parseJobTree(child, child.job, jobList))
+      }
+      return jobList
+    }
+
+    let idList = parseJobTree(jobTree)
+    idList.forEach(job => {
+      let [ name, jobId ] = job
+      this.graph.mergeNodeAttributes(name, {jobId})
+    }, this)
   }
 
 }
@@ -268,7 +394,47 @@ class DiscoverNodeTaskFlow extends TaskFlow {
   }
 }
 
+class UploadAOSTaskFlow extends TaskFlow {
+  constructor(graph, id, inputData) {
+    super(graph, id)
+    this.type = 'UploadAOSTaskFlow'
+    this.ref = `AOS:${inputData?.aosUUID}`
+    let taskDefinition = {
+      tasks: [
+        {
+          name: 'UploadAOS'
+        },
+        {
+          name: 'PostUploadAOS',
+          needs: ['UploadAOS']
+        }
+      ]
+    }
+
+    if (!graph) {
+      taskDefinition.tasks.forEach(task => {
+        if (!task.needs) {
+          task.data = inputData
+        }
+      })
+
+      this.graph = this.constructor.graphFromJSONDefinition(taskDefinition)
+    }
+  }
+
+  async onFailure() {
+    let uuid = this.graph.getNodeAttribute('UploadAOS', 'data').aosUUID
+    let aos = await AOS.getById(uuid)
+    aos.transferStatus = 'failed'
+
+    await aos.update()
+  }
+
+  // async find
+}
+
 module.exports = {
   TaskFlow,
   DiscoverNodeTaskFlow,
+  UploadAOSTaskFlow
 }

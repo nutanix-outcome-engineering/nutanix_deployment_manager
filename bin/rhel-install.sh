@@ -90,4 +90,5 @@ systemctl daemon-reload
 systemctl enable ndm.target
 systemctl enable ndm-ui.service
 systemctl enable ndm-IngestionProcessor.service
+systemctl enable ndm-taskProcessor.service
 systemctl start ndm.target

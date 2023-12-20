@@ -711,6 +711,132 @@
         }
       }
     },
+    "/sites/{id}/aos": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "id of Site"
+        }
+      ],
+      "post": {
+        "summary": "Create new AOS for site",
+        "tags": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AOS"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "sites.aos.add",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "p0c3abp23v3nw"
+                    }
+                  },
+                  "version": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "xizxrmqelcwbx"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "m1i255bl6qiqc"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{id}/aos/{aosId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "id of the site"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "aosId",
+          "in": "path",
+          "required": true,
+          "description": "id of the AOS"
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "sites.aos.update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AOS"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "4bcvi0yh88a83"
+                    }
+                  },
+                  "version": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "9cj8sngvetbov"
+                    }
+                  },
+                  "status": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "nywtibe8w8uce"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/racks/{id}": {
       "get": {
         "summary": "Your GET endpoint",
@@ -972,6 +1098,97 @@
           }
         }
       }
+    },
+    "/uploads": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "uploads.create",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ndm-upload-type",
+            "description": "Upload type",
+            "required": true
+          }
+        ]
+      },
+      "options": {
+        "summary": "",
+        "operationId": "uploads.options",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/uploads/{id}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "patch": {
+        "summary": "",
+        "operationId": "uploads.patch",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/offset+octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "header",
+            "name": "ndm-upload-type",
+            "required": true
+          }
+        ]
+      },
+      "head": {
+        "summary": "",
+        "operationId": "uploads.head",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "summary": "",
+        "operationId": "uploads.delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1073,6 +1290,22 @@
                 "type": "number"
               }
             }
+          },
+          "startDate": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "jn2l0e1uga0f6"
+            },
+            "format": "date-time",
+            "nullable": true
+          },
+          "stopDate": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "e7yt32jwiygm6"
+            },
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -1162,6 +1395,10 @@
         "properties": {
           "message": {
             "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {}
           }
         }
       },
@@ -1253,10 +1490,24 @@
             "$ref": "#/components/schemas/IPDefinition"
           },
           "vcenter": {
-            "$ref": "#/components/schemas/IPDefinition"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IPDefinition"
+              },
+              {
+                "$ref": "#/components/schemas/vCenter"
+              }
+            ]
           },
           "prismCentral": {
-            "$ref": "#/components/schemas/IPDefinition"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/IPDefinition"
+              },
+              {
+                "$ref": "#/components/schemas/PrismCentral"
+              }
+            ]
           },
           "nodes": {
             "type": "array",
@@ -1280,6 +1531,9 @@
             "type": "string",
             "format": "date-time",
             "readOnly": true
+          },
+          "site": {
+            "$ref": "#/components/schemas/Site"
           }
         }
       },
@@ -1304,11 +1558,13 @@
           },
           "createDate": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "lastModified": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "default": {
             "type": "boolean"
@@ -1345,6 +1601,66 @@
         },
         "x-stoplight": {
           "id": "c03aedda0f8eb"
+        }
+      },
+      "AOS": {
+        "title": "AOS",
+        "x-stoplight": {
+          "id": "5dkqtrzx0ailb"
+        },
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "xk57tm9n9ov0f"
+            }
+          },
+          "name": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "j89jug28ql01n"
+            }
+          },
+          "version": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "5rt6ha5qrpvsj"
+            }
+          },
+          "filename": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "9rkiei8q5c5cb"
+            },
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "f6p6xdgyxzypw"
+            }
+          },
+          "lastModified": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "soldnv9po5gk7"
+            },
+            "format": "date-time"
+          },
+          "createdDate": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "trpucn06rnete"
+            },
+            "format": "date-time"
+          },
+          "uploadStatus": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "oh8m6tjrnig57"
+            }
+          }
         }
       }
     },

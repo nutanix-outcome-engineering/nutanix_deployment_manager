@@ -5,19 +5,15 @@ import {
   DialogPanel,
   DialogTitle,
   TransitionChild,
-  TransitionRoot,
-  Combobox,
-  ComboboxButton,
-  ComboboxInput,
-  ComboboxLabel,
-  ComboboxOption,
-  ComboboxOptions,
+  TransitionRoot
 } from '@headlessui/vue'
+import { Combobox, Option } from '@/components/Core/Combobox'
 import Button from '@/components/Core/Button.vue'
 import useClusters from '@/composables/useClusters.js'
 import useSites from '@/composables/useSites.js'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
-import { CheckIcon, ChevronUpDownIcon, PaperAirplaneIcon } from '@heroicons/vue/20/solid'
+import { PaperAirplaneIcon } from '@heroicons/vue/20/solid'
+import { isEmpty } from 'lodash'
 
 const { addCluster } = useClusters()
 const { getSites, sites } = useSites()
@@ -34,53 +30,92 @@ const form = ref({})
 
 function hydrateForm() {
   return {
-    name: 'aset',
+    name: '',
     cluster: {
       ip: '',
       hostname: '',
       subnet: props.nodes[0].cvm.subnet,
       gateway: props.nodes[0].cvm.gateway
     },
-    vcenter: {
-      ip: '',
-      hostname: '',
-      subnet: '',
-      gateway: ''
-    },
-    prismCentral: {
-      ip: '',
-      hostname: '',
-      subnet: '',
-      gateway: ''
-    },
-    site: {name: "Select Site"},
-    selectedHypervisor: null,
-    selectedAOS: null,
+    vcenter: {},
+    prismCentral: {},
+    aos: {},
+    hypervisor: {},
+    site: {},
     nodes: props.nodes
   }
 }
 
 const isVisible = ref(false)
-const siteQuery = ref('')
-const filteredSites = computed(() =>
-  siteQuery.value === '' ? sites.value : sites.value.filter((site) => {
-    return site.name.toLowerCase().includes(siteQuery.value.toLowerCase())
-  })
-)
-const hypervisorQuery = ref('')
-const hypervisors = [ 'AHV', 'ESXi 7.0', 'ESXi 6.0']
-const filteredHypervisor = computed(() =>
-  hypervisorQuery.value === '' ? hypervisors : hypervisors.filter((hypervisor) => {
-    return hypervisor.toLowerCase().includes(hypervisorQuery.value.toLowerCase())
-  })
-)
-const aosQuery = ref('')
-const aoss = [ '6.5', '5.20', '6.6']
-const filteredAOS = computed(() =>
-  aosQuery.value === '' ? aoss : aoss.filter((aos) => {
-    return aos.toLowerCase().includes(aosQuery.value.toLowerCase())
-  })
-)
+function siteChanged(event) {
+  // Prism Central Combobox
+  if (form.value.site?.pcServers.filter(pc => pc.default).length != 0) {
+    form.value.prismCentral = form.value.site.pcServers.find(pc => pc.default)
+  } else {
+    form.value.prismCentral = {}
+  }
+
+  // vCenter Combobox
+  if (form.value.site?.vCenterServers.filter(vcenter => vcenter.default).length != 0) {
+    form.value.vcenter = form.value.site.vCenterServers.find(vcsa => vcsa.default)
+  } else {
+    form.value.vcenter = {}
+  }
+
+  // Hypervisor Combobox
+  form.value.hypervisor = {}
+
+  // AOS Combobox
+  form.value.aos = {}
+}
+
+const isSiteSelected = computed(() => {
+  return !isEmpty(form.value.site)
+})
+
+const vCenterPlaceholder = computed(() => {
+  let placeholder = 'Please Select Site'
+  if(isSiteSelected.value) {
+    if (form.value.site?.vCenterServers?.length == 0) {
+      placeholder = 'No Site vCenters'
+    } else if (form.value.site?.vCenterServers.filter(vcenter => vcenter.default).length == 0) {
+      placeholder= 'No Site Default vCenter'
+    }
+  }
+
+  return placeholder
+})
+
+
+const pcPlaceholder = computed(() => {
+  let placeholder = 'Please Select Site'
+  if(isSiteSelected.value) {
+    if (form.value.site?.pcServers?.length == 0) {
+      placeholder = 'No Site Prism Central Servers'
+    } else if (form.value.site?.pcServers.filter(pc => pc.default).length == 0) {
+      placeholder= 'No Site Default Prism Central'
+    }
+  }
+
+  return placeholder
+})
+
+const aosPlaceholder = computed(() =>  {
+  let placeholder = 'Please Select Site'
+  if (isSiteSelected.value) {
+    placeholder = form.value.site.aosList.length == 0 ? 'No Site AOS' : undefined
+  }
+  return placeholder
+})
+
+const hypervisorPlaceholder = computed(() =>  {
+  let placeholder = 'Please Select Site'
+  if (isSiteSelected.value) {
+    placeholder = form.value.site.hypervisorList.length == 0 ? 'No Site Hypervisor' : undefined
+  }
+  return placeholder
+})
+
 async function open() {
   isVisible.value = true
   form.value = hydrateForm()
@@ -93,10 +128,9 @@ function close() {
 async function add() {
   try {
     let newCluster = await addCluster(form.value)
-    emit('clusterAdded', newCluster.id)
+    emit('clusterAdded', newCluster)
     close()
   } catch (err) {
-    console.log(err)
   }
 }
 
@@ -106,21 +140,25 @@ async function add() {
 <template>
   <slot name="activator" v-if="$slots.activator" :open="open"></slot>
   <TransitionRoot as="template" :show="isVisible">
-    <Dialog as="div" class="relative z-10" @close="close">
-      <div class="fixed inset-0" />
+    <Dialog as="div" class="relative z-50" @close="close">
 
       <div class="fixed inset-0 overflow-hidden">
         <div class="absolute inset-0 overflow-hidden">
           <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
             <TransitionChild as="template" enter="transform transition ease-in-out duration-500 sm:duration-700" enter-from="translate-x-full" enter-to="translate-x-0" leave="transform transition ease-in-out duration-500 sm:duration-700" leave-from="translate-x-0" leave-to="translate-x-full">
-              <DialogPanel class="pointer-events-auto w-screen max-w-md">
-                <div class="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
-                  <div class="bg-indigo-700 py-6 px-4 sm:px-6">
+              <DialogPanel class="pointer-events-auto w-screen max-w-lg">
+                <div class="flex h-full flex-col bg-white shadow-xl">
+                  <div class="sticky top-0 bg-indigo-700 py-6 px-4 sm:px-6">
                     <div class="flex items-center justify-between">
-                      <DialogTitle class="text-lg font-medium text-white">Create Cluster</DialogTitle>
+                      <DialogTitle class="text-lg font-semibold text-white">
+                        Create Cluster
+                        <div class="mt-1">
+                          <p class="text-sm font-normal text-indigo-300">Input cluster details</p>
+                        </div>
+                      </DialogTitle>
                       <div class="ml-3 flex h-7 items-center">
 
-                        <Button @click="add">
+                        <Button @click="add" class="pr-2">
                           <PaperAirplaneIcon class="hidden lg:block -ml-2 w-5 h-5 shrink-0" />
                           Add
                         </Button>
@@ -130,157 +168,92 @@ async function add() {
                         </button>
                       </div>
                     </div>
-                    <div class="mt-1">
-                      <p class="text-sm text-indigo-300">Input cluster details</p>
-                    </div>
                   </div>
-                  <div class="relative flex-1 flex-col py-6 px-4 sm:px-6">
-                    <!-- Replace with your content -->
-                    <div class="pb-2">
-                      <label for="clusterName" class="pb-0 text-sm font-medium text-gray-900"> Cluster Name:
-                        <input type="text" id="clusterName" v-model="form.name" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
+                  <div class="relative flex-1 flex-col py-4 px-4 sm:px-6 space-y-2.5 overflow-y-auto">
+                    <div class="relative flex items-center">
+                      <label for="clusterName" class="mr-2 text-charcoal-800 dark:text-charcoal-200"> Cluster Name:</label>
+                      <input type="text" id="clusterName" v-model="form.name" class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
                     </div>
-                    <Combobox class="relative flex pb-2 mt-2" as="div" v-model="form.site">
-                      <ComboboxLabel class="block text-sm font-medium leading-6 text-gray-900 mr-2 pt-1">Site:</ComboboxLabel>
-                      <ComboboxInput class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6" @focus="e => e.target.select()" @change="siteQuery = $event.target.value" :display-value="(selectedSite) => selectedSite?.name" />
-                      <ComboboxButton class="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 pb-2 focus:outline-none">
-                        <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-                      </ComboboxButton>
-
-                      <ComboboxOptions v-if="filteredSites.length > 0" class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                        <ComboboxOption :value="form.site" disabled active hidden>Select Site</ComboboxOption>
-                        <ComboboxOption v-for="site in filteredSites" :key="site.id" :value="site" as="template" v-slot="{ active, selected }">
-                          <li :class="['relative cursor-default select-none py-2 pl-8 pr-4', active ? 'bg-indigo-600 text-white' : 'text-gray-900']">
-                            <span :class="['block truncate', selected && 'font-semibold']">
-                              {{ site.name }}
-                            </span>
-
-                            <span v-if="selected" :class="['absolute inset-y-0 left-0 flex items-center pl-1.5', active ? 'text-white' : 'text-indigo-600']">
-                              <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                            </span>
-                          </li>
-                        </ComboboxOption>
-                      </ComboboxOptions>
+                    <Combobox
+                      v-model="form.site"
+                      inlineLabel="Site:"
+                      @update:model-value="siteChanged"
+                      placeholder="Select Site"
+                      autocomplete
+                    >
+                      <Option v-for="site in sites" :key="site.id" :value="site" >{{ site.name }}</Option>
                     </Combobox>
-                    <div class="pb-2">
-                      <div class="pb-2">
-                        <label for="dataservicesVIP" class="pb-0 text-sm font-medium text-gray-900"> Data Services VIP:
-                          <input type="text" id="dataservicesVIP" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                        </label>
-                      </div>
-                      <div class="pb-2">
-                        <label for="clusterHostName" class="pb-0 text-sm font-medium text-gray-900"> Cluster Host Name:
-                          <input type="text" id="clusterHostName" v-model="form.cluster.hostname" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                        </label>
-                      </div>
-                      <div class="pb-2">
-                        <label for="clusterVIP" class="pb-0 text-sm font-medium text-gray-900"> Cluster VIP:
-                          <input type="text" id="clusterVIP" v-model="form.cluster.ip" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                        </label>
-                      </div>
-                      <div class="pb-2">
-                        <label for="clusterGatway" class="pb-0 text-sm font-medium text-gray-900"> Cluster Gateway:
-                          <input type="text" id="clusterGateway" v-model="form.cluster.gateway" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                        </label>
-                      </div>
-                      <div class="pb-2">
-                        <label for="clusterSubnet" class="pb-0 text-sm font-medium text-gray-900"> Cluster Subnet:
-                          <input type="text" id="clusterSubnet" v-model="form.cluster.subnet" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                        </label>
-                      </div>
-                    </div>
-                    <div class="pb-2">
-                      <label for="pcHostName" class="pb-0 text-sm font-medium text-gray-900"> Prism Central Host Name:
-                        <input type="text" id="pcHostName" v-model="form.prismCentral.hostname" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <div class="pb-2">
-                      <label for="pcIP" class="pb-0 text-sm font-medium text-gray-900"> Prism Central IP:
-                        <input type="text" id="pcIP" v-model="form.prismCentral.ip" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <div class="pb-2">
-                      <label for="pcGatway" class="pb-0 text-sm font-medium text-gray-900"> Prism Central Gateway:
-                        <input type="text" id="pcGateway" v-model="form.prismCentral.gateway" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <div class="pb-2">
-                      <label for="pcSubnet" class="pb-0 text-sm font-medium text-gray-900"> Prism Central Subnet:
-                        <input type="text" id="pcSubnet" v-model="form.prismCentral.subnet" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <div class="pb-2">
-                      <label for="vcHostName" class="pb-0 text-sm font-medium text-gray-900"> vCenter Host Name:
-                        <input type="text" id="vcHostName" v-model="form.vcenter.hostname" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <div class="pb-2">
-                      <label for="vcIP" class="pb-0 text-sm font-medium text-gray-900"> vCenter IP:
-                        <input type="text" id="vcIP" v-model="form.vcenter.ip" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <div class="pb-2">
-                      <label for="vcGateway" class="pb-0 text-sm font-medium text-gray-900"> vCenter Gateway:
-                        <input type="text" id="vcGateway" v-model="form.vcenter.gateway" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <div class="pb-2">
-                      <label for="vcSubnet" class="pb-0 text-sm font-medium text-gray-900"> vCenter Subnet:
-                        <input type="text" id="vcSubnet" v-model="form.vcenter.subnet" class="relative text-sm text-gray-900 sm:mt-0 rounded-md border"/>
-                      </label>
-                    </div>
-                    <Combobox class="relative flex pb-2 mt-2" as="div" v-model="form.selectedHypervisor">
-                        <ComboboxLabel class="pt-1 leading-6 text-sm font-medium text-gray-900 mr-2">Hypervisor:</ComboboxLabel>
-                        <ComboboxInput class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                          @change="hypervisorQuery = $event.target.value" :display-value="(selectedHypervisor) => selectedHypervisor" />
-                        <ComboboxButton class="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 pb-2 focus:outline-none">
-                          <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-                        </ComboboxButton>
 
-                        <ComboboxOptions v-if="filteredHypervisor.length > 0" class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                          <ComboboxOption v-for="hypervisor in filteredHypervisor" :key="hypervisor" :value="hypervisor" as="template" v-slot="{ active, selected }">
-                            <li :class="['relative cursor-default select-none py-2 pl-8 pr-4', active ? 'bg-indigo-600 text-white' : 'text-gray-900']">
-                              <span :class="['block truncate', selected && 'font-semibold']">
-                                {{ hypervisor }}
-                              </span>
+                    <div class="relative flex items-center">
+                      <label for="dataservicesVIP" class="mr-2 text-charcoal-800 dark:text-charcoal-200"> Data Services VIP:</label>
+                      <input type="text" id="dataservicesVIP" class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
+                    </div>
+                    <div class="relative flex items-center">
+                      <label for="clusterHostName" class="mr-2 text-charcoal-800 dark:text-charcoal-200"> Cluster Host Name:</label>
+                      <input type="text" id="clusterHostName" v-model="form.cluster.hostname" class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
+                    </div>
+                    <div class="relative flex items-center">
+                      <label for="clusterVIP" class="mr-2 text-charcoal-800 dark:text-charcoal-200"> Cluster VIP:</label>
+                      <input type="text" id="clusterVIP" v-model="form.cluster.ip" class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
+                    </div>
+                    <div class="relative hidden items-center">
+                      <label for="clusterGateway" class="mr-2 text-charcoal-800 dark:text-charcoal-200"> Cluster Gateway:</label>
+                      <input type="text" id="clusterGateway" v-model="form.cluster.gateway" class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
+                    </div>
+                    <div class="relative hidden items-center">
+                      <label for="clusterSubnet" class="mr-2 text-charcoal-800 dark:text-charcoal-200"> Cluster Subnet:</label>
+                      <input type="text" id="clusterSubnet" v-model="form.cluster.subnet" class="grow rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"/>
+                    </div>
 
-                              <span v-if="selected" :class="['absolute inset-y-0 left-0 flex items-center pl-1.5', active ? 'text-white' : 'text-indigo-600']">
-                                <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                              </span>
-                            </li>
-                          </ComboboxOption>
-                        </ComboboxOptions>
+                    <Combobox
+                      v-model="form.prismCentral"
+                      inlineLabel="Prism Central:"
+                      :disabled="!isSiteSelected || form.site.pcServers.length == 0"
+                      :placeholder="pcPlaceholder"
+                    >
+                      <Option v-for="prismCentral in form.site?.pcServers" :key="prismCentral.id" :value="prismCentral">
+                        {{ prismCentral.displayName }} {{ prismCentral.default ? '(Site Default)' : '' }}
+                      </Option>
                     </Combobox>
-                     <Combobox class="relative flex mt-2 pb-2" as="div" v-model="form.selectedAOS">
-                        <ComboboxLabel class="block pt-1 text-sm font-medium leading-6 text-gray-900 mr-2">AOS:</ComboboxLabel>
-                        <ComboboxInput class="w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                          @change="aosQuery = $event.target.value" :display-value="(selectedAOS) => selectedAOS" />
-                        <ComboboxButton class="absolute inset-y-0 right-0 flex items-center rounded-r-md pb-2 px-2 focus:outline-none">
-                          <ChevronUpDownIcon class="h-5 w-5 text-gray-400" aria-hidden="true" />
-                        </ComboboxButton>
-
-                        <ComboboxOptions v-if="filteredAOS.length > 0" class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                          <ComboboxOption v-for="aos in filteredAOS" :key="aos" :value="aos" as="template" v-slot="{ active, selected }">
-                            <li :class="['relative cursor-default select-none py-2 pl-8 pr-4', active ? 'bg-indigo-600 text-white' : 'text-gray-900']">
-                              <span :class="['block truncate', selected && 'font-semibold']">
-                                {{ aos }}
-                              </span>
-
-                              <span v-if="selected" :class="['absolute inset-y-0 left-0 flex items-center pl-1.5', active ? 'text-white' : 'text-indigo-600']">
-                                <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                              </span>
-                            </li>
-                          </ComboboxOption>
-                        </ComboboxOptions>
+                    <Combobox
+                      v-model="form.vcenter"
+                      inlineLabel="vCenter Server:"
+                      :disabled="!isSiteSelected || form.site.vCenterServers.length == 0"
+                      :placeholder="vCenterPlaceholder"
+                    >
+                      <Option v-for="vCenter in form.site?.vCenterServers" :key="vCenter.id" :value="vCenter">
+                        {{ vCenter.displayName }} {{ vCenter.default ? '(Site Default)' : '' }}
+                      </Option>
+                    </Combobox>
+                    <Combobox
+                      v-model="form.hypervisor"
+                      inlineLabel="Hypervisor:"
+                      :disabled="!isSiteSelected || form.site.hypervisorList.length == 0"
+                      :placeholder="hypervisorPlaceholder"
+                    >
+                      <Option v-for="hypervisor in form.site?.hypervisorList" :key="hypervisor.uuid" :value="hypervisor">{{ hypervisor.name }}</Option>
+                    </Combobox>
+                    <Combobox
+                      v-model="form.aos"
+                      inlineLabel="AOS:"
+                      :disabled="!isSiteSelected || form.site.aosList.length == 0"
+                      :placeholder="aosPlaceholder"
+                    >
+                      <Option v-for="aos in form.site?.aosList" :key="aos.uuid" :value="aos">{{ aos.name }}</Option>
                     </Combobox>
                     <!-- Nodes in Cluster -->
-                    <div class="bg-gray-100 rounded-lg py-2">
-                      <h3 class="pl-2 pt-1 text-lg leading-6 font-medium text-gray-900">Nodes:</h3>
-                      <ul class="p-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <li v-for="node in form.nodes" :key="node.serial" class="col-span-1 bg-white rounded-lg shadow">
-                          {{ node.host.hostname }}
-                          {{ node.serial }}
+                    <div class="bg-gray-100 rounded-lg">
+                      <h3 class="pl-2 py-2 text-charcoal-800 dark:text-charcoal-200">Nodes:</h3>
+                      <ul class="px-4 pb-4 grid grid-cols-1 gap-2.5 sm:grid-cols-2 overflow-y-auto">
+                        <li v-for="node in form.nodes" :key="node.serial" class="col-span-1 bg-white rounded-lg shadow px-1.5 py-1 text-sm">
+                          <p>
+                            <span class="pr-2">Host:</span>
+                            <span>{{ node.host.hostname }}</span>
+                          </p>
+                          <p>
+                            <span class="pr-2">Serial:</span>
+                            <span>{{ node.serial }}</span>
+                          </p>
                         </li>
                       </ul>
                     </div>

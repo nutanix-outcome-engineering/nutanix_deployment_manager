@@ -6,7 +6,14 @@ import {
   MenuItems,
   MenuItem
 } from '@headlessui/vue'
-import { XCircleIcon, ChevronDoubleLeftIcon, ChevronLeftIcon, ChevronRightIcon, ChevronDoubleRightIcon } from '@heroicons/vue/24/solid'
+import {
+  XCircleIcon,
+  ChevronDoubleLeftIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDoubleRightIcon,
+  Cog6ToothIcon
+} from '@heroicons/vue/24/solid'
 import { AgGridVue as AgGrid } from '@ag-grid-community/vue3'
 import { ModuleRegistry } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model'
@@ -23,6 +30,7 @@ import useNodes from '@/composables/useNodes.js'
 import { FilterBox, FilterQuery, FilterButton, ClearQueryButton, SuggestionList, Suggestion } from '@/components/Core/FilterBox.js'
 import { cellTypes } from '@/components/Grid/columnTypes.js'
 import NodeCellRenderer from '@/components/Grid/NodeCellRenderer.vue'
+import CreateClusterSlideOver from '../Clusters/CreateClusterSlideOver.vue';
 
 const { nodes } = useNodes()
 const form = ref({
@@ -58,6 +66,9 @@ const filterables = [
 ]
 const gridAPI = ref(null)
 const columnAPI = ref(null)
+const numberSelected = ref(0)
+const selectedNodes = ref([])
+
 const currentPage = ref(0)
 const totalPages = ref(0)
 const currentPageSize = ref(0)
@@ -96,7 +107,11 @@ const gridOptions = {
     }
   },
   getRowId: ({data}) => data.serial,
-  isExternalFilterPresent: isExternalFilterPresent
+  isExternalFilterPresent: isExternalFilterPresent,
+  isRowSelectable: ({data}) => data.clusterID == null,
+  rowClassRules: {
+    'cursor-not-allowed': ({data}) => data.clusterID != null
+  }
 }
 
 async function onGridReady(params) {
@@ -111,6 +126,9 @@ function isExternalFilterPresent() {
 function onFilterChanged(event) {
   if (gridAPI.value) {
     gridAPI.value.onFilterChanged()
+    gridAPI.value.getSelectedNodes()
+      .filter(row => row.displayed == false && row.isSelected())
+      .forEach(row => row.setSelected(false))
   }
 }
 
@@ -129,6 +147,16 @@ function pageSelectorChanged(newPage) {
     currentPage.value = gotoPage
   }
 }
+
+function nodeSelectionChanged(event) {
+  selectedNodes.value = gridAPI.value.getSelectedRows()
+  numberSelected.value = selectedNodes.value.length
+}
+
+function clusterAdded(newCluster) {
+  gridAPI.value.applyTransaction({update: newCluster.nodes})
+  gridAPI.value.deselectAll()
+}
 </script>
 
 <template>
@@ -144,7 +172,7 @@ function pageSelectorChanged(newPage) {
     <div class="flex flex-1 flex-col">
       <div class="flex flex-col relative">
         <div class="flex flex-row my-0.5">
-          <div class="w-full px-3 py-1 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 border border-gray-300 rounded-md  shadow-sm overflow-hidden">
+          <div class="w-full px-3 py-1 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 border border-gray-300 rounded-md shadow-sm overflow-hidden">
             <div class="flex items-center">
               <ClearQueryButton class="-ml-1 mr-1" v-tippy content="Reset Filter">
                 <XCircleIcon class="w-5 h-5 text-red-400"/>
@@ -210,6 +238,14 @@ function pageSelectorChanged(newPage) {
             >
               <ChevronDoubleRightIcon class="w-5 h-5"/>
             </button>
+            <CreateClusterSlideOver :nodes="selectedNodes" @clusterAdded="clusterAdded">
+              <template #activator="{ open }">
+                <Button :disabled="numberSelected == 0" @click="open">
+                  <Cog6ToothIcon class="-ml-2 mr-2 w-5 h-5 shrink-0"/>
+                  Create Cluster
+                </Button>
+              </template>
+            </CreateClusterSlideOver>
           </div>
         </div>
         <!-- Suggestions -->
@@ -235,6 +271,7 @@ function pageSelectorChanged(newPage) {
         :gridOptions="gridOptions"
         @grid-ready="onGridReady"
         @pagination-changed="onPaginationChange"
+        @selection-changed="nodeSelectionChanged"
         :doesExternalFilterPass="(rowNode) => {return api.doesItemMatchFilter(rowNode.data)}"
       />
 

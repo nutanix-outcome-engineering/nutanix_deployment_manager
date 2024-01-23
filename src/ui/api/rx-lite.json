@@ -1396,6 +1396,13 @@
           },
           "cvm": {
             "$ref": "#/components/schemas/IPDefinition"
+          },
+          "clusterID": {
+            "type": "integer",
+            "x-stoplight": {
+              "id": "6kvq4yy1dkbhg"
+            },
+            "nullable": true
           }
         },
         "required": [
@@ -1674,10 +1681,30 @@
             }
           },
           "hypervisor": {
-            "type": "string"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Hypervisor"
+              },
+              {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "f2p0yjg3472bh"
+                }
+              }
+            ]
           },
           "aos": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "n99nqhx3ae7x1"
+                }
+              },
+              {
+                "$ref": "#/components/schemas/AOS"
+              }
+            ]
           },
           "ingestDate": {
             "type": "string",

@@ -130,7 +130,6 @@ getClusters()
             <div class="relative">
               <div class="mb-6 flex justify-end space-x-10">
                 <div class="flex-1 px-3 py-1 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500 border border-gray-300 rounded-md  hadow-sm overflow-hidden">
-                  <label for="email" class="sr-only block text-sm font-medium text-gray-700">Filter</label>
                   <div class="flex items-center">
                     <ClearQueryButton class="-ml-1 mr-1">
                       <XCircleIcon class="w-5 h-5 text-red-400" v-tippy content="Reset Filter"/>
@@ -152,7 +151,8 @@ getClusters()
 
                       </FilterButton>
                     </div>
-                    <FilterQuery as="input" type="text" v-model="form.search" autocomplete="off" class="focus:ring-0 focus:outline-none border-none block w-full text-sm" placeholder="Filter" />
+                    <label for="filterQuery" class="sr-only block text-sm font-medium text-gray-700">Filter</label>
+                    <FilterQuery as="input" id="filterQuery" type="text" v-model="form.search" autocomplete="off" class="focus:ring-0 focus:outline-none border-none block w-full text-sm" placeholder="Filter" />
                   </div>
                 </div>
                 <AdvancedPagination :page="page" />
@@ -212,19 +212,19 @@ getClusters()
                             />
                           </Button>
                         </MenuButton>
-                        <MenuItems class="absolute right-0 origin-top-right  bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none px-1">
+                        <MenuItems class="absolute right-0 origin-top-right z-10 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none px-1">
                           <MenuItem as="div" v-slot="{ active }">
                             <ExternalLink :href="`https://${cluster.cluster.hostname || cluster.cluster.ip}:9440`" class="truncate w-full font-medium" :class='{ "bg-blue-500": active }'>Prism Element</ExternalLink>
                           </MenuItem>
                           <MenuItem as="div" v-slot="{ active }">
-                            <ExternalLink :href="`https://${cluster.prismCentral.hostname || cluster.prismCentral.ip}:9440`" class="truncate w-full font-medium" :class='{ "bg-blue-500": active }'>Prism Central</ExternalLink>
+                            <ExternalLink :href="`https://${cluster.prismCentral.hostname || cluster.prismCentral.ip || cluster.prismCentral.hostnameOrIP}:9440`" class="truncate w-full font-medium" :class='{ "bg-blue-500": active }'>Prism Central</ExternalLink>
                           </MenuItem>
                           <MenuItem as="div" v-slot="{ active }">
-                            <ExternalLink :href="`https://${cluster.vcenter.hostname || cluster.vcenter.ip}`" class="truncate w-full font-medium" :class='{ "bg-blue-500": active }'>vCenter</ExternalLink>
+                            <ExternalLink :href="`https://${cluster.vcenter.hostname || cluster.vcenter.ip || cluster.vcenter.hostnameOrIP}`" class="truncate w-full font-medium" :class='{ "bg-blue-500": active }'>vCenter</ExternalLink>
                           </MenuItem>
                         </MenuItems>
                       </Menu>
-                      <Button kind="destructive" @dblclick.stop="remove(cluster)" content="Double-click to delete" v-tippy>Delete</Button>
+                      <!-- <Button kind="destructive" @dblclick.stop="remove(cluster)" content="Double-click to delete" v-tippy>Delete</Button> -->
                     </div>
                   </div>
                 </li>

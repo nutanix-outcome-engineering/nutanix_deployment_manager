@@ -86,7 +86,8 @@ app.use('/*', express.static(path.resolve(__dirname, 'frontend/dist'), {
 /** Register default error handler */
 app.use((err, req, res, next) => {
   res.status(err.status || 500).json({
-    message: err.message
+    message: err.message,
+    errors: err.errors || []
   })
 })
 

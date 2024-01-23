@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, inject, useSlots } from 'vue'
+import { onMounted, onBeforeUnmount, inject, useSlots } from 'vue'
 
 const props = defineProps({
   value: [String, Object]
@@ -16,6 +16,13 @@ onMounted(() => {
     api.register({ label, value: props.value })
   }
 })
+
+onBeforeUnmount(() => {
+  if (api.unregister) {
+    api.unregister(props.value)
+  }
+})
+
 </script>
 
 <template>

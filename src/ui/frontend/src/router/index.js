@@ -114,6 +114,11 @@ const router = createRouter({
       meta: {
         auth: true
       }
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      component: lazy('NotFound'),
+      meta: { auth: true}
     }
   ]
 })

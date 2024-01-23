@@ -17,6 +17,9 @@ class Cluster {
 
     this.prismCentral = cluster.prismCentral
 
+    this.hypervisor = cluster.hypervisor
+    this.aos = cluster.aos
+
     this.nodes = cluster.nodes || []
     this.site = cluster.site || {}
 
@@ -41,17 +44,21 @@ class Cluster {
         subnet: record.clusterSubnet
       },
       vcenter: {
+        id: record.vCenterID,
         ip: record.vCenterVIP,
         hostname: record.vCenterHostname,
         gateway: record.vCenterGateway,
         subnet: record.vCenterSubnet
       },
       prismCentral: {
+        id: record.pcID,
         ip: record.pcVIP,
         hostname: record.pcHostname,
         gateway: record.pcGateway,
         subnet: record.pcSubnet
       },
+      hypervisor: record.hypervisor,
+      aos: record.aos
     })
     cluster._record = record
 
@@ -92,6 +99,18 @@ class Cluster {
   async getSite() {
     let site = await Site.getByID(this._record.siteID)
     this.site = site
+    if (this.prismCentral.id) {
+      this.prismCentral = site.pcServers.find(pc => pc.id == this.prismCentral.id)
+    }
+    if (this.vcenter.id) {
+      this.vcenter = site.vCenterServers.find(vcsa => vcsa.id == this.vcenter.id)
+    }
+    if (this.hypervisor && typeof this.hypervisor == 'string') {
+      this.hypervisor = site.hypervisorList.find(hypervisor => hypervisor.uuid == this.hypervisor)
+    }
+    if (this.aos && typeof this.aos == 'string') {
+      this.aos = site.aosList.find(aos => aos.uuid == this.aos)
+    }
 
     return this.site
   }
@@ -110,15 +129,20 @@ class Cluster {
       clusterGateway: this.cluster.gateway,
       clusterSubnet: this.cluster.subnet,
 
+      vCenterID: this.vcenter.id,
       vCenterVIP: this.vcenter.ip,
       vCenterHostname: this.vcenter.hostname,
       vCenterGateway: this.vcenter.gateway,
       vCenterSubnet: this.vcenter.subnet,
 
+      pcID: this.prismCentral.id,
       pcVIP: this.prismCentral.ip,
       pcHostname: this.prismCentral.hostname,
       pcGateway: this.prismCentral.gateway,
       pcSubnet: this.prismCentral.subnet,
+
+      hypervisor: this.hypervisor?.uuid || this._record.hypervisor,
+      aos: this.aos?.uuid || this._record.aos,
 
       ingestDate: this.ingestDate,
       lastModified: this.lastModified,
@@ -133,12 +157,17 @@ class Cluster {
 
       cluster: this.cluster,
 
-      vcenter: this.vcenter,
+      // It is either a vCenter defined on site or the one defined on the cluster
+      vcenter: this.vcenter.toJSON?.() || this.vcenter,
 
-      prismCentral: this.prismCentral,
+      // It is either a PC defined on site or the one defined on the cluster
+      prismCentral: this.prismCentral.toJSON?.() || this.prismCentral,
 
       nodes: this.nodes.map(node => node.toJSON()),
       site: this.site.toJSON(),
+
+      hypervisor: this.hypervisor.toJSON?.() || this.hypervisor,
+      aos: this.aos.toJSON?.() || this.aos,
 
       ingestDate: this._record.ingestDate,
       lastModified: this._record.lastModified

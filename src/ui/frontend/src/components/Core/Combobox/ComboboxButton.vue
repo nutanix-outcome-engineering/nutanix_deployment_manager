@@ -7,6 +7,7 @@
         : 'cursor-pointer active:bg-charcoal-300 hover:bg-charcoal-200 text-charcoal-800 dark:text-charcoal-200',
     ]"
     v-slot="{ open, value }"
+    :disabled="disabled"
   >
     <!-- <Icon
       v-if="icon"

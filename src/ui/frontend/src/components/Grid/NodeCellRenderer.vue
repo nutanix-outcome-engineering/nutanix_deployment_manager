@@ -4,6 +4,7 @@ import { Cog6ToothIcon, PaperAirplaneIcon, PencilSquareIcon, BoltIcon, BoltSlash
 import { startCase, range, orderBy } from 'lodash'
 
 import Badge from '@/components/Core/Badge.vue'
+import AppLink from '@/components/Core/AppLink.vue'
 
 const props = defineProps({
   params: {
@@ -18,6 +19,9 @@ const node = props.params.data
     <div class="flex-1">
       <div class="flex flex-row font-medium text-gray-800">
         <h3 class="text-lg pr-1">BMC IP: {{ node.ipmi.ip }}</h3>
+        <Badge v-if="node.clusterID" color="blue">
+          <AppLink :to="{path: `/clusters/${node.clusterID}`}" class="truncate w-full font-medium">In Cluster</AppLink>
+        </Badge>
       </div>
       <div class="mt-2 flex space-x-3 text-sm overflow-hidden">
         <div class="flex whitespace-no-wrap items-center space-x-1 text-gray-500" v-tippy content="Node Serial">

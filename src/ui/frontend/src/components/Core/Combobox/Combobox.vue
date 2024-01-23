@@ -32,8 +32,20 @@ const props = defineProps({
     type: String,
   },
 
+  inlineLabel: {
+    type: String
+  },
+
   placeholder: {
     type: String,
+  },
+
+  disabled: {
+    type: Boolean
+  },
+
+  nullable: {
+    type: Boolean
   }
 })
 
@@ -69,7 +81,8 @@ watch(normalizedOptions, val => {
 }, { immediate: true })
 
 provide('select', {
-  register
+  register,
+  unregister
 })
 
 function register(option) {
@@ -86,12 +99,16 @@ function register(option) {
   normalizedOptions.value = [...normalizedOptions.value, option]
 }
 
+function unregister(value) {
+  normalizedOptions.value = normalizedOptions.value.filter(option => option.value !== value)
+}
+
 const filteredOptions = computed(() => {
   if (!props.autocomplete) {
     return normalizedOptions.value
   }
 
-  if (filter.value === '') {
+  if (filter.value === '' || filter.value === null) {
     return normalizedOptions.value
   }
 
@@ -99,7 +116,7 @@ const filteredOptions = computed(() => {
 })
 
 const displayValue = computed(() => {
-  return selected.value?.label || props.placeholder || 'Select'
+  return selected.value?.label || props.placeholder || (props.autocomplete ? 'Search...' : 'Select')
 })
 
 function handleSelectControl() {
@@ -134,16 +151,17 @@ function onFilterChange(event) {
 
 <template>
   <div>
-    <label v-if="label" class="mb-2 flex justify-between items-end leading-5 text-charcoal-800 dark:text-charcoal-200">{{ label }}</label>
+    <label v-if="label" class="mb-2 flex justify-between items-end leading-5 text-charcoal-800 dark:text-charcoal-200 whitespace-nowrap">{{ label }}</label>
 
-    <Combobox static :multiple="multiple" v-model="selected" v-slot="{ open }">
+    <Combobox :multiple="multiple" :disabled="disabled" v-model="selected" v-slot="{ open }" :nullable="nullable">
       <div class="relative inline-flex w-full">
+         <label v-if="inlineLabel" class="mb-2 mr-2 flex justify-between items-end leading-5 text-charcoal-800 dark:text-charcoal-200 whitespace-nowrap">{{ inlineLabel }}</label>
         <slot v-if="!autocomplete" name="button">
-          <ComboboxButton chevron>{{ displayValue }}</ComboboxButton>
+          <ComboboxButton chevron tabindex="0" :disabled="disabled">{{ displayValue }}</ComboboxButton>
         </slot>
 
         <template v-if="autocomplete">
-          <ComboboxButton chevron>
+          <ComboboxButton :disabled="disabled" chevron>
             <button class="flex items-center space-x-2" @click.stop.prevent="handleSelectControl" v-if="multiple">
               <div
                 class="flex items-center justify-center w-4 h-4 rounded border dark:border-charcoal-700 dark:bg-charcoal-700"
@@ -163,11 +181,17 @@ function onFilterChange(event) {
               </span>
             </button>
             <ComboboxInput
-              class="flex-1 p-0 bg-charcoal-100 dark:bg-charcoal-800 text-sm font-semibold group-active:bg-charcoal-300 group-hover:bg-charcoal-200 dark:group-hover:bg-charcoal-800 border-none text-charcoal-800 dark:text-charcoal-200 focus:ring-0"
-              :display-value="selected => selected.label"
-              placeholder="Search ..."
+              :class="[
+                'flex-1 p-0 bg-charcoal-100 dark:bg-charcoal-800 text-sm font-semibold border-none text-charcoal-800 dark:text-charcoal-200 focus:ring-0',
+                disabled
+                ? 'ui-disabled:opacity-50 cursor-not-allowed'
+                : 'ui-not-disabled:group-active:bg-charcoal-300 ui-not-disabled:group-hover:bg-charcoal-200 dark:ui-not-disabled:group-hover:bg-charcoal-800'
+              ]"
+              :display-value="selected => selected?.label"
+              :placeholder="displayValue"
               @change="onFilterChange"
               @focus="$event.target.select()"
+              :disabled="disabled"
             />
           </ComboboxButton>
         </template>

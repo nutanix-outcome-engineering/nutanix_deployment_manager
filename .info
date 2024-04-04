@@ -5,6 +5,8 @@ bin
 	directory for startup and other scripts
 docs
 	directory for documentation files
+patchFiles
+	directory for patch diff to libraries
 src
 	directory for application source code
 **/controllers

@@ -16,7 +16,9 @@ const { general } = require('./workerQueues.js')
 const log = require('./logger.js')
 const config = require('./config')
 
-const filestoreDirectory = resolve(config.filestore.baseDirectory)
+// TODO: Think about how to handle this for remote NFS servers/dev
+// this refers to a local directory
+const filestoreDirectory = resolve(config.filestore.tusBase)
 
 const imageStore = new FileStore({
   directory: filestoreDirectory
@@ -24,6 +26,7 @@ const imageStore = new FileStore({
 
 async function handleTaskTracking(type, id, size) {
   let taskFlow
+  log.debug(`Entered handleTaskTracking for type ${type} with id ${id}`)
   switch (type) {
     case 'aos':
       taskFlow = await getLatestByTypeAndRef(`UploadAosTaskFlow`, id)
@@ -44,6 +47,7 @@ async function handleTaskTracking(type, id, size) {
       }
       break;
     case 'hypervisor':
+      log.debug(`Entered hypervisor case for type ${type} with id ${id}`)
       taskFlow = await getLatestByTypeAndRef(`UploadHypervisorTaskFlow`, id)
       if (!taskFlow || taskFlow?.isComplete()) {
         let hypervisor = await Hypervisor.getById(id)
@@ -91,6 +95,7 @@ const uploadsServer = new Server({
       if (req.method == 'PATCH' && !req.headers['ndm-auto-retry']) {
         const totalSize = Number(req.headers['content-length']) + Number(req.headers['upload-offset'])
         await handleTaskTracking(req.headers['ndm-upload-type'], id, totalSize)
+        log.debug(`Task tracking started for upload with id ${id}`)
       }
     } catch (err) {
       log.error(`Error processing file with id ${id}: ${err}`)
@@ -120,7 +125,7 @@ const uploadsServer = new Server({
         await taskFlow.onFailure()
       }
     }
-    log.error(`Error during file upload: ${err}`)
+    log.error(`Error during file upload: ${error}`)
   }
 }).on(EVENTS.POST_RECEIVE, (req, res, upload) => {
   log.debug(`POST_RECEIVE: ${JSON.stringify(upload)}`)

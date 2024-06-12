@@ -85,6 +85,8 @@ app.use('/*', express.static(path.resolve(__dirname, 'frontend/dist'), {
 
 /** Register default error handler */
 app.use((err, req, res, next) => {
+  log.error(`Error in API: ${err.message}.`)
+  log.debug(`Stack Trace: ${err.stack}`)
   res.status(err.status || 500).json({
     message: err.message,
     errors: err.errors || []

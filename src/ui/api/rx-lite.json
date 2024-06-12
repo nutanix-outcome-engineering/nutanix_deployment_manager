@@ -1328,6 +1328,122 @@
           }
         }
       }
+    },
+    "/foundation": {
+      "parameters": [],
+      "get": {
+        "summary": "Get all foundation VMs for site",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FoundationVM"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "foundation.getAll",
+        "description": ""
+      },
+      "post": {
+        "summary": "Create new foundation VM entry",
+        "tags": [],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoundationVM"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "foundation.create",
+        "description": "",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ip": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "ps2yb6o3a3eos"
+                    }
+                  },
+                  "credentials": {
+                    "$ref": "#/components/schemas/Credential"
+                  },
+                  "site": {
+                    "$ref": "#/components/schemas/Site"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/foundation/{fvmId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "fvmId",
+          "in": "path",
+          "required": true,
+          "description": "ID of the foundation VM"
+        }
+      ],
+      "get": {
+        "summary": "Get specific foundation VM details",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoundationVM"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "foundation.get"
+      },
+      "patch": {
+        "summary": "Update foundation VM",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "operationId": "foundation.update"
+      },
+      "delete": {
+        "summary": "Delete foundation VM",
+        "tags": [],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "operationId": "foundation.delete",
+        "description": ""
+      }
     }
   },
   "components": {
@@ -1910,6 +2026,61 @@
             "x-stoplight": {
               "id": "iltlu0jqzta0m"
             }
+          }
+        }
+      },
+      "FoundationVM": {
+        "title": "FoundationVM",
+        "x-stoplight": {
+          "id": "iw7uxboyxq6py"
+        },
+        "type": "object",
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "nf0tz98irxguu"
+            }
+          },
+          "ip": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "4ycad4yfk7pyr"
+            }
+          },
+          "version": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "30tauv4kymcpa"
+            },
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "r5wsgyrw4a8nf"
+            },
+            "nullable": true
+          },
+          "siteId": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "v76qp0jptbses"
+            }
+          },
+          "createDate": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "29igo8h4hwgu1"
+            },
+            "format": "date-time"
+          },
+          "lastModified": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "tm1v7lg7b39cr"
+            },
+            "format": "date-time"
           }
         }
       }

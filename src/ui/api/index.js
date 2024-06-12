@@ -19,6 +19,7 @@ function registerAPIHandlers(app) {
       res.setHeader('Content-Type', 'text/plain')
     }
   }))
+
   function catchErrors(handler) {
     return async (req, res, next) => {
       try {

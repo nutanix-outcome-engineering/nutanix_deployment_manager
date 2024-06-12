@@ -21,7 +21,7 @@ const navigation = [
   { name: 'nodes.nodes', displayName: "Nodes", href: '/nodes', current: false },
   { name: 'clusters', displayName: "Clusters", href: '/clusters', current: false },
   // { name: 'Clusters', href: '#', current: false },
-  // { name: 'Foundation', href: '#', current: false },
+  { name: 'foundation', displayName: "Foundation", href: '/foundation', current: false },
   // { name: 'Reports', href: '#', current: false },
 ]
 const userNavigation = [

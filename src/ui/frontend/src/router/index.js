@@ -105,6 +105,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/foundation',
+      name: 'foundation',
+      component: lazy('Foundation/Foundation'),
+      meta: {
+        auth: true
+      }
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting

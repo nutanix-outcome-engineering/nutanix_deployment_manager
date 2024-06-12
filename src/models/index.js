@@ -9,5 +9,6 @@ module.exports = {
   vCenter: require('./vCenter.js'),
   AOS: require('./AOS.js'),
   Hypervisor: require('./Hypervisor.js'),
+  Foundation: require('./Foundation.js'),
   ...require('./Task')
 }

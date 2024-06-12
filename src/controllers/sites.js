@@ -71,9 +71,15 @@ module.exports = {
       }
       const added = await site.create(transaction)
       if (config.filestore.local) {
-        await mkdir(resolve(config.filestore.baseDirectory, config.filestore.exportDirectory, `${added.id}`), {recursive: true})
-        await mkdir(resolve(config.filestore.baseDirectory, config.filestore.exportDirectory, `${added.id}`, 'aos'), {recursive: true})
-        await mkdir(resolve(config.filestore.baseDirectory, config.filestore.exportDirectory, `${added.id}`, 'hypervisor'), {recursive: true})
+        await mkdir(resolve(config.filestore.tusBase, config.filestore.exportDirectory, `${added.id}`), {recursive: true})
+        await mkdir(resolve(config.filestore.tusBase, config.filestore.exportDirectory, `${added.id}`, 'aos'), {recursive: true})
+        await mkdir(resolve(config.filestore.tusBase, config.filestore.exportDirectory, `${added.id}`, 'hypervisor'), {recursive: true})
+      } else {
+        //TODO: do something different here. Probably mount the NFS server in $tusBase/$exportDirectory/$siteId
+        // For now when in dev and the NFS server is remote make sure it is mounted at $tusBase/$exportDirectory
+        await mkdir(resolve(config.filestore.tusBase, config.filestore.exportDirectory, `${added.id}`), {recursive: true})
+        await mkdir(resolve(config.filestore.tusBase, config.filestore.exportDirectory, `${added.id}`, 'aos'), {recursive: true})
+        await mkdir(resolve(config.filestore.tusBase, config.filestore.exportDirectory, `${added.id}`, 'hypervisor'), {recursive: true})
       }
       await transaction.commit()
       res.status(201).json(added.toJSON())

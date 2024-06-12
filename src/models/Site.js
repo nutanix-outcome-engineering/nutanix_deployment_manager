@@ -1,4 +1,5 @@
 const db = require('../database')
+const config = require('../lib/config')
 const jsondiffpatch = require('jsondiffpatch')
 const PrismCentral = require('./PrismCentral.js')
 const vCenter = require('./vCenter.js')
@@ -20,6 +21,8 @@ class Site {
 
     this.aosList = site.aosList || []
     this.hypervisorList = site.hypervisorList || []
+
+    this.nfsServer = site.nfsServer || config.nfsServer
 
     /** @private */
     this._record = null

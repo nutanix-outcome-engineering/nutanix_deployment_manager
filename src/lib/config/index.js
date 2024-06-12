@@ -38,9 +38,15 @@ const config = {
   },
   filestore: {
     local: process.env.RX_FILESTORE_LOCAL ? Boolean(process.env.RX_FILESTORE_LOCAL === 'true') : true,
+    tusBase: process.env.NDM_FILESTORE_TUS_BASE || 'files',
     baseDirectory: process.env.RX_FILESTORE_BASE_DIRECTORY || 'files',
     exportDirectory: process.env.RX_FILESTORE_EXPORT_DIRECTORY || 'exports'
   },
+  ssh: {
+    private: process.env.NDM_SSH_PRIVATE,
+    public: process.env.NDM_SSH_PUBLIC
+  },
+  nfsServer: process.env.NDM_NFS_SERVER || 'localhost',
   fvm_ip: process.env.RX_FVM_IP
 }
 

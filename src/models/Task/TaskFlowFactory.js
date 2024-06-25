@@ -3,13 +3,13 @@ const { Graph } = require('graphology')
 const db = require('../../database')
 
 
-function fromDB(record) {
+async function fromDB(record) {
   let graphData = JSON.parse(record.graph)
   const graph = new Graph(graphData.options)
   graph.import(graphData)
 
   let taskFlow = new TaskFlow[record.type](graph, record.id, null)
-  taskFlow = taskFlow.fromRecord(record)
+  taskFlow = await taskFlow.fromRecord(record)
   return taskFlow
 }
 
@@ -21,7 +21,7 @@ async function query(callback = async knex => knex) {
 
   const records = await query
 
-  return records.map(fromDB)
+  return await Promise.all(records.map(fromDB))
 }
 
 async function getAllNotFinished(type) {
@@ -43,6 +43,12 @@ async function getByID(id) {
 
   return (await builder)[0]
 }
+
+async function getAll() {
+  const builder = query(q => q.orderBy('startDate', 'desc'))
+
+  return await builder
+}
 async function getLatestByTypeAndRef(type, ref) {
   const builder = query(q => {
     q.where({type: type})
@@ -63,5 +69,6 @@ async function getLatestByTypeAndRef(type, ref) {
 module.exports = {
   getAllNotFinished,
   getByID,
-  getLatestByTypeAndRef
+  getLatestByTypeAndRef,
+  getAll
 }

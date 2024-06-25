@@ -113,6 +113,26 @@ const router = createRouter({
       }
     },
     {
+      path: '/tasks',
+      name: 'tasks',
+      component: lazy('Tasks/Shell'),
+      meta: {
+        auth: true
+      },
+      children: [
+        {
+          path: '',
+          name: 'task.list',
+          component: lazy('Tasks/TaskList'),
+        },
+        {
+          path: ':id',
+          name: 'task.overview',
+          component: lazy('Tasks/Task')
+        }
+      ]
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting

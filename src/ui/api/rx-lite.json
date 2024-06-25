@@ -556,6 +556,30 @@
         }
       }
     },
+    "/tasks": {
+      "get": {
+        "summary": "Your GET endpoint",
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskFlow"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "operationId": "tasks.getAll",
+        "description": "Get Task list"
+      },
+      "parameters": []
+    },
     "/tasks/{taskId}": {
       "get": {
         "summary": "Your GET endpoint",
@@ -1512,13 +1536,6 @@
           },
           "cvm": {
             "$ref": "#/components/schemas/IPDefinition"
-          },
-          "clusterID": {
-            "type": "integer",
-            "x-stoplight": {
-              "id": "6kvq4yy1dkbhg"
-            },
-            "nullable": true
           }
         },
         "required": [
@@ -1568,6 +1585,32 @@
             },
             "format": "date-time",
             "nullable": true
+          },
+          "progress": {
+            "type": "object",
+            "x-stoplight": {
+              "id": "v9hbpth39cczv"
+            },
+            "properties": {
+              "progress": {
+                "x-stoplight": {
+                  "id": "yswu4rcpgzuis"
+                },
+                "type": "number"
+              },
+              "subTasks": {
+                "type": "array",
+                "x-stoplight": {
+                  "id": "l4cln7ibn00h9"
+                },
+                "items": {
+                  "x-stoplight": {
+                    "id": "wof15enootwx1"
+                  },
+                  "type": "object"
+                }
+              }
+            }
           }
         }
       },
@@ -1797,30 +1840,10 @@
             }
           },
           "hypervisor": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/Hypervisor"
-              },
-              {
-                "type": "string",
-                "x-stoplight": {
-                  "id": "f2p0yjg3472bh"
-                }
-              }
-            ]
+            "type": "string"
           },
           "aos": {
-            "anyOf": [
-              {
-                "type": "string",
-                "x-stoplight": {
-                  "id": "n99nqhx3ae7x1"
-                }
-              },
-              {
-                "$ref": "#/components/schemas/AOS"
-              }
-            ]
+            "type": "string"
           },
           "ingestDate": {
             "type": "string",

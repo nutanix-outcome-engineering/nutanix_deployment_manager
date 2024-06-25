@@ -12,7 +12,7 @@ const {
   AOS,
   Hypervisor,
 } = require('../models')
-const { general } = require('./workerQueues.js')
+const { general } = require('./workers.js')
 const log = require('./logger.js')
 const config = require('./config')
 

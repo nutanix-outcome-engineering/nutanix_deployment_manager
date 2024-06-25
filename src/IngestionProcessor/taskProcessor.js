@@ -1,3 +1,3 @@
-const { general } = require('../lib/workerQueues.js')
+const { general } = require('../lib/workers.js')
 
 general.worker.run()

@@ -20,6 +20,17 @@ function registerAPIHandlers(app) {
     }
   }))
 
+  function addHeaders(handler) {
+    return async (req, res, next) => {
+      try {
+        res.setHeader('Cache-Control', 'no-store')
+        return await handler(req, res, next)
+      } catch (e) {
+        next(e)
+      }
+    }
+  }
+
   function catchErrors(handler) {
     return async (req, res, next) => {
       try {
@@ -62,7 +73,7 @@ function registerAPIHandlers(app) {
           if (handler === undefined) {
               throw new Error(`Could not find a [${method.join('.')}] function in ${modulePath} when trying to route [${route.method} ${route.expressRoute}].`)
           }
-          return catchErrors(handler)
+          return catchErrors(addHeaders(handler))
         }
       },
       validateSecurity: {

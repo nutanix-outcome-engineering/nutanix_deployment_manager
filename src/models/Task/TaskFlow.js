@@ -5,6 +5,7 @@ const IngestData = require('../IngestData')
 const AOS = require('../AOS')
 const Hypervisor = require('../Hypervisor')
 const db = require('../../database')
+const { getQueueByName } = require('../../lib/queues.js')
 
 const TABLE = 'taskFlow'
 const TaskState = {
@@ -82,7 +83,8 @@ class TaskFlow {
     let q = db(TABLE).where({id: this.id}).update(this.serialize())
     return await q
   }
-  fromRecord(record) {
+
+  async fromRecord(record) {
     this._record = record
     this.status = record.status
     this.type = record.type
@@ -90,6 +92,8 @@ class TaskFlow {
     this.startDate = record.startDate,
     this.stopDate = record.stopDate
     this.ref = record.ref
+
+    await this.getProgress()
 
     return this
   }
@@ -216,6 +220,30 @@ class TaskFlow {
     this.complete()
   }
 
+  async getProgress() {
+    const progressList = await Promise.all(this.graph.mapNodes(async (node, attributes) => {
+      const { jobId, queueName } = attributes
+      const progress = {
+        name: node,
+        state: attributes.state
+      }
+      if (jobId && queueName) {
+        const queue = getQueueByName(queueName)
+        const job = await queue.getJob(jobId)
+        progress.progress = new Number(job.progress)
+        progress.status = await job.getState()
+      } else {
+        progress.status = attributes.state
+        progress.progress = 0
+      }
+      return progress
+    }))
+    this.progress = {
+      progress: progressList.reduce((sum, subTask) => {return sum + subTask.progress}, 0) / progressList.length,
+      subTasks: progressList
+    }
+  }
+
   isSubTaskPending(name) {
     let taskState =  this.graph.getNodeAttribute(name, 'state')
     return taskState == TaskState.Pending
@@ -268,7 +296,8 @@ class TaskFlow {
         completedTasks: completedTasks.length,
         failedTasks: failedTasks.length,
         totalTasks: this.graph.order
-      }
+      },
+      progress: this.progress
     }
   }
 
@@ -323,7 +352,7 @@ class TaskFlow {
 
   addJobIdsToTasks(jobTree) {
     function parseJobTree(jobTree, job=jobTree.job, jobList=[]) {
-      jobList.push([job.data.taskType, job.id])
+      jobList.push([job.data.taskType, job.id, job.queueName])
       if (jobTree.children) {
         jobTree.children.forEach(child => parseJobTree(child, child.job, jobList))
       }
@@ -332,8 +361,8 @@ class TaskFlow {
 
     let idList = parseJobTree(jobTree)
     idList.forEach(job => {
-      let [ name, jobId ] = job
-      this.graph.mergeNodeAttributes(name, {jobId})
+      let [ name, jobId, queueName ] = job
+      this.graph.mergeNodeAttributes(name, {jobId, queueName})
     }, this)
   }
 

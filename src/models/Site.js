@@ -1,6 +1,7 @@
 const db = require('../database')
 const config = require('../lib/config')
 const jsondiffpatch = require('jsondiffpatch')
+const crypto = require('../lib/crypto-utils.js')
 const PrismCentral = require('./PrismCentral.js')
 const vCenter = require('./vCenter.js')
 const AOS = require('./AOS.js')
@@ -15,6 +16,29 @@ class Site {
     this.infraCluster = site.infraCluster
     this.ntpServers = typeof site.ntpServers == 'string' ? JSON.parse(site.ntpServers) : site.ntpServers
     this.dnsServers = typeof site.dnsServers == 'string' ? JSON.parse(site.dnsServers) : site.dnsServers
+
+    this.smtp = typeof site.smtp == 'object' ? site.smtp : {
+      address: site.smtpServerAddress,
+      fromAddress: site.smtpServerFromAddress,
+      port: site.smtpServerPort,
+      securityMode: site.smtpServerSecurityMode,
+      credentials: typeof site.smtpServerCredentials == 'string' ? crypto.decrypt(site.smtpServerCredentials) : site.smtpServerCredentials || {}
+    }
+
+    this.ldap = typeof site.ldap == 'object' ? site.ldap : {
+      directoryName: site.ldapDirectoryName,
+      directoryUrl: site.ldapDirectoryURL,
+      credentials: typeof site.ldapCredentials == 'string' ? crypto.decrypt(site.ldapCredentials) : site.ldapCredentials || {}
+    }
+
+    this.prism = typeof site.prism == 'object' ? site.prism : {
+      certificate: site.prismCert,
+      caChain: site.prismCAChain,
+      key: Buffer.isBuffer(site.prismKey) ? crypto.decrypt(site.prismKey) : site.prismKey || [],
+      keyType: site.prismKeyType
+    }
+
+    this.lcmDarksiteUrl = site.lcmDarksiteUrl
 
     this.pcServers = site.pcServers || []
     this.vCenterServers = site.vCenterServers || []
@@ -38,7 +62,24 @@ class Site {
       pcServers: JSON.stringify(this.pcServers.map(pc => pc.id)),
       vCenterServers: JSON.stringify(this.vCenterServers.map(vcsa => vcsa.id)),
       aosList: JSON.stringify(this.aosList.map(aos => aos.uuid)),
-      hypervisorList: JSON.stringify(this.hypervisorList.map(hypervisor => hypervisor.uuid))
+      hypervisorList: JSON.stringify(this.hypervisorList.map(hypervisor => hypervisor.uuid)),
+
+      smtpServerAddress: this.smtp.address,
+      smtpServerFromAddress: this.smtp.fromAddress,
+      smtpServerPort: this.smtp.port,
+      smtpServerSecurityMode: this.smtp.securityMode,
+      smtpServerCredentials: crypto.encrypt(this.smtp.credentials),
+
+      lcmDarksiteUrl: this.lcmDarksiteUrl,
+
+      prismCert: this.prism.certificate,
+      prismCAChain: this.prism.caChain,
+      prismKey: crypto.encrypt(this.prism.key, false),
+      prismKeyType: this.prism.keyType,
+
+      ldapDirectoryName: this.ldap.directoryName,
+      ldapDirectoryURL: this.ldap.directoryUrl,
+      ldapCredentials: crypto.encrypt(this.ldap.credentials)
     }
   }
 
@@ -52,7 +93,12 @@ class Site {
       pcServers: this.pcServers.map(pc => pc.toJSON()),
       vCenterServers: this.vCenterServers.map(vcsa => vcsa.toJSON()),
       aosList: this.aosList.map(aos => aos.toJSON()),
-      hypervisorList: this.hypervisorList.map(hypervisor => hypervisor.toJSON())
+      hypervisorList: this.hypervisorList.map(hypervisor => hypervisor.toJSON()),
+      smtp: this.smtp,
+      //TODO: strip creds and crypto from this
+      ldap: this.ldap,
+      // prism: this.prism,
+      lcmDarksiteUrl: this.lcmDarksiteUrl,
     }
   }
 

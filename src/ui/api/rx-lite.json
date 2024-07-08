@@ -1768,6 +1768,107 @@
             "items": {
               "$ref": "#/components/schemas/Hypervisor"
             }
+          },
+          "ldap": {
+            "type": "object",
+            "x-stoplight": {
+              "id": "tii8ye901ne07"
+            },
+            "properties": {
+              "directoryName": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "xhvkqilz4f2f3"
+                },
+                "nullable": true
+              },
+              "directoryURL": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "4a9jvtd0kjf7l"
+                },
+                "nullable": true
+              },
+              "": {
+                "$ref": "#/components/schemas/Credential"
+              }
+            }
+          },
+          "prism": {
+            "type": "object",
+            "x-stoplight": {
+              "id": "kwpgz6roodq54"
+            },
+            "properties": {
+              "certificate": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "j5zlx8v8flg2x"
+                },
+                "nullable": true
+              },
+              "key": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "nrtzoqj0f8fy1"
+                },
+                "format": "binary",
+                "nullable": true
+              },
+              "caChain": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "4sdxlau102iey"
+                },
+                "nullable": true
+              }
+            }
+          },
+          "smtp": {
+            "type": "object",
+            "x-stoplight": {
+              "id": "p0j23kni5afc0"
+            },
+            "properties": {
+              "serverAddress": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "96jhjy7mexfun"
+                },
+                "nullable": true
+              },
+              "fromEmail": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "rv1auipbkpb7l"
+                },
+                "nullable": true
+              },
+              "port": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "4hyhixdfsh513"
+                },
+                "nullable": true
+              },
+              "securityMode": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "8rh031s9yaf61"
+                },
+                "nullable": true
+              },
+              "credentials": {
+                "$ref": "#/components/schemas/Credential"
+              }
+            }
+          },
+          "lcmDarksite": {
+            "type": "string",
+            "x-stoplight": {
+              "id": "n9mlx1flxlbmy"
+            },
+            "nullable": true
           }
         }
       },

@@ -1,6 +1,7 @@
 const { Site, PrismCentral, vCenter, AOS, Hypervisor }  = require('../models')
 const db = require('../database')
 const config = require('../lib/config')
+const { extractKeyDetails } = require('../lib/crypto-utils')
 const { v4: uuid} = require('uuid')
 const { mkdir } = require('fs/promises')
 const { resolve } = require('path')
@@ -100,6 +101,21 @@ module.exports = {
       existing.dnsServers = req.body.dnsServers || existing.dnsServers
       existing.ntpServers = req.body.ntpServers || existing.ntpServers
       existing.infraCluster = req.body.infraCluster || existing.infraCluster
+      existing.smtp = req.body.smtp || existing.smtp
+      existing.lcmDarksiteUrl = req.body.lcmDarksiteUrl || existing.lcmDarksiteUrl
+      existing.ldap = req.body.ldap || existing.ldap
+
+      if (req.body.prism.caChain) {
+        existing.prism.caChain = Buffer.from(req.body.prism.caChain, 'utf8')
+      }
+      if (req.body.prism.certificate) {
+        existing.prism.certificate = Buffer.from(req.body.prism.certificate, 'utf8')
+      }
+      if (req.body.prism.key) {
+        existing.prism.key = Buffer.from(req.body.prism.key, 'utf8')
+        const keyDetails = extractKeyDetails(req.body.prism.key)
+        existing.prism.keyType = `${keyDetails.type.toUpperCase()}_${keyDetails.length}`
+      }
 
       // Site PC management code
       let newPCServers = []

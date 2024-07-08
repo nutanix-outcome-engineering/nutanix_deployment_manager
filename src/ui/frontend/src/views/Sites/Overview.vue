@@ -26,7 +26,7 @@ const isLoading = ref(true)
 
 function formDefault() {
   return {
-    site:{
+    site: {
       name: '',
       infraCluster: undefined,
       ntpServers: [],
@@ -34,7 +34,31 @@ function formDefault() {
       pcServers: [],
       vCenterServers: [],
       aosList: [],
-      hypervisorList: []
+      hypervisorList: [],
+      prism: {
+        certificate: '',
+        caChain: '',
+        key: ''
+      },
+      lcmDarksiteUrl: '',
+      smtp: {
+        address: '',
+        fromAddress: '',
+        port: '',
+        securityMode: '',
+        credentials: {
+          username: '',
+          password: ''
+        }
+      },
+      ldap: {
+        directoryName: '',
+        directoryUrl: '',
+        credentials: {
+          username: '',
+          password: ''
+        },
+      }
     },
     pc: {
       displayName: '',
@@ -72,6 +96,10 @@ function hydrateForm() {
       vCenterServers: [...site.value.vCenterServers],
       aosList: [...site.value.aosList],
       hypervisorList: [...site.value.hypervisorList],
+      lcmDarksiteUrl: site.value.lcmDarksiteUrl,
+      prism: site.value.prism || form.site.prism,
+      smtp: site.value.smtp,
+      ldap: site.value.ldap
     }
   }
   return form
@@ -307,6 +335,20 @@ function statusColor(status) {
 
   return color
 }
+
+async function fileChanged(file) {
+  return await file.text()
+}
+
+async function certificateFileChanged(event) {
+  form.value.site.prism.certificate = await fileChanged(event.target.files[0])
+}
+async function caChainFileChanged(event) {
+  form.value.site.prism.caChain = await fileChanged(event.target.files[0])
+}
+async function keyFileChanged(event) {
+  form.value.site.prism.key = await fileChanged(event.target.files[0])
+}
 </script>
 
 <template>
@@ -477,6 +519,111 @@ function statusColor(status) {
           </div>
         </div>
         <!-- VCSA Servers End-->
+        <!-- SMTP Info Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <span class="block pt-2 pb-2 text-sm font-medium">SMTP Config</span>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="smtpServerAddress" class="mr-2">Server Address:</label>
+            <input
+              type="text"
+              id="smtpServerAddress"
+              placeholder="SMTP Server Address"
+              v-model="form.site.smtp.address"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="smtpServerFromAddress" class="mr-2">From Address:</label>
+            <input
+              type="text"
+              id="smtpServerFromAddress"
+              placeholder="fromemail@example.com"
+              v-model="form.site.smtp.fromAddress"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+          </form>
+        </div>
+        <!-- SMTP Info End-->
+        <!-- LDAP Info Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <span class="block pt-2 pb-2 text-sm font-medium">LDAP Config</span>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="ldapDirectoryName" class="mr-2">Directory Name:</label>
+            <input
+              type="text"
+              id="ldapDirectoryName"
+              placeholder="LDAP Directory Name"
+              v-model="form.site.ldap.directoryName"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="ldapDirectoryUrl" class="mr-2">Directory URL:</label>
+            <input
+              type="text"
+              id="ldapDirectoryUrl"
+              placeholder="LDAP URL"
+              v-model="form.site.ldap.directoryUrl"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="ldapUsername" class="mr-2">Username:</label>
+            <input
+              type="text"
+              id="ldapUsername"
+              placeholder="Username"
+              v-model="form.site.ldap.credentials.username"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="ldapPassword" class="mr-2">Password:</label>
+            <input
+              type="text"
+              id="ldapPassword"
+              placeholder="Password"
+              v-model="form.site.ldap.credentials.password"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+          </form>
+        </div>
+        <!-- LDAP Info End-->
+        <!-- LCM Darksite Info Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <span class="block pt-2 pb-2 text-sm font-medium">LCM Darksite</span>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="lcmDarksiteUrl" class="mr-2">Server Address:</label>
+            <input
+              type="text"
+              id="lcmDarksiteUrl"
+              placeholder="Display Name"
+              v-model="form.site.lcmDarksiteUrl"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+          </form>
+        </div>
+        <!-- LCM Darksite End-->
+        <!-- Prism Certificate Info Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <span class="block pt-2 pb-2 text-sm font-medium">Prism Certificate</span>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="prismCertificate" class="mr-2">Certificate:</label>
+            <input
+              type="file"
+              id="prismCertificate"
+              @change="certificateFileChanged"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="prismCAChain" class="mr-2">CA Chain:</label>
+            <input
+              type="file"
+              id="prismCAChain"
+              @change="caChainFileChanged"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="prismKey" class="mr-2">Key:</label>
+            <input
+              type="file"
+              id="vCenterDisplayName"
+              @change="keyFileChanged"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+          </form>
+        </div>
+        <!-- SMTP Info End-->
         <!-- AOS List Start -->
         <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium space-y-2">
           <div class="flex justify-between">

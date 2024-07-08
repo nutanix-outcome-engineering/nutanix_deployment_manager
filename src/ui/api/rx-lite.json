@@ -1812,7 +1812,6 @@
                 "x-stoplight": {
                   "id": "nrtzoqj0f8fy1"
                 },
-                "format": "binary",
                 "nullable": true
               },
               "caChain": {

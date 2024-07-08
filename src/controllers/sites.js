@@ -112,7 +112,7 @@ module.exports = {
         existing.prism.certificate = Buffer.from(req.body.prism.certificate, 'utf8')
       }
       if (req.body.prism.key) {
-        existing.prism.key = Buffer.from(req.body.prism.key, 'utf8')
+        existing.prism.key = req.body.prism.key
         const keyDetails = extractKeyDetails(req.body.prism.key)
         existing.prism.keyType = `${keyDetails.type.toUpperCase()}_${keyDetails.length}`
       }

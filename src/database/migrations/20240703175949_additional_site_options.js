@@ -13,9 +13,9 @@ exports.up = async (knex) => {
 
     table.string('lcmDarksiteUrl', 512)
 
-    table.binary('prismCert')
-    table.binary('prismCAChain')
-    table.binary('prismKey').defaultTo('')
+    table.text('prismCert')
+    table.text('prismCAChain')
+    table.text('prismKey').defaultTo('')
     table.string('prismKeyType')
 
     table.string('ldapDirectoryName', 512)

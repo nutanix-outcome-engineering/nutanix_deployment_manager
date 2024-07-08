@@ -34,7 +34,7 @@ class Site {
     this.prism = typeof site.prism == 'object' ? site.prism : {
       certificate: site.prismCert,
       caChain: site.prismCAChain,
-      key: Buffer.isBuffer(site.prismKey) ? crypto.decrypt(site.prismKey) : site.prismKey || [],
+      key: site.prismKey == 'string' ? crypto.decrypt(site.prismKey) : site.prismKey,
       keyType: site.prismKeyType
     }
 
@@ -74,7 +74,7 @@ class Site {
 
       prismCert: this.prism.certificate,
       prismCAChain: this.prism.caChain,
-      prismKey: crypto.encrypt(this.prism.key, false),
+      prismKey: crypto.encrypt(this.prism.key),
       prismKeyType: this.prism.keyType,
 
       ldapDirectoryName: this.ldap.directoryName,

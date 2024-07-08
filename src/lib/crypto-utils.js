@@ -20,6 +20,9 @@ const encryptionCipher = supportedCiphers?.[config.cipher] || supportedCiphers['
 
 
 function encrypt(data, asString=true) {
+  if (!data) {
+    return null
+  }
   const key = crypto.pbkdf2Sync(config.secret, 'saltysalt', 10000, encryptionCipher.keyLength, 'sha512')
   const iv = crypto.randomFillSync(new Uint8Array(encryptionCipher.ivLength))
   const cipher = crypto.createCipheriv(encryptionCipher.name, key, iv)

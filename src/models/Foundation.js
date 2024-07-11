@@ -64,6 +64,7 @@ class Foundation {
 
     return foundation
   }
+
   static async getByIds(ids, transaction) {
     const builder = this.query(q => {
       q.whereIn('uuid', ids)
@@ -73,6 +74,35 @@ class Foundation {
     let foundationList = await builder
 
     return foundationList || []
+  }
+
+  static async query(callback = async knex => knex) {
+    const query = db(TABLE)
+
+    await callback(query)
+
+    const records = await query
+
+    return records.map(this.fromDB)
+  }
+
+  static async findAvailable(siteId, transaction) {
+    if (!transaction) {
+      throw new Error('This function requires a transaction to properly lock.')
+    }
+
+    const builder = this.query(q => {
+      q.where({status: 'idle', siteId})
+        .forUpdate()
+        .skipLocked()
+        .limit(1)
+        .transacting(transaction)
+      return q
+    })
+
+    const fvm = (await builder)[0]
+
+    return fvm
   }
 
   serialize() {
@@ -101,17 +131,7 @@ class Foundation {
     }
   }
 
-  static async query(callback = async knex => knex) {
-    const query = db(TABLE)
-
-    await callback(query)
-
-    const records = await query
-
-    return records.map(this.fromDB)
-  }
-
-  async update() {
+  async update(transaction) {
     let serialized = this.serialize()
     let changes = jsondiffpatch.diff(serialized, this._record)
     let sparseCommit = {}
@@ -123,6 +143,9 @@ class Foundation {
       return 0
     }
     let q = db(TABLE).where({uuid: this.uuid}).update(sparseCommit)
+    if (transaction) {
+      q.transacting(transaction)
+    }
     return await q
   }
 
@@ -161,6 +184,23 @@ class Foundation {
     } catch (err) {
       throw err
     }
+  }
+
+  async imageNodes(cluster, advanced, operations) {
+    const clusterInfo = {
+      ...cluster.cluster,
+      name: cluster.name,
+      nameserver: cluster.site.dnsServers,
+      ntpServer: cluster.site.ntpServers
+    }
+
+    // Used to for debug reasons
+    const payload = this.api.generateImageNodePayload(clusterInfo, cluster.nodes, cluster.hypervisor, cluster.aos.filename, advanced, operations)
+    return this.api.imageNodes(clusterInfo, cluster.nodes, cluster.hypervisor, cluster.aos.filename, advanced, operations)
+  }
+
+  async progress(session_id) {
+    return await this.api.progress(session_id)
   }
 }
 

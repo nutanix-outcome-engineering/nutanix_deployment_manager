@@ -1,11 +1,11 @@
 const { Graph } = require('graphology')
 const { willCreateCycle, topologicalSort } = require('graphology-dag')
 const { v4: uuid} = require('uuid')
-const IngestData = require('../IngestData')
-const AOS = require('../AOS')
-const Hypervisor = require('../Hypervisor')
-const db = require('../../database')
-const { getQueueByName } = require('../../lib/queues.js')
+const IngestData = require('../../IngestData')
+const AOS = require('../../AOS')
+const Hypervisor = require('../../Hypervisor')
+const db = require('../../../database')
+const { getQueueByName } = require('../../../lib/queues.js')
 
 const TABLE = 'taskFlow'
 const TaskState = {
@@ -368,139 +368,4 @@ class TaskFlow {
 
 }
 
-class DiscoverNodeTaskFlow extends TaskFlow {
-  constructor(graph, id, inputData) {
-    super(graph, id)
-    this.type = 'DiscoverNodeTaskFlow'
-    let taskDefinition = {
-      tasks: [
-        {
-          name: 'DiscoverBMC'
-        },
-        {// TODO: add how to do retries here
-          name: 'DiscoverCVMDirect',
-          needs: ['DiscoverBMC']
-          //onFailure: 'DiscoverCVMThroughBMC'
-        },
-        {
-          name: 'FetchLLDP',
-          needs: ['DiscoverCVMDirect']
-        },
-        {
-          name: 'IngestNode',
-          needs:[
-            'DiscoverBMC',
-            'DiscoverCVMDirect',
-            'FetchLLDP'
-            // 'DiscoverCVMThroughBMC'
-          ]/** {
-            'oneOf': [
-              'DiscoverCVMDirect',
-              'DiscoverCVMThroughBMC'
-            ]
-          }*/
-        },
-      ]
-    }
-
-    if (!graph) {
-      taskDefinition.tasks.forEach(task => {
-        if (!task.needs) {
-          task.data = inputData
-        }
-      })
-
-      this.graph = this.constructor.graphFromJSONDefinition(taskDefinition)
-    }
-  }
-
-  // TODO: maybe handle partial ingest based on what succeeded?
-  async onFailure() {
-    let node = await IngestData.getByIngestTaskUUID(this.id)
-
-    node.ingestState = 'failed'
-
-    await node.update()
-  }
-}
-
-class UploadAosTaskFlow extends TaskFlow {
-  constructor(graph, id, inputData) {
-    super(graph, id)
-    this.type = 'UploadAosTaskFlow'
-    this.ref = `AOS:${inputData?.aosUUID}`
-    let taskDefinition = {
-      tasks: [
-        {
-          name: 'UploadAOS'
-        },
-        {
-          name: 'PostUploadAOS',
-          needs: ['UploadAOS']
-        }
-      ]
-    }
-
-    if (!graph) {
-      taskDefinition.tasks.forEach(task => {
-        if (!task.needs) {
-          task.data = inputData
-        }
-      })
-
-      this.graph = this.constructor.graphFromJSONDefinition(taskDefinition)
-    }
-  }
-
-  async onFailure() {
-    let uuid = this.graph.getNodeAttribute('UploadAOS', 'data').aosUUID
-    let aos = await AOS.getById(uuid)
-    aos.transferStatus = 'failed'
-
-    await aos.update()
-  }
-}
-
-class UploadHypervisorTaskFlow extends TaskFlow {
-  constructor(graph, id, inputData) {
-    super(graph, id)
-    this.type = 'UploadHypervisorTaskFlow'
-    this.ref = `Hypervisor:${inputData?.hypervisorUUID}`
-    let taskDefinition = {
-      tasks: [
-        {
-          name: 'UploadHypervisor'
-        },
-        {
-          name: 'PostUploadHypervisor',
-          needs: ['UploadHypervisor']
-        }
-      ]
-    }
-
-    if (!graph) {
-      taskDefinition.tasks.forEach(task => {
-        if (!task.needs) {
-          task.data = inputData
-        }
-      })
-
-      this.graph = this.constructor.graphFromJSONDefinition(taskDefinition)
-    }
-  }
-
-  async onFailure() {
-    let uuid = this.graph.getNodeAttribute('UploadHypervisor', 'data').hypervisorUUID
-    let hypervisor = await Hypervisor.getById(uuid)
-    hypervisor.transferStatus = 'failed'
-
-    await hypervisor.update()
-  }
-}
-
-module.exports = {
-  TaskFlow,
-  DiscoverNodeTaskFlow,
-  UploadAosTaskFlow,
-  UploadHypervisorTaskFlow
-}
+module.exports = TaskFlow

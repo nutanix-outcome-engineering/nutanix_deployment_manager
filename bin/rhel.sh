@@ -17,9 +17,11 @@ install() {
   fi
 
   serverName=$(hostname -f)
+  cookie=$(randstr)
   sed -i "s/\(RX_SERVER_NAME=\).*/\1\"$serverName\"/g" src/.env
   sed -i "s%\(RX_SERVER_CERT=\).*%\1\"src/ui/${serverName//./_}.pem\"%g" src/.env
   sed -i "s%\(RX_SERVER_KEY=\).*%\1\"src/ui/key.pem\"%g" src/.env
+  sed -i "s%\(NDM_SERVER_COOKIE=\).*%\1\"$cookie\"%g" src/.env
   openssl req -x509 -newkey rsa:4096 -nodes -keyout src/ui/key.pem -out src/ui/${serverName//./_}.pem -sha256 -days 3650 -subj "/C=US/ST=North Carolina/L=Durham/O=Random/OU=Org/CN=$serverName"
 
   sed -i "s%\(NDM_SSH_PRIVATE=\).*%\1\"src/ndm_ssh\"%g" src/.env
@@ -27,6 +29,7 @@ install() {
   ssh-keygen -f src/ndm_ssh -N "" -t ed25519 -C 'NDM-SSHKEY'
 
   sed -i "s%\(RX_FILESTORE_BASE_DIRECTORY=\).*%\1\"/srv/ndm/\"%g" src/.env
+  sed -i "s%\(NDM_FILESTORE_TUS_BASE=\).*%\1\"/srv/ndm/\"%g" src/.env
   sed -i "s%\(RX_FILESTORE_EXPORT_DIRECTORY=\).*%\1\"exports\"%g" src/.env
 
   # Create user
@@ -43,7 +46,7 @@ install() {
   mkdir -p /srv/ndm/exports
 
   setupSystemd
-  setupNDM
+  setupNDM 1
   fixPermissions
   startNDM
 }
@@ -214,5 +217,8 @@ case $1 in
   ;;
   update)
     update
+  ;;
+  *)
+    echo 'Help message.'
   ;;
 esac

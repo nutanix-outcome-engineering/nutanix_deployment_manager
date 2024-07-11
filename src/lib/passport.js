@@ -3,7 +3,7 @@
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 const db = require('../database')
-const user = require('../models/user.js')
+const user = require('../models/User.js')
 
 // passport.initialize()
 module.exports = function(app) {
@@ -13,10 +13,10 @@ module.exports = function(app) {
   passport.use(new LocalStrategy(async (username, password, done) => {
     const thisUser = await user.findByUsername(username)
     if(!thisUser) {return done(null, false)}
-    if(! await user.verifyPassword(password, thisUser.password)) {
+    if(!thisUser.checkPassword(password)) {
       return done(null, false, {message: 'incorrect Pass'})
     }
-    return done(null,thisUser)
+    return done(null, thisUser)
   }))
 
   // TODO: serialize w/o password, and without DB retrieval on each deserialize

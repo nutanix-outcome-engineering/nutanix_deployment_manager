@@ -28,13 +28,14 @@ const config = {
     host: process.env.RX_REDIS_HOST || "localhost",
     port: Number(process.env.RX_REDIS_PORT) || 6379,
     db: Number(process.env.RX_REDIS_DB) || 2,
-    pass: process.env.RX_REDIS_PASS
+    pass: process.env.RX_REDIS_PASS,
   },
   server: {
     name: process.env.RX_SERVER_NAME,
     port: process.env.RX_SERVER_PORT,
     key: process.env.RX_SERVER_KEY,
-    cert: process.env.RX_SERVER_CERT
+    cert: process.env.RX_SERVER_CERT,
+    cookie: process.env.NDM_SERVER_COOKIE
   },
   filestore: {
     local: process.env.RX_FILESTORE_LOCAL ? Boolean(process.env.RX_FILESTORE_LOCAL === 'true') : true,

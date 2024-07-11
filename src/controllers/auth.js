@@ -1,5 +1,5 @@
 const passport = require('passport')
-const user = require('../models/user.js')
+const user = require('../models/User.js')
 const log = require('../lib/logger.js')
 
 module.exports = {

@@ -4,6 +4,7 @@ const config = require('../lib/config')
 const { v4: uuid} = require('uuid')
 const { mkdir } = require('fs/promises')
 const { resolve } = require('path')
+const log = require('../lib/logger.js')
 
 function validateBody(body) {
   const uniquePCHostnameOrIPs = new Set(body.pcServers.map(pc => pc.hostnameOrIP))
@@ -84,6 +85,7 @@ module.exports = {
       await transaction.commit()
       res.status(201).json(added.toJSON())
     } catch (err) {
+      log.error(`Error creating site with name ${req.body.name}: ${err}`)
       await transaction.rollback()
       next(err)
     }

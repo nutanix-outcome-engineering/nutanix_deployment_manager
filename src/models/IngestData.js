@@ -98,6 +98,15 @@ class IngestData {
     return (await builder)[0]
   }
 
+  static async getBySerialNumbers(serials) {
+    const builder = this.query(q => {
+      q.whereIn('serial', serials)
+      return q
+    })
+
+    return (await builder)
+  }
+
   static async getByIngestTaskUUID(id) {
     const builder = this.query(q => {
       q.where({ingestTaskUUID: id})

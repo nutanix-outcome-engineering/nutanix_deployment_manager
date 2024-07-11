@@ -1,4 +1,5 @@
 const db = require('../database')
+const crypto = require('../lib/crypto-utils.js')
 const jsondiffpatch = require('jsondiffpatch')
 
 const TABLE = 'node'
@@ -19,6 +20,7 @@ class Node {
       this.ipmiGateway = node.ipmiGateway
       this.ipmiSubnet = node.ipmiSubnet
     }
+    this.ipmiCredentials = typeof node.ipmiCredentials == 'string' ? crypto.decrypt(node.ipmiCredentials) : node.ipmiCredentials || {}
 
     if (node.host) {
       this.hostIP = node.host.ip
@@ -105,6 +107,7 @@ class Node {
       ipmiHostname: this.ipmiHostname,
       ipmiGateway: this.ipmiGateway,
       ipmiSubnet: this.ipmiSubnet,
+      ipmiCredentials: crypto.encrypt(this.ipmiCredentials),
 
       hostIP: this.hostIP,
       hostHostname: this.hostHostname,

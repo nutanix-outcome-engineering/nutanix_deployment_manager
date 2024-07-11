@@ -1,5 +1,6 @@
 const db = require('../database')
-const  { Node, Cluster}  = require('../models');
+const  { Node, Cluster, ClusterBuildTaskFlow }  = require('../models')
+const { general } = require('../lib/workers.js')
 const log = require('../lib/logger')
 
 module.exports = {
@@ -25,6 +26,17 @@ module.exports = {
         }))
       }
       await transaction.commit()
+
+      try {
+        const clusterBuildFlow = new ClusterBuildTaskFlow(null, null, {cluster: {id: cluster.id}})
+        await clusterBuildFlow.create()
+        const jobTree = await general.flowProducer.add(clusterBuildFlow.generateJobsForQueue(general.queue.name))
+        clusterBuildFlow.addJobIdsToTasks(jobTree)
+        await clusterBuildFlow.update()
+      } catch (err) {
+        log.error(`Error trying to initiate cluster build ${err}`)
+        next(err)
+      }
     } catch (err) {
       log.error(`Error trying to create cluster ${err}`)
       transaction.rollback()
@@ -38,5 +50,42 @@ module.exports = {
       log.error(`Error trying to fetch cluster ${error}`)
       next(error)
     }
-  }
+  },
+  delete: async (req, res, next) => {
+    let transaction = await db.transaction()
+    let cluster = await Cluster.getById(req.params.id)
+    try {
+      await Promise.all(cluster.nodes.map(node => {
+        node.clusterID = null
+        return node.update(transaction)
+      }))
+      await cluster.delete()
+      await transaction.commit()
+
+    } catch (error) {
+      log.error(`Error trying to delete cluster ${cluster.name} with id ${req.params.id} ${err}`)
+      await transaction.rollback()
+      next(`Error trying to delete cluster ${cluster.name}`)
+    }
+
+    res.status(204).send()
+  },
+  rebuild: async (req, res, next) => {
+    let transaction = await db.transaction()
+    let cluster = await Cluster.getById(req.params.id)
+
+    try {
+      const clusterBuildFlow = new ClusterBuildTaskFlow(null, null, {cluster: {id: cluster.id}})
+      await clusterBuildFlow.create()
+      const jobTree = await general.flowProducer.add(clusterBuildFlow.generateJobsForQueue(general.queue.name))
+      clusterBuildFlow.addJobIdsToTasks(jobTree)
+      await clusterBuildFlow.update()
+    } catch (error) {
+      log.error(`Error trying to rebuild cluster ${cluster.name} with id ${req.params.id} ${err}`)
+      await transaction.rollback()
+      next(`Error trying to rebuild cluster ${cluster.name}`)
+    }
+
+    res.status(201).send()
+  },
 }

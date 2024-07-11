@@ -1262,6 +1262,32 @@
         }
       }
     },
+    "/cluster/{id}": {
+      "parameters": [],
+      "delete": {
+        "summary": "",
+        "operationId": "cluster.delete",
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "description": "Delete a cluster from NDM."
+      }
+    },
+    "/cluster/{id}/rebuild": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "cluster.rebuild",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "description": "Retry the clsuter build process"
+      }
+    },
     "/uploads": {
       "parameters": [],
       "post": {
@@ -1840,10 +1866,10 @@
             }
           },
           "hypervisor": {
-            "type": "string"
+            "$ref": "#/components/schemas/Hypervisor"
           },
           "aos": {
-            "type": "string"
+            "$ref": "#/components/schemas/AOS"
           },
           "ingestDate": {
             "type": "string",

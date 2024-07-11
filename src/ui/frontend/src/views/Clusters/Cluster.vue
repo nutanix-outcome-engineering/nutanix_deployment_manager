@@ -16,7 +16,7 @@ import { ref, computed } from 'vue'
 
 const SUGGESTION_MAX = 21
 
-const { clusters, getClusters } = useClusters()
+const { clusters, getClusters, remove, rebuild } = useClusters()
 const form = ref({
   search: '',
   filters: []
@@ -203,6 +203,8 @@ getClusters()
                       </div>
                     </div>
                     <div class="flex items-center text-sm leading-5 font-medium space-x-4">
+                      <Button kind="destructive" @click="rebuild(cluster)">Retry Build</Button>
+                      <Button kind="destructive" @click="remove(cluster)">Remove</Button>
                       <Menu as="div" class="relative inline-block">
                         <MenuButton>
                           <Button kind="secondary">Launch

@@ -23,12 +23,34 @@ async function addCluster(cluster) {
   }
 }
 
+async function rebuild(cluster) {
+  try {
+    await axios.post(`/cluster/${cluster.id}/rebuild`)
+    show(`Cluster ${cluster.name} retrying build`, '', 'success')
+  } catch(error) {
+    throw error
+  }
+}
+
+async function remove(cluster) {
+  try {
+    await axios.delete(`/cluster/${cluster.id}`)
+    clusters.value = clusters.value.filter(c => cluster.id != c.id)
+    show(`Cluster ${cluster.name} removed`, '', 'success')
+  } catch(error) {
+    throw error
+  }
+
+}
+
 
 export default function useClusters() {
   return {
     clusters,
     isLoading: readonly(isLoading),
     getClusters,
-    addCluster
+    addCluster,
+    rebuild,
+    remove
   }
 }

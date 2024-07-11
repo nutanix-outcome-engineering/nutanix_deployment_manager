@@ -84,13 +84,17 @@ module.exports = {
       next({message: 'Not Implemented', status: 501})
     },
     add: async(req, res, next) => {
-      let nodes = req.body.map(n => (new Node(n)).serialize())
-      let removeFromIngestion = req.body.map(n => n.serial)
+      let nodes = req.body.map(n => (new Node(n)))
+      let removeFromIngestion = await IngestData.getBySerialNumbers(req.body.map(n => n.serial))
+      for (let node of nodes) {
+        const ingesting = removeFromIngestion.filter(n => n.serial == node.serial)[0]
+        node.ipmiCredentials = ingesting.credentials.ipmi
+      }
 
-      // TODO: Follow scheme in cluster create of passing transaction around to Class function
+
       await db.transaction(async (tr) => {
-        await db(Node.dbTable).insert(nodes).transacting(tr)
-        await db(IngestData.dbTable).whereIn('serial', removeFromIngestion).del().transacting(tr)
+        await db(Node.dbTable).insert(nodes.map(n => n.serialize())).transacting(tr)
+        await db(IngestData.dbTable).whereIn('serial', removeFromIngestion.map(n => n.serial)).del().transacting(tr)
       })
 
       res.status(201).send()

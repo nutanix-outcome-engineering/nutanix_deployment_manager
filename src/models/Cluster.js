@@ -208,6 +208,10 @@ class Cluster {
 
     return this
   }
+
+  async delete() {
+    return await db(TABLE).where({id: this.id}).delete()
+  }
 }
 
 module.exports = Cluster

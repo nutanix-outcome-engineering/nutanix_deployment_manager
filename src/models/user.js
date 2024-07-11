@@ -31,9 +31,10 @@ class User {
     return null
   }
 
-  static async verifyPassword(password, dbPassword) {
+  static verifyPassword(password, dbPassword) {
     return bcrypt.compareSync(password, dbPassword)
   }
+
   checkPassword(password) {
     return bcrypt.compareSync(password, this.password)
   }

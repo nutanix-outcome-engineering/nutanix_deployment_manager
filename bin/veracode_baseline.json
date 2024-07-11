@@ -1,0 +1,598 @@
+{
+  "_links": {
+    "root": {
+      "href": "/"
+    },
+    "self": {
+      "href": "/scans/144429c1-e537-4265-904d-9d9095d1da6f/findings"
+    },
+    "help": {
+      "href": "https://help.veracode.com/reader/tS9CaFwL4_lbIEWWomsJoA/ovfZGgu96UINQxIuTqRDwg"
+    }
+  },
+  "scan_id": "144429c1-e537-4265-904d-9d9095d1da6f",
+  "scan_status": "SUCCESS",
+  "message": "Scan successful. Results size: 28569 bytes",
+  "modules": [
+    "JS files within ndm.tar.gz"
+  ],
+  "modules_count": 1,
+  "findings": [
+    {
+      "title": "util.execSync",
+      "issue_id": 1007,
+      "image_path": "src/models/AOS.js",
+      "gob": "B",
+      "severity": 5,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Neutralization of Special Elements used in an OS Command (\u0027OS Command Injection\u0027)",
+      "cwe_id": "78",
+      "display_text": "\u003cspan\u003eThis call to util.execSync() contains a command injection flaw.  The argument to the function is constructed using untrusted input.  If an attacker is allowed to specify all or part of the command, it may be possible to execute commands on the server with the privileges of the executing process.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.  Most APIs that execute system commands also have a \"safe\" version of the method that takes an array of strings as input rather than a single string, which protects against some forms of command injection.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/78.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Command_Injection\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/models/AOS.js",
+          "line": 153,
+          "function_name": "extractAndMove",
+          "qualified_function_name": "AOS.extractAndMove",
+          "function_prototype": "extractAndMove(: ::AOS,  : any,  : any, ...) : any",
+          "scope": "^::AOS"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "1055681923",
+        "prototype_hash": "782366511",
+        "flaw_hash": "570529053",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "3779218859",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "21074963",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/78.html"
+    },
+    {
+      "title": "util.exec",
+      "issue_id": 1006,
+      "image_path": "src/lib/ssh.js",
+      "gob": "B",
+      "severity": 5,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Neutralization of Special Elements used in an OS Command (\u0027OS Command Injection\u0027)",
+      "cwe_id": "78",
+      "display_text": "\u003cspan\u003eThis call to util.exec() contains a command injection flaw.  The argument to the function is constructed using untrusted input.  If an attacker is allowed to specify all or part of the command, it may be possible to execute commands on the server with the privileges of the executing process.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.  Most APIs that execute system commands also have a \"safe\" version of the method that takes an array of strings as input rather than a single string, which protects against some forms of command injection.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/78.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Command_Injection\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/lib/ssh.js",
+          "line": 14,
+          "function_name": "lambda_5",
+          "qualified_function_name": "lambda_5",
+          "function_prototype": "lambda_5(: any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "1745556620",
+        "prototype_hash": "2972680933",
+        "flaw_hash": "3789099840",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "1239258734",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "1522093433",
+        "cause_hash2_ordinal": "5"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/78.html"
+    },
+    {
+      "title": "util.debug",
+      "issue_id": 1004,
+      "image_path": "src/lib/tus.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Output Neutralization for Logs",
+      "cwe_id": "117",
+      "display_text": "\u003cspan\u003eThis call to util.debug() could result in a log forging attack.  Writing untrusted data into a log file allows an attacker to forge log entries or inject malicious content into log files.  Corrupted log files can be used to cover an attacker\u0027s tracks or as a delivery mechanism for an attack on a log viewing or processing utility.  For example, if a web administrator uses a browser-based utility to review logs, a cross-site scripting attack might be possible. \u003c/span\u003e \u003cspan\u003eAvoid directly embedding user input in log files when possible.  Sanitize untrusted data used to construct log entries by using a safe logging mechanism such as the OWASP ESAPI Logger, which will automatically remove unexpected carriage returns and line feeds and can be configured to use HTML entity encoding for non-alphanumeric data.  Alternatively, some of the XSS escaping functions from the OWASP Java Encoder project will also sanitize CRLF sequences.  Only create a custom blocklist when absolutely necessary.  Always validate untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/117.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Log_Injection\"\u003eOWASP\u003c/a\u003e \u003ca href\u003d\"https://docs.veracode.com/r/review_cleansers?tocId\u003dnYnZqAenFFZmB75MQrZwuA\"\u003eSupported Cleansers\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/lib/tus.js",
+          "line": 29,
+          "function_name": "handleTaskTracking",
+          "qualified_function_name": "handleTaskTracking",
+          "function_prototype": "handleTaskTracking(: any,  : any,  : any,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3496882854",
+        "prototype_hash": "870750105",
+        "flaw_hash": "3032755038",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "2170447257",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "3613151213",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/117.html"
+    },
+    {
+      "title": "util.debug",
+      "issue_id": 1005,
+      "image_path": "src/lib/tus.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Output Neutralization for Logs",
+      "cwe_id": "117",
+      "display_text": "\u003cspan\u003eThis call to util.debug() could result in a log forging attack.  Writing untrusted data into a log file allows an attacker to forge log entries or inject malicious content into log files.  Corrupted log files can be used to cover an attacker\u0027s tracks or as a delivery mechanism for an attack on a log viewing or processing utility.  For example, if a web administrator uses a browser-based utility to review logs, a cross-site scripting attack might be possible. \u003c/span\u003e \u003cspan\u003eAvoid directly embedding user input in log files when possible.  Sanitize untrusted data used to construct log entries by using a safe logging mechanism such as the OWASP ESAPI Logger, which will automatically remove unexpected carriage returns and line feeds and can be configured to use HTML entity encoding for non-alphanumeric data.  Alternatively, some of the XSS escaping functions from the OWASP Java Encoder project will also sanitize CRLF sequences.  Only create a custom blocklist when absolutely necessary.  Always validate untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/117.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Log_Injection\"\u003eOWASP\u003c/a\u003e \u003ca href\u003d\"https://docs.veracode.com/r/review_cleansers?tocId\u003dnYnZqAenFFZmB75MQrZwuA\"\u003eSupported Cleansers\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/lib/tus.js",
+          "line": 50,
+          "function_name": "handleTaskTracking",
+          "qualified_function_name": "handleTaskTracking",
+          "function_prototype": "handleTaskTracking(: any,  : any,  : any,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3496882854",
+        "prototype_hash": "870750105",
+        "flaw_hash": "2653101817",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "3277352640",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "1454608525",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/117.html"
+    },
+    {
+      "title": "console.trace",
+      "issue_id": 1003,
+      "image_path": "src/lib/ssh.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Output Neutralization for Logs",
+      "cwe_id": "117",
+      "display_text": "\u003cspan\u003eThis call to console.trace() could result in a log forging attack.  Writing untrusted data into a log file allows an attacker to forge log entries or inject malicious content into log files.  Corrupted log files can be used to cover an attacker\u0027s tracks or as a delivery mechanism for an attack on a log viewing or processing utility.  For example, if a web administrator uses a browser-based utility to review logs, a cross-site scripting attack might be possible. \u003c/span\u003e \u003cspan\u003eAvoid directly embedding user input in log files when possible.  Sanitize untrusted data used to construct log entries by using a safe logging mechanism such as the OWASP ESAPI Logger, which will automatically remove unexpected carriage returns and line feeds and can be configured to use HTML entity encoding for non-alphanumeric data.  Alternatively, some of the XSS escaping functions from the OWASP Java Encoder project will also sanitize CRLF sequences.  Only create a custom blocklist when absolutely necessary.  Always validate untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/117.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Log_Injection\"\u003eOWASP\u003c/a\u003e \u003ca href\u003d\"https://docs.veracode.com/r/review_cleansers?tocId\u003dnYnZqAenFFZmB75MQrZwuA\"\u003eSupported Cleansers\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/lib/ssh.js",
+          "line": 58,
+          "function_name": "lambda_8",
+          "qualified_function_name": "lambda_8",
+          "function_prototype": "lambda_8(: any,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "4282867459",
+        "prototype_hash": "2324501818",
+        "flaw_hash": "1558497019",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "3018729081",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "3390036235",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/117.html"
+    },
+    {
+      "title": "set",
+      "issue_id": 1000,
+      "image_path": "src/database/seeds/user.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "crypto",
+      "issue_type": "Use of Hard-coded Credentials",
+      "cwe_id": "798",
+      "display_text": "\u003cspan\u003eThe application contains hard-coded information that may contain credentials to an external service.  The use of hard-coded credentials significantly increases the possibility that the account being protected will be compromised. set\u003c/span\u003e \u003cspan\u003eStore credentials out-of-band from the application code.  Follow best practices for protecting credentials stored in locations such as configuration or properties files.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/798.html\"\u003eCWE\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/database/seeds/user.js",
+          "line": 9,
+          "function_name": "lambda_1",
+          "qualified_function_name": "lambda_1",
+          "function_prototype": "lambda_1(: any,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "2230507041",
+        "prototype_hash": "839500671",
+        "flaw_hash": "116960928",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "474192736",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "0",
+        "cause_hash2_ordinal": "0"
+      },
+      "stack_dumps": {},
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/798.html"
+    },
+    {
+      "title": "set",
+      "issue_id": 1001,
+      "image_path": "src/database/seeds/user.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "crypto",
+      "issue_type": "Use of Hard-coded Password",
+      "cwe_id": "259",
+      "display_text": "\u003cspan\u003eThis variable assignment uses a hard-coded password that may compromise system security in a way that cannot be easily remedied.  The use of a hard-coded password significantly increases the possibility that the account being protected will be compromised.  Moreover, the password cannot be changed without patching the software.  If a hard-coded password is compromised in a commercial product, all deployed instances may be vulnerable to attack.  In some cases, this finding may indicate a reference to a password (e.g. the name of a key in a properties file) rather than an actual password. set\u003c/span\u003e \u003cspan\u003eStore passwords out-of-band from the application code.  Follow best practices for protecting credentials stored in locations such as configuration or properties files. An HSM may be appropriate for particularly sensitive credentials.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/259.html\"\u003eCWE\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/database/seeds/user.js",
+          "line": 10,
+          "function_name": "lambda_1",
+          "qualified_function_name": "lambda_1",
+          "function_prototype": "lambda_1(: any,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "2230507041",
+        "prototype_hash": "839500671",
+        "flaw_hash": "1478371390",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "1247148563",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "0",
+        "cause_hash2_ordinal": "0"
+      },
+      "stack_dumps": {},
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/259.html"
+    },
+    {
+      "title": "fs.mkdir",
+      "issue_id": 1012,
+      "image_path": "src/controllers/sites.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "External Control of File Name or Path",
+      "cwe_id": "73",
+      "display_text": "\u003cspan\u003eThis call to fs.mkdir() contains a path manipulation flaw.  The argument to the function is a filename constructed using untrusted input.  If an attacker is allowed to specify all or part of the filename, it may be possible to gain unauthorized access to files on the server, including those outside the webroot, that would be normally be inaccessible to end users.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/73.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Path_Traversal\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/sites.js",
+          "line": 75,
+          "function_name": "lambda_14",
+          "qualified_function_name": "lambda_14",
+          "function_prototype": "lambda_14(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3140352900",
+        "prototype_hash": "2138545597",
+        "flaw_hash": "687116113",
+        "flaw_hash_count": 2,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "3406771648",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "4252979978",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/73.html"
+    },
+    {
+      "title": "fs.mkdir",
+      "issue_id": 1010,
+      "image_path": "src/controllers/sites.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "External Control of File Name or Path",
+      "cwe_id": "73",
+      "display_text": "\u003cspan\u003eThis call to fs.mkdir() contains a path manipulation flaw.  The argument to the function is a filename constructed using untrusted input.  If an attacker is allowed to specify all or part of the filename, it may be possible to gain unauthorized access to files on the server, including those outside the webroot, that would be normally be inaccessible to end users.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/73.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Path_Traversal\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/sites.js",
+          "line": 76,
+          "function_name": "lambda_14",
+          "qualified_function_name": "lambda_14",
+          "function_prototype": "lambda_14(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3140352900",
+        "prototype_hash": "2138545597",
+        "flaw_hash": "2309948852",
+        "flaw_hash_count": 2,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "2835140433",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "3126324570",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/73.html"
+    },
+    {
+      "title": "fs.mkdir",
+      "issue_id": 1009,
+      "image_path": "src/controllers/sites.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "External Control of File Name or Path",
+      "cwe_id": "73",
+      "display_text": "\u003cspan\u003eThis call to fs.mkdir() contains a path manipulation flaw.  The argument to the function is a filename constructed using untrusted input.  If an attacker is allowed to specify all or part of the filename, it may be possible to gain unauthorized access to files on the server, including those outside the webroot, that would be normally be inaccessible to end users.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/73.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Path_Traversal\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/sites.js",
+          "line": 77,
+          "function_name": "lambda_14",
+          "qualified_function_name": "lambda_14",
+          "function_prototype": "lambda_14(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3140352900",
+        "prototype_hash": "2138545597",
+        "flaw_hash": "748402823",
+        "flaw_hash_count": 2,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "1812952783",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "3646339479",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/73.html"
+    },
+    {
+      "title": "fs.mkdir",
+      "issue_id": 1008,
+      "image_path": "src/controllers/sites.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "External Control of File Name or Path",
+      "cwe_id": "73",
+      "display_text": "\u003cspan\u003eThis call to fs.mkdir() contains a path manipulation flaw.  The argument to the function is a filename constructed using untrusted input.  If an attacker is allowed to specify all or part of the filename, it may be possible to gain unauthorized access to files on the server, including those outside the webroot, that would be normally be inaccessible to end users.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/73.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Path_Traversal\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/sites.js",
+          "line": 81,
+          "function_name": "lambda_14",
+          "qualified_function_name": "lambda_14",
+          "function_prototype": "lambda_14(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3140352900",
+        "prototype_hash": "2138545597",
+        "flaw_hash": "687116113",
+        "flaw_hash_count": 2,
+        "flaw_hash_ordinal": 2,
+        "cause_hash": "3406771648",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "4252979978",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/73.html"
+    },
+    {
+      "title": "fs.mkdir",
+      "issue_id": 1013,
+      "image_path": "src/controllers/sites.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "External Control of File Name or Path",
+      "cwe_id": "73",
+      "display_text": "\u003cspan\u003eThis call to fs.mkdir() contains a path manipulation flaw.  The argument to the function is a filename constructed using untrusted input.  If an attacker is allowed to specify all or part of the filename, it may be possible to gain unauthorized access to files on the server, including those outside the webroot, that would be normally be inaccessible to end users.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/73.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Path_Traversal\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/sites.js",
+          "line": 82,
+          "function_name": "lambda_14",
+          "qualified_function_name": "lambda_14",
+          "function_prototype": "lambda_14(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3140352900",
+        "prototype_hash": "2138545597",
+        "flaw_hash": "2309948852",
+        "flaw_hash_count": 2,
+        "flaw_hash_ordinal": 2,
+        "cause_hash": "2835140433",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "3126324570",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/73.html"
+    },
+    {
+      "title": "fs.mkdir",
+      "issue_id": 1011,
+      "image_path": "src/controllers/sites.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "External Control of File Name or Path",
+      "cwe_id": "73",
+      "display_text": "\u003cspan\u003eThis call to fs.mkdir() contains a path manipulation flaw.  The argument to the function is a filename constructed using untrusted input.  If an attacker is allowed to specify all or part of the filename, it may be possible to gain unauthorized access to files on the server, including those outside the webroot, that would be normally be inaccessible to end users.  The level of exposure depends on the effectiveness of input validation routines, if any. \u003c/span\u003e \u003cspan\u003eValidate all untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.  When using blocklists, be sure that the sanitizing routine performs a sufficient number of iterations to remove all instances of disallowed characters.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/73.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Path_Traversal\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/sites.js",
+          "line": 83,
+          "function_name": "lambda_14",
+          "qualified_function_name": "lambda_14",
+          "function_prototype": "lambda_14(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3140352900",
+        "prototype_hash": "2138545597",
+        "flaw_hash": "748402823",
+        "flaw_hash_count": 2,
+        "flaw_hash_ordinal": 2,
+        "cause_hash": "1812952783",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "3646339479",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/73.html"
+    },
+    {
+      "title": "console.error",
+      "issue_id": 1002,
+      "image_path": "src/controllers/sites.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Output Neutralization for Logs",
+      "cwe_id": "117",
+      "display_text": "\u003cspan\u003eThis call to console.error() could result in a log forging attack.  Writing untrusted data into a log file allows an attacker to forge log entries or inject malicious content into log files.  Corrupted log files can be used to cover an attacker\u0027s tracks or as a delivery mechanism for an attack on a log viewing or processing utility.  For example, if a web administrator uses a browser-based utility to review logs, a cross-site scripting attack might be possible. \u003c/span\u003e \u003cspan\u003eAvoid directly embedding user input in log files when possible.  Sanitize untrusted data used to construct log entries by using a safe logging mechanism such as the OWASP ESAPI Logger, which will automatically remove unexpected carriage returns and line feeds and can be configured to use HTML entity encoding for non-alphanumeric data.  Alternatively, some of the XSS escaping functions from the OWASP Java Encoder project will also sanitize CRLF sequences.  Only create a custom blocklist when absolutely necessary.  Always validate untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/117.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Log_Injection\"\u003eOWASP\u003c/a\u003e \u003ca href\u003d\"https://docs.veracode.com/r/review_cleansers?tocId\u003dnYnZqAenFFZmB75MQrZwuA\"\u003eSupported Cleansers\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/sites.js",
+          "line": 88,
+          "function_name": "lambda_14",
+          "qualified_function_name": "lambda_14",
+          "function_prototype": "lambda_14(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "3140352900",
+        "prototype_hash": "2138545597",
+        "flaw_hash": "1591291981",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "3448311946",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "2299082322",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/117.html"
+    },
+    {
+      "title": "!func",
+      "issue_id": 1014,
+      "image_path": "src/lib/passport.js",
+      "gob": "B",
+      "severity": 2,
+      "issue_type_id": "crypto",
+      "issue_type": "Sensitive Cookie in HTTPS Session Without \u0027Secure\u0027 Attribute",
+      "cwe_id": "614",
+      "display_text": "\u003cspan\u003eThis call to !func() adds a cookie to the HTTP response that does not have the Secure attribute set.  Failing to set this attribute allows the browser to send the cookie unencrypted over an HTTP session. \u003c/span\u003e \u003cspan\u003eSet the Secure attribute for all cookies used by HTTPS sessions.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/614.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/controls/SecureCookieAttribute\"\u003eOWASP\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/lib/passport.js",
+          "line": 11,
+          "function_name": "lambda_1",
+          "qualified_function_name": "lambda_1",
+          "function_prototype": "lambda_1(: any,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "125839073",
+        "prototype_hash": "1728455258",
+        "flaw_hash": "1861015139",
+        "flaw_hash_count": 2,
+        "flaw_hash_ordinal": 2,
+        "cause_hash": "3648634733",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "0",
+        "cause_hash2_ordinal": "0"
+      },
+      "stack_dumps": {},
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/614.html"
+    }
+  ],
+  "selected_modules": [],
+  "pipeline_scan": "24.6.1-0",
+  "dev_stage": "DEVELOPMENT"
+}

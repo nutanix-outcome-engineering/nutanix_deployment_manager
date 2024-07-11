@@ -145,8 +145,12 @@ class Hypervisor {
 
   async moveToFinalDestination(fileDownloaded, destinationBase) {
     let finalDestination = `${destinationBase}/${this.site}/hypervisor/${this.uuid}.iso`
-    let command = `cp ${fileDownloaded} ${finalDestination} && rm ${fileDownloaded} ${fileDownloaded}.json`
-    execSync(command)
+    try {
+      execSync('cp', [`${fileDownloaded}`, `${finalDestination}`])
+      execSync('rm', [`${fileDownloaded}`, `${fileDownloaded}.json`])
+    } catch (err) {
+      throw err
+    }
   }
 }
 

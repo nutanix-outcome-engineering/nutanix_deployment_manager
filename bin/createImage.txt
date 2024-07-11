@@ -1,0 +1,15 @@
+sudo dnf install qemu-img
+sudo modprobe nbd max_part=8
+sudo qemu-nbd --connect=/dev/nbd0 Rocky-9-GenericCloud-Base.latest.x86_64.qcow2
+
+sudo mount /dev/nbd0p5 root/
+sudo mount /dev/nbd0p2 root/boot
+sudo mount /dev/nbd0p1 root/boot/efi
+
+sudo mount --make-private --rbind /dev /home/eric.bunton/img/root/dev
+sudo mount --make-private --rbind /sys /home/eric.bunton/img/root/sys
+sudo mount --make-private --rbind /proc /home/eric.bunton/img/root/proc
+
+sudo chroot /home/eric.bunton/img/root bash --login
+
+# Do install stuff here

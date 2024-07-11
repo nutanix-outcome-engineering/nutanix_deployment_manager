@@ -55,9 +55,13 @@ app.use(
         reconnectOnError: true
       })
     }),
-    secret: 'PULLFROMENV',
+    secret: config.server.cookie,
+    name: 'connect.sid',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+      secure: true
+    }
   })
 )
 
@@ -85,7 +89,7 @@ app.use('/*', express.static(path.resolve(__dirname, 'frontend/dist'), {
 
 /** Register default error handler */
 app.use((err, req, res, next) => {
-  log.error(`Error in API: ${err.message}.`)
+  log.error(`Error in API: ${err.message}. ${err}`)
   log.debug(`Stack Trace: ${err.stack}`)
   res.status(err.status || 500).json({
     message: err.message,

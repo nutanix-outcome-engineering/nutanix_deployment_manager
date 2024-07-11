@@ -14,6 +14,7 @@ workflow:
 stages:
   - test
   - build
+  - scan
 
 test:
   stage: test
@@ -32,6 +33,7 @@ build:
   script:
     - npm clean-install
     - npm run build
+    - /bin/bash bin/package.sh
   needs:
     - test
   rules:
@@ -53,8 +55,33 @@ build:
       - node_modules/
       - package.json
       - package-lock.json
+      - ndm.tar.gz
     # exclude:
     #   - src/ui/frontend/public/**/*
     #   - src/ui/frontend/src/**/*
     #   - src/ui/frontend/*.*
 
+blackduck:
+  stage: scan
+  image: eclipse-temurin:17
+  needs:
+    - build
+  script:
+    - /bin/bash bin/blackduck.sh
+veracode:
+  stage: scan
+  image: eclipse-temurin:17
+  needs:
+    - build
+  before_script:
+    - apt update
+    - apt install unzip
+  script:
+    - /bin/bash bin/veracode.sh
+  artifacts:
+    untracked: false
+    when: always
+    expire_in: "30 days"
+    paths:
+      - results.json
+      - filtered_results.json

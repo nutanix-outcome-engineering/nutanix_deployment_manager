@@ -147,9 +147,14 @@ class AOS {
       `if $(tar -tf ${fileDownloaded} | grep -q ${bundlePattern})`,
       `then tar -xf ${fileDownloaded} --wildcards --no-anchored '${xtractPattern}' --transform='s/.*\\///' -O | gunzip > ${unzipFilename}`,
       `else gunzip < ${fileDownloaded} > ${unzipFilename}`,
-      `fi && rm ${fileDownloaded} ${fileDownloaded}.json`
+      `fi`
     ]
-    execSync(commands.join(';'))
+    try {
+      execSync(commands.join(';'))
+      execSync('rm', [`${fileDownloaded}`, `${fileDownloaded}.json`])
+    } catch (err) {
+      throw err
+    }
   }
 }
 

@@ -6,16 +6,41 @@ const USERS_TABLE = 'user'
 class User {
   constructor(u) {
     this.id = u.id
+    this.changePass = u.changePass
     this.username = u.username
     this.password = u.password
   }
+
+  checkPassword(password) {
+    return bcrypt.compareSync(password, this.password)
+  }
+
+  async changePassword(password) {
+    const newHash = bcrypt.hashSync(password, bcrypt.genSaltSync())
+    this.password = newHash
+    this.changePass = false
+
+    await db(USERS_TABLE).update(this.serialize()).where({id: this.id})
+  }
+
+  serialize() {
+    return {
+      id: this.id,
+      changePass: this.changePass,
+      username: this.username,
+      password: this.password
+    }
+  }
+
   static fromDatabase(record) {
     return new User({
       id: record.id,
       username: record.username,
-      password: record.password
+      password: record.password,
+      changePass: record.changePass
     })
   }
+
   static async findByUsername(username) {
     const record = await db(USERS_TABLE).where({username}).first()
     if(record) {
@@ -23,6 +48,7 @@ class User {
     }
     return null
   }
+
   static async findById(id) {
     const record = await db(USERS_TABLE).where({id}).first()
     if(record) {
@@ -33,10 +59,6 @@ class User {
 
   static verifyPassword(password, dbPassword) {
     return bcrypt.compareSync(password, dbPassword)
-  }
-
-  checkPassword(password) {
-    return bcrypt.compareSync(password, this.password)
   }
 }
 

@@ -29,6 +29,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/passreset',
+      name: 'changepass',
+      component: lazy('ChangeUserPassword'),
+      meta: {
+        auth: true,
+        layout: 'Empty'
+      }
+    },
+    {
       path: '/clusters',
       name: "clusters",
       component: lazy('Clusters/Cluster'),

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, unref, watch, computed } from 'vue'
-import { ArrowUpTrayIcon, XMarkIcon, PlusIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { ArrowUpTrayIcon, XMarkIcon, PlusIcon, ArrowPathIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { startCase } from 'lodash'
 import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 import AOSModal from './AOSModal.vue'
@@ -104,6 +104,10 @@ function hydrateForm() {
   }
   return form
 }
+
+const certsProvided = computed(() => {
+  return site.value.prism.certificate && site.value.prism.caChain
+})
 
 watch(() => route.params.id, async () => {
   await getSite(route.params.id)
@@ -589,7 +593,7 @@ async function keyFileChanged(event) {
             <input
               type="text"
               id="lcmDarksiteUrl"
-              placeholder="Display Name"
+              placeholder="http(s)://IPorFQDN/release/"
               v-model="form.site.lcmDarksiteUrl"
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
@@ -598,7 +602,12 @@ async function keyFileChanged(event) {
         <!-- LCM Darksite End-->
         <!-- Prism Certificate Info Start -->
         <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
-          <span class="block pt-2 pb-2 text-sm font-medium">Prism Certificate</span>
+          <div class="flex items-center">
+            <span class="block pt-2 pb-2 text-sm font-medium">Prism Certificate</span>
+            <div v-if="certsProvided" v-tippy content="Certificate information saved.">
+              <CheckCircleIcon class="w-8 h-8 text-green-700"/>
+            </div>
+          </div>
           <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
             <label for="prismCertificate" class="mr-2">Certificate:</label>
             <input

@@ -94,10 +94,35 @@ class Site {
       vCenterServers: this.vCenterServers.map(vcsa => vcsa.toJSON()),
       aosList: this.aosList.map(aos => aos.toJSON()),
       hypervisorList: this.hypervisorList.map(hypervisor => hypervisor.toJSON()),
-      smtp: this.smtp,
-      //TODO: strip creds and crypto from this
-      ldap: this.ldap,
-      // prism: this.prism,
+
+      smtp: {
+        address: this.smtp.address,
+        fromAddress: this.smtp.fromAddress,
+        port: this.smtp.port,
+        securityMode: this.smtp.securityMode,
+        // Leave structure there but they are write only in the API
+        credentials: {
+          username: '',
+          password: ''
+        }
+      },
+
+      ldap: {
+        directoryName: this.ldap.directoryName,
+        directoryUrl: this.ldap.directoryUrl,
+        // Leave structure there but they are write only in the API
+        credentials: {
+          username: '',
+          password: ''
+        }
+      },
+
+      prism: {
+        certificate: this.prism.certificate,
+        caChain: this.prism.caChain,
+        key: '' //This field is write only
+      },
+
       lcmDarksiteUrl: this.lcmDarksiteUrl,
     }
   }

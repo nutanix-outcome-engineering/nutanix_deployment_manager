@@ -1494,6 +1494,46 @@
         "operationId": "foundation.delete",
         "description": ""
       }
+    },
+    "/me/resetpassword": {
+      "post": {
+        "summary": "",
+        "operationId": "user.resetpassword",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "oldPass": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "exxyq0lq1xv3j"
+                    }
+                  },
+                  "newPass": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "cgbhz5vmfiszv"
+                    }
+                  },
+                  "newPassVerify": {
+                    "type": "string",
+                    "x-stoplight": {
+                      "id": "q2bmhzm0w0wve"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

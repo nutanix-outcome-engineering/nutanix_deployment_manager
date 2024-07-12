@@ -4,15 +4,15 @@
       "href": "/"
     },
     "self": {
-      "href": "/scans/144429c1-e537-4265-904d-9d9095d1da6f/findings"
+      "href": "/scans/a5fae36f-5e5d-406c-8324-a0810f280cd4/findings"
     },
     "help": {
       "href": "https://help.veracode.com/reader/tS9CaFwL4_lbIEWWomsJoA/ovfZGgu96UINQxIuTqRDwg"
     }
   },
-  "scan_id": "144429c1-e537-4265-904d-9d9095d1da6f",
+  "scan_id": "a5fae36f-5e5d-406c-8324-a0810f280cd4",
   "scan_status": "SUCCESS",
-  "message": "Scan successful. Results size: 28569 bytes",
+  "message": "Scan successful. Results size: 33227 bytes",
   "modules": [
     "JS files within ndm.tar.gz"
   ],
@@ -20,7 +20,7 @@
   "findings": [
     {
       "title": "util.execSync",
-      "issue_id": 1007,
+      "issue_id": 1009,
       "image_path": "src/models/AOS.js",
       "gob": "B",
       "severity": 5,
@@ -59,7 +59,7 @@
     },
     {
       "title": "util.exec",
-      "issue_id": 1006,
+      "issue_id": 1008,
       "image_path": "src/lib/ssh.js",
       "gob": "B",
       "severity": 5,
@@ -98,7 +98,7 @@
     },
     {
       "title": "util.debug",
-      "issue_id": 1004,
+      "issue_id": 1006,
       "image_path": "src/lib/tus.js",
       "gob": "B",
       "severity": 3,
@@ -137,7 +137,7 @@
     },
     {
       "title": "util.debug",
-      "issue_id": 1005,
+      "issue_id": 1007,
       "image_path": "src/lib/tus.js",
       "gob": "B",
       "severity": 3,
@@ -176,7 +176,7 @@
     },
     {
       "title": "console.trace",
-      "issue_id": 1003,
+      "issue_id": 1005,
       "image_path": "src/lib/ssh.js",
       "gob": "B",
       "severity": 3,
@@ -285,7 +285,7 @@
     },
     {
       "title": "fs.mkdir",
-      "issue_id": 1012,
+      "issue_id": 1014,
       "image_path": "src/controllers/sites.js",
       "gob": "B",
       "severity": 3,
@@ -324,7 +324,7 @@
     },
     {
       "title": "fs.mkdir",
-      "issue_id": 1010,
+      "issue_id": 1012,
       "image_path": "src/controllers/sites.js",
       "gob": "B",
       "severity": 3,
@@ -363,7 +363,7 @@
     },
     {
       "title": "fs.mkdir",
-      "issue_id": 1009,
+      "issue_id": 1011,
       "image_path": "src/controllers/sites.js",
       "gob": "B",
       "severity": 3,
@@ -402,7 +402,7 @@
     },
     {
       "title": "fs.mkdir",
-      "issue_id": 1008,
+      "issue_id": 1010,
       "image_path": "src/controllers/sites.js",
       "gob": "B",
       "severity": 3,
@@ -441,7 +441,7 @@
     },
     {
       "title": "fs.mkdir",
-      "issue_id": 1013,
+      "issue_id": 1015,
       "image_path": "src/controllers/sites.js",
       "gob": "B",
       "severity": 3,
@@ -480,7 +480,7 @@
     },
     {
       "title": "fs.mkdir",
-      "issue_id": 1011,
+      "issue_id": 1013,
       "image_path": "src/controllers/sites.js",
       "gob": "B",
       "severity": 3,
@@ -519,7 +519,7 @@
     },
     {
       "title": "console.error",
-      "issue_id": 1002,
+      "issue_id": 1004,
       "image_path": "src/controllers/sites.js",
       "gob": "B",
       "severity": 3,
@@ -557,8 +557,86 @@
       "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/117.html"
     },
     {
+      "title": "console.error",
+      "issue_id": 1002,
+      "image_path": "src/controllers/cluster.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Output Neutralization for Logs",
+      "cwe_id": "117",
+      "display_text": "\u003cspan\u003eThis call to console.error() could result in a log forging attack.  Writing untrusted data into a log file allows an attacker to forge log entries or inject malicious content into log files.  Corrupted log files can be used to cover an attacker\u0027s tracks or as a delivery mechanism for an attack on a log viewing or processing utility.  For example, if a web administrator uses a browser-based utility to review logs, a cross-site scripting attack might be possible. \u003c/span\u003e \u003cspan\u003eAvoid directly embedding user input in log files when possible.  Sanitize untrusted data used to construct log entries by using a safe logging mechanism such as the OWASP ESAPI Logger, which will automatically remove unexpected carriage returns and line feeds and can be configured to use HTML entity encoding for non-alphanumeric data.  Alternatively, some of the XSS escaping functions from the OWASP Java Encoder project will also sanitize CRLF sequences.  Only create a custom blocklist when absolutely necessary.  Always validate untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/117.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Log_Injection\"\u003eOWASP\u003c/a\u003e \u003ca href\u003d\"https://docs.veracode.com/r/review_cleansers?tocId\u003dnYnZqAenFFZmB75MQrZwuA\"\u003eSupported Cleansers\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/cluster.js",
+          "line": 66,
+          "function_name": "lambda_7",
+          "qualified_function_name": "lambda_7",
+          "function_prototype": "lambda_7(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "4102232526",
+        "prototype_hash": "3903196129",
+        "flaw_hash": "2775301507",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "930335160",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "405906880",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/117.html"
+    },
+    {
+      "title": "console.error",
+      "issue_id": 1003,
+      "image_path": "src/controllers/cluster.js",
+      "gob": "B",
+      "severity": 3,
+      "issue_type_id": "taint",
+      "issue_type": "Improper Output Neutralization for Logs",
+      "cwe_id": "117",
+      "display_text": "\u003cspan\u003eThis call to console.error() could result in a log forging attack.  Writing untrusted data into a log file allows an attacker to forge log entries or inject malicious content into log files.  Corrupted log files can be used to cover an attacker\u0027s tracks or as a delivery mechanism for an attack on a log viewing or processing utility.  For example, if a web administrator uses a browser-based utility to review logs, a cross-site scripting attack might be possible. \u003c/span\u003e \u003cspan\u003eAvoid directly embedding user input in log files when possible.  Sanitize untrusted data used to construct log entries by using a safe logging mechanism such as the OWASP ESAPI Logger, which will automatically remove unexpected carriage returns and line feeds and can be configured to use HTML entity encoding for non-alphanumeric data.  Alternatively, some of the XSS escaping functions from the OWASP Java Encoder project will also sanitize CRLF sequences.  Only create a custom blocklist when absolutely necessary.  Always validate untrusted input to ensure that it conforms to the expected format, using centralized data validation routines when possible.\u003c/span\u003e \u003cspan\u003eReferences: \u003ca href\u003d\"https://cwe.mitre.org/data/definitions/117.html\"\u003eCWE\u003c/a\u003e \u003ca href\u003d\"https://owasp.org/www-community/attacks/Log_Injection\"\u003eOWASP\u003c/a\u003e \u003ca href\u003d\"https://docs.veracode.com/r/review_cleansers?tocId\u003dnYnZqAenFFZmB75MQrZwuA\"\u003eSupported Cleansers\u003c/a\u003e\u003c/span\u003e",
+      "files": {
+        "source_file": {
+          "file": "src/controllers/cluster.js",
+          "line": 84,
+          "function_name": "lambda_8",
+          "qualified_function_name": "lambda_8",
+          "function_prototype": "lambda_8(: any,  : express::Request,  : express::Response,  : any, ...) : any",
+          "scope": "UNKNOWN"
+        }
+      },
+      "flaw_match": {
+        "procedure_hash": "702772536",
+        "prototype_hash": "2018426105",
+        "flaw_hash": "4018459939",
+        "flaw_hash_count": 1,
+        "flaw_hash_ordinal": 1,
+        "cause_hash": "1817557107",
+        "cause_hash_count": 1,
+        "cause_hash_ordinal": 1,
+        "cause_hash2": "348194696",
+        "cause_hash2_ordinal": "1"
+      },
+      "stack_dumps": {
+        "stack_dump": [
+          {}
+        ]
+      },
+      "flaw_details_link": "https://downloads.veracode.com/securityscan/cwe/v4/java/117.html"
+    },
+    {
       "title": "!func",
-      "issue_id": 1014,
+      "issue_id": 1016,
       "image_path": "src/lib/passport.js",
       "gob": "B",
       "severity": 2,

@@ -8,6 +8,7 @@ import HypervisorModal from './HypervisorModal.vue'
 import Button from '@/components/Core/Button.vue'
 import Badge from '@/components/Core/Badge.vue'
 import TextList from '@/components/Core/Form/TextList.vue'
+import PasswordField from '@/components/Core/Form/PasswordField.vue'
 import useSites from '@/composables/useSites.js'
 
 const { sites, getSite, site, editSite } = useSites()
@@ -406,7 +407,7 @@ async function keyFileChanged(event) {
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
             <label for="pcPassword" class="mr-2">Password:</label>
-            <input
+            <PasswordField
               type="text"
               :required="!isPCAlreadyInDB && form.pc.displayName.length > 0"
               id="pcPassword"
@@ -482,7 +483,7 @@ async function keyFileChanged(event) {
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
             <label for="vCenterPassword" class="mr-2">Password:</label>
-            <input
+            <PasswordField
               type="text"
               :required="!isvCenterAlreadyInDB && form.vCenter.displayName.length > 0"
               id="vCenterPassword"
@@ -575,7 +576,7 @@ async function keyFileChanged(event) {
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
             <label for="ldapPassword" class="mr-2">Password:</label>
-            <input
+            <PasswordField
               type="text"
               id="ldapPassword"
               placeholder="Password"

@@ -1,4 +1,4 @@
-# RX-Lite
+# Nutanix Deployment Manager
 ## Repository Structure
 ```
 .

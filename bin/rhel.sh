@@ -18,9 +18,9 @@ install() {
 
   serverName=$(hostname -f)
   cookie=$(randstr)
-  sed -i "s/\(RX_SERVER_NAME=\).*/\1\"$serverName\"/g" src/.env
-  sed -i "s%\(RX_SERVER_CERT=\).*%\1\"src/ui/${serverName//./_}.pem\"%g" src/.env
-  sed -i "s%\(RX_SERVER_KEY=\).*%\1\"src/ui/key.pem\"%g" src/.env
+  sed -i "s/\(NDM_SERVER_NAME=\).*/\1\"$serverName\"/g" src/.env
+  sed -i "s%\(NDM_SERVER_CERT=\).*%\1\"src/ui/${serverName//./_}.pem\"%g" src/.env
+  sed -i "s%\(NDM_SERVER_KEY=\).*%\1\"src/ui/key.pem\"%g" src/.env
   sed -i "s%\(NDM_SERVER_COOKIE=\).*%\1\"$cookie\"%g" src/.env
   openssl req -x509 -newkey rsa:4096 -nodes -keyout src/ui/key.pem -out src/ui/${serverName//./_}.pem -sha256 -days 3650 -subj "/C=US/ST=North Carolina/L=Durham/O=Random/OU=Org/CN=$serverName"
 
@@ -28,9 +28,9 @@ install() {
   sed -i "s%\(NDM_SSH_PUBLIC=\).*%\1\"src/ndm_ssh.pub\"%g" src/.env
   ssh-keygen -f src/ndm_ssh -N "" -t ed25519 -C 'NDM-SSHKEY'
 
-  sed -i "s%\(RX_FILESTORE_BASE_DIRECTORY=\).*%\1\"/srv/ndm/\"%g" src/.env
+  sed -i "s%\(NDM_FILESTORE_BASE_DIRECTORY=\).*%\1\"/srv/ndm/\"%g" src/.env
   sed -i "s%\(NDM_FILESTORE_TUS_BASE=\).*%\1\"/srv/ndm/\"%g" src/.env
-  sed -i "s%\(RX_FILESTORE_EXPORT_DIRECTORY=\).*%\1\"exports\"%g" src/.env
+  sed -i "s%\(NDM_FILESTORE_EXPORT_DIRECTORY=\).*%\1\"exports\"%g" src/.env
 
   # Create user
   groupadd --system ndm
@@ -96,7 +96,7 @@ EOF
   systemctl enable mariadb
 
   sqlPass=$(randstr)
-  sed -i "s/RX_MYSQL_PASSWORD.*$/RX_MYSQL_PASSWORD=\"$sqlPass\"/g" src/.env
+  sed -i "s/NDM_MYSQL_PASSWORD.*$/NDM_MYSQL_PASSWORD=\"$sqlPass\"/g" src/.env
   #TODO: ^ input this into my.cnf and secure my.cnf, swap user that sql uses away from root
 
 mysql -su root <<EOS

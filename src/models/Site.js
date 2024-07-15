@@ -34,7 +34,7 @@ class Site {
     this.prism = typeof site.prism == 'object' ? site.prism : {
       certificate: site.prismCert,
       caChain: site.prismCAChain,
-      key: site.prismKey == 'string' ? crypto.decrypt(site.prismKey) : site.prismKey,
+      key: typeof site.prismKey == 'string' ? crypto.decrypt(site.prismKey) : site.prismKey,
       keyType: site.prismKeyType
     }
 

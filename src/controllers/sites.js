@@ -101,15 +101,32 @@ module.exports = {
       existing.dnsServers = req.body.dnsServers || existing.dnsServers
       existing.ntpServers = req.body.ntpServers || existing.ntpServers
       existing.infraCluster = req.body.infraCluster || existing.infraCluster
-      existing.smtp = req.body.smtp || existing.smtp
+      existing.smtp = {
+        address: req.body.smtp.address || existing.smtp.address,
+        fromAddress: req.body.smtp.fromAddress || existing.smtp.fromAddress,
+        port: req.body.smtp.port || existing.smtp.port,
+        securityMode: req.body.smtp.port || existing.smtp.port,
+        credentials: {
+          username: req.body.smtp.credentials.username || existing.smtp.credentials.username,
+          password: req.body.smtp.credentials.password || existing.smtp.credentials.password,
+        }
+      }
       existing.lcmDarksiteUrl = req.body.lcmDarksiteUrl || existing.lcmDarksiteUrl
-      existing.ldap = req.body.ldap || existing.ldap
+
+      existing.ldap = {
+        directoryName: req.body.ldap.directoryName || existing.ldap.directoryName,
+        directoryUrl: req.body.ldap.directoryUrl || existing.ldap.directoryUrl,
+        credentials: {
+          username: req.body.ldap.credentials.username || existing.ldap.credentials.username,
+          password: req.body.ldap.credentials.password || existing.ldap.credentials.password,
+        }
+      }
 
       if (req.body.prism.caChain) {
-        existing.prism.caChain = Buffer.from(req.body.prism.caChain, 'utf8')
+        existing.prism.caChain = req.body.prism.caChain
       }
       if (req.body.prism.certificate) {
-        existing.prism.certificate = Buffer.from(req.body.prism.certificate, 'utf8')
+        existing.prism.certificate = req.body.prism.certificate
       }
       if (req.body.prism.key) {
         existing.prism.key = req.body.prism.key

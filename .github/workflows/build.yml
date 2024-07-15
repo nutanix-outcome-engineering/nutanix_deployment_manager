@@ -1,5 +1,7 @@
 name: 'Test and Build Pipeline'
 on: [push]
+env:
+  NDM_SKIP_UNSET_CHECK: ${{ vars.NDM_SKIP_UNSET_CHECK }}
 jobs:
   test:
     strategy:

@@ -1,0 +1,37 @@
+name: 'Test and Build Pipeline'
+on: [push]
+jobs:
+  test:
+    strategy:
+      matrix:
+        node-version: ['16.x']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: echo "Currently a NOOP, we should add some."
+      - run: /bin/true
+  build:
+    strategy:
+      matrix:
+        node-version: ['16.x']
+    needs: [ test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm clean-install
+      - run: npm run build
+      - run: /bin/bash bin/package.sh
+      - name: Store artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nutanix_deployment_manager
+          path: |
+           ndm.tar.gz
+           dependencies.tar.gz

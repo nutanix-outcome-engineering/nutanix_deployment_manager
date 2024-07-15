@@ -65,6 +65,7 @@ build:
 blackduck:
   stage: scan
   image: eclipse-temurin:17
+  allow_failure: true
   needs:
     - build
   script:

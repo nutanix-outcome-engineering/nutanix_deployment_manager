@@ -38,7 +38,7 @@ class UploadAOSTask {
           numTimesSame: 0
         }
       }
-      await job.update(job.data)
+      await job.updateData(job.data)
       await job.moveToDelayed(Date.now() + ms('20s'), token)
       // This error needs to be thrown otherwise the worker errors with a weird message
       throw new DelayedError('Waiting for upload to complete')
@@ -107,7 +107,7 @@ class UploadHypervisorTask {
           numTimesSame: 0
         }
       }
-      await job.update(job.data)
+      await job.updateData(job.data)
       await job.moveToDelayed(Date.now() + ms('20s'), token)
       // This error needs to be thrown otherwise the worker errors with a weird message
       throw new DelayedError('Waiting for upload to complete')

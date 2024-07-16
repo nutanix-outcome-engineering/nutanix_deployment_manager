@@ -39,7 +39,7 @@ class ClusterBuildTask {
         throw err
       }
       jobData.fvm = fvm.uuid
-      await job.update(jobData)
+      await job.updateData(jobData)
       await job.moveToDelayed(Date.now() + ms('1m'), token)
       throw new DelayedError('Waiting for cluster build to complete.')
     } else {
@@ -92,7 +92,7 @@ class ImageNodesTask {
         throw err
       }
       jobData.fvm = fvm.uuid
-      await job.update(jobData)
+      await job.updateData(jobData)
       await job.moveToDelayed(Date.now() + ms('1m'), token)
       throw new DelayedError('Waiting for cluster build to complete.')
     } else {

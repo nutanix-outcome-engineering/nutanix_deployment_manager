@@ -210,7 +210,7 @@ class IngestNodeTask {
     job.data.discoveredSwitches = discoveredSwitches
     // If you find the same TOR twice, that's probably a misconfig, may tweak this for expected links beyond 2
     job.data.duplicateSwitchConnectionPresent = new Set(discoveredSwitches).size !== discoveredSwitches.length
-    await job.update(job.data)
+    await job.updateData(job.data)
 
     let node = await IngestData.getByIngestTaskUUID(job.data.taskFlowId)
     node.serial = blockInfo.nodes[0].node_serial

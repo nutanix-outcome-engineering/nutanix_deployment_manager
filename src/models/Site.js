@@ -1,6 +1,7 @@
 const db = require('../database')
 const config = require('../lib/config')
 const jsondiffpatch = require('jsondiffpatch')
+const crypto = require('../lib/crypto-utils.js')
 const PrismCentral = require('./PrismCentral.js')
 const vCenter = require('./vCenter.js')
 const AOS = require('./AOS.js')
@@ -15,6 +16,31 @@ class Site {
     this.infraCluster = site.infraCluster
     this.ntpServers = typeof site.ntpServers == 'string' ? JSON.parse(site.ntpServers) : site.ntpServers
     this.dnsServers = typeof site.dnsServers == 'string' ? JSON.parse(site.dnsServers) : site.dnsServers
+
+    this.smtp = typeof site.smtp == 'object' ? site.smtp : {
+      address: site.smtpServerAddress,
+      fromAddress: site.smtpServerFromAddress,
+      port: site.smtpServerPort,
+      securityMode: site.smtpServerSecurityMode,
+      credentials: typeof site.smtpServerCredentials == 'string' ? crypto.decrypt(site.smtpServerCredentials) : site.smtpServerCredentials || {}
+    }
+
+    this.ldap = typeof site.ldap == 'object' ? site.ldap : {
+      //TODO: capture Admin role group list and add to DB
+      directoryName: site.ldapDirectoryName,
+      directoryUrl: site.ldapDirectoryURL,
+      adminRoleGroupMapping: typeof site.ldapAdminRoleGroupMapping == 'string' ? JSON.parse(site.ldapAdminRoleGroupMapping) : site.ldapAdminRoleGroupMapping,
+      credentials: typeof site.ldapCredentials == 'string' ? crypto.decrypt(site.ldapCredentials) : site.ldapCredentials || {}
+    }
+
+    this.prism = typeof site.prism == 'object' ? site.prism : {
+      certificate: site.prismCert,
+      caChain: site.prismCAChain,
+      key: typeof site.prismKey == 'string' ? crypto.decrypt(site.prismKey) : site.prismKey,
+      keyType: site.prismKeyType
+    }
+
+    this.lcmDarksiteUrl = site.lcmDarksiteUrl
 
     this.pcServers = site.pcServers || []
     this.vCenterServers = site.vCenterServers || []
@@ -38,11 +64,44 @@ class Site {
       pcServers: JSON.stringify(this.pcServers.map(pc => pc.id)),
       vCenterServers: JSON.stringify(this.vCenterServers.map(vcsa => vcsa.id)),
       aosList: JSON.stringify(this.aosList.map(aos => aos.uuid)),
-      hypervisorList: JSON.stringify(this.hypervisorList.map(hypervisor => hypervisor.uuid))
+      hypervisorList: JSON.stringify(this.hypervisorList.map(hypervisor => hypervisor.uuid)),
+
+      smtpServerAddress: this.smtp.address,
+      smtpServerFromAddress: this.smtp.fromAddress,
+      smtpServerPort: this.smtp.port,
+      smtpServerSecurityMode: this.smtp.securityMode,
+      smtpServerCredentials: crypto.encrypt(this.smtp.credentials),
+
+      lcmDarksiteUrl: this.lcmDarksiteUrl,
+
+      prismCert: this.prism.certificate,
+      prismCAChain: this.prism.caChain,
+      prismKey: crypto.encrypt(this.prism.key),
+      prismKeyType: this.prism.keyType,
+
+      ldapDirectoryName: this.ldap.directoryName,
+      ldapDirectoryURL: this.ldap.directoryUrl,
+      ldapAdminRoleGroupMapping: JSON.stringify(this.ldap.adminRoleGroupMapping),
+      ldapCredentials: crypto.encrypt(this.ldap.credentials)
+
     }
   }
 
   toJSON() {
+    let fromAddress = this.smtp.fromAddress?.split('@')
+    let fromTemplate = fromAddress?.[0]
+    let fromDomain = fromAddress?.[1]
+    switch (fromTemplate) {
+      case '<%- cluster.name %>':
+          fromTemplate = '<clusterName>'
+        break;
+      case '<%- site.name %>':
+        fromTemplate = '<siteName>'
+        break;
+
+      default:
+        break;
+    }
     return {
       id: this.id,
       name: this.name,
@@ -52,7 +111,40 @@ class Site {
       pcServers: this.pcServers.map(pc => pc.toJSON()),
       vCenterServers: this.vCenterServers.map(vcsa => vcsa.toJSON()),
       aosList: this.aosList.map(aos => aos.toJSON()),
-      hypervisorList: this.hypervisorList.map(hypervisor => hypervisor.toJSON())
+      hypervisorList: this.hypervisorList.map(hypervisor => hypervisor.toJSON()),
+
+      smtp: {
+        address: this.smtp.address,
+        fromAddress: `${fromTemplate}@${fromDomain}`,
+        fromTemplate: fromTemplate,
+        fromDomain: fromDomain,
+        port: this.smtp.port,
+        securityMode: this.smtp.securityMode,
+        // Leave structure there but they are write only in the API
+        credentials: {
+          username: '',
+          password: ''
+        }
+      },
+
+      ldap: {
+        directoryName: this.ldap.directoryName,
+        directoryUrl: this.ldap.directoryUrl,
+        adminRoleGroupMapping: this.ldap.adminRoleGroupMapping,
+        // Leave structure there but they are write only in the API
+        credentials: {
+          username: '',
+          password: ''
+        }
+      },
+
+      prism: {
+        certificate: this.prism.certificate,
+        caChain: this.prism.caChain,
+        key: '' //This field is write only
+      },
+
+      lcmDarksiteUrl: this.lcmDarksiteUrl,
     }
   }
 

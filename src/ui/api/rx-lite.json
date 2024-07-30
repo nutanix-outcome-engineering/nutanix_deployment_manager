@@ -1791,6 +1791,18 @@
               },
               "": {
                 "$ref": "#/components/schemas/Credential"
+              },
+              "adminRoleGroupMapping": {
+                "type": "array",
+                "x-stoplight": {
+                  "id": "i167duh1qkdk5"
+                },
+                "items": {
+                  "x-stoplight": {
+                    "id": "fiqzvl41qxsiw"
+                  },
+                  "type": "string"
+                }
               }
             }
           },
@@ -1840,6 +1852,20 @@
                 "type": "string",
                 "x-stoplight": {
                   "id": "rv1auipbkpb7l"
+                },
+                "nullable": true
+              },
+              "fromTemplate": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "4um1qryk6tplc"
+                },
+                "nullable": true
+              },
+              "fromDomain": {
+                "type": "string",
+                "x-stoplight": {
+                  "id": "15k1oladq51kh"
                 },
                 "nullable": true
               },

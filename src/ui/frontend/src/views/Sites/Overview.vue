@@ -9,12 +9,13 @@ import Button from '@/components/Core/Button.vue'
 import Badge from '@/components/Core/Badge.vue'
 import TextList from '@/components/Core/Form/TextList.vue'
 import PasswordField from '@/components/Core/Form/PasswordField.vue'
+import { Combobox, Option } from '@/components/Core/Combobox'
 import useSites from '@/composables/useSites.js'
 
 const { sites, getSite, site, editSite } = useSites()
 const route = useRoute()
 
-const form = ref(null)
+const form = ref({})
 
 //Nested form element refs
 const pcForm = ref(null)
@@ -59,6 +60,7 @@ function formDefault() {
           username: '',
           password: ''
         },
+        adminRoleGroupMapping: []
       }
     },
     pc: {
@@ -80,6 +82,10 @@ function formDefault() {
         password: ''
       },
       idx: null
+    },
+    smtp: {
+      templateString: '',
+      domain: ''
     }
   }
 }
@@ -102,6 +108,8 @@ function hydrateForm() {
       smtp: site.value.smtp,
       ldap: site.value.ldap
     }
+    form.smtp.templateString = site.value.smtp.fromTemplate
+    form.smtp.domain = site.value.smtp.fromDomain
   }
   return form
 }
@@ -114,10 +122,16 @@ watch(() => route.params.id, async () => {
   await getSite(route.params.id)
   form.value = hydrateForm()
   isLoading.value = false
-}, { immediate: true },
-site, async () => {
+  }, { immediate: true }
+)
+
+watch(site, async () => {
   form.value = hydrateForm()
-}
+}, { immediate: true })
+
+watch(() => form.value.smtp, () => {
+    form.value.site.smtp.fromAddress = `${form.value.smtp.templateString}@${form.value.smtp.domain}`
+  }, { deep: true },
 )
 
 async function handleSubmit() {
@@ -536,14 +550,27 @@ async function keyFileChanged(event) {
               v-model="form.site.smtp.address"
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
-            <label for="smtpServerFromAddress" class="mr-2">From Address:</label>
-            <input
-              type="text"
-              id="smtpServerFromAddress"
-              placeholder="fromemail@example.com"
-              v-model="form.site.smtp.fromAddress"
-              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
-            />
+            <!-- TODO: fromAddressTemplatingfor="smtpServerFromAddress"  -->
+            <label class="mr-2">From Address:
+              <div class="flex flex-row justify-center content-center space-x-2">
+                <Combobox class="w-full max-w-[50%]" v-model="form.smtp.templateString">
+                  <Option value="<siteName>">&lt;SiteName&gt;</Option>
+                  <Option value="<clusterName>">&lt;ClusterName&gt;</Option>
+                </Combobox>
+                <div class="flex items-center">@</div>
+                <input
+                  type="text"
+                  id="smtpServerFromAddress"
+                  placeholder="fromemail@example.com"
+                  v-model="form.smtp.domain"
+                  class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full max-w-[50%] rounded-md sm:text-sm border-gray-300"
+                />
+              </div>
+              <div class="flex flex-row space-x-2">
+                <span>Example:</span>
+                <span class="text-gray-600">{{ form.site.smtp.fromAddress }}</span>
+              </div>
+            </label>
           </form>
         </div>
         <!-- SMTP Info End-->
@@ -583,11 +610,12 @@ async function keyFileChanged(event) {
               v-model="form.site.ldap.credentials.password"
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
+            <TextList label="Admin Groups" class="pt-2 pb-2 px-2 col-span-1" placeholder="Group Name" hint="Enter LDAP groups to map to the Admin Role" v-model="form.site.ldap.adminRoleGroupMapping" />
           </form>
         </div>
         <!-- LDAP Info End-->
         <!-- LCM Darksite Info Start -->
-        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+        <div v-if="false" class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
           <span class="block pt-2 pb-2 text-sm font-medium">LCM Darksite</span>
           <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
             <label for="lcmDarksiteUrl" class="mr-2">Server Address:</label>
@@ -633,7 +661,7 @@ async function keyFileChanged(event) {
             />
           </form>
         </div>
-        <!-- SMTP Info End-->
+        <!-- Prism Certificate Info End-->
         <!-- AOS List Start -->
         <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium space-y-2">
           <div class="flex justify-between">

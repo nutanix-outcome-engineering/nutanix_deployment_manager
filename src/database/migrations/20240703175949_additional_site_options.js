@@ -21,6 +21,7 @@ exports.up = async (knex) => {
     table.string('ldapDirectoryName', 512)
     table.string('ldapDirectoryURL', 512)
     table.text('ldapCredentials')
+    table.json('ldapAdminRoleGroupMapping').defaultTo('[]')
 
   })
 }
@@ -46,7 +47,8 @@ exports.down = async (knex) => {
 
       'ldapDirectoryName',
       'ldapDirectoryURL',
-      'ldapCredentials'
+      'ldapCredentials',
+      'ldapAdminRoleGroupMapping'
     ])
   })
 }

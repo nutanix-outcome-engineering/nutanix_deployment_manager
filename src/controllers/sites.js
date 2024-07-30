@@ -44,6 +44,20 @@ function validateBody(body) {
     err.status = 400
     throw err
   }
+  if (body.smtp.fromTemplate) {
+    switch (body.smtp.fromTemplate) {
+      case '<clusterName>':
+      case '<siteName>':
+
+        break;
+
+      default:
+        const error = new Error('Unrecognized template option')
+        err.status = 400
+        throw err
+        break;
+    }
+  }
 }
 
 module.exports = {
@@ -101,9 +115,21 @@ module.exports = {
       existing.dnsServers = req.body.dnsServers || existing.dnsServers
       existing.ntpServers = req.body.ntpServers || existing.ntpServers
       existing.infraCluster = req.body.infraCluster || existing.infraCluster
+      let fromAddress
+      if (req.body.smtp.fromTemplate && req.body.smtp.fromDomain) {
+        switch (req.body.smtp.fromTemplate) {
+          case '<clusterName>':
+            fromAddress = `<%- cluster.name %>`
+            break;
+          case '<siteName>':
+            fromAddress = `<%- site.name %>`
+            break;
+        }
+        fromAddress = `${fromAddress}@${req.body.smtp.fromDomain}`
+      }
       existing.smtp = {
         address: req.body.smtp.address || existing.smtp.address,
-        fromAddress: req.body.smtp.fromAddress || existing.smtp.fromAddress,
+        fromAddress: fromAddress || req.body.smtp.fromAddress || existing.smtp.fromAddress,
         port: req.body.smtp.port || existing.smtp.port,
         securityMode: req.body.smtp.port || existing.smtp.port,
         credentials: {
@@ -116,6 +142,7 @@ module.exports = {
       existing.ldap = {
         directoryName: req.body.ldap.directoryName || existing.ldap.directoryName,
         directoryUrl: req.body.ldap.directoryUrl || existing.ldap.directoryUrl,
+        adminRoleGroupMapping: req.body.ldap.adminRoleGroupMapping || existing.ldap.adminRoleGroupMapping,
         credentials: {
           username: req.body.ldap.credentials.username || existing.ldap.credentials.username,
           password: req.body.ldap.credentials.password || existing.ldap.credentials.password,

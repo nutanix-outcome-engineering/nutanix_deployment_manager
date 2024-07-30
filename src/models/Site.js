@@ -26,8 +26,10 @@ class Site {
     }
 
     this.ldap = typeof site.ldap == 'object' ? site.ldap : {
+      //TODO: capture Admin role group list and add to DB
       directoryName: site.ldapDirectoryName,
       directoryUrl: site.ldapDirectoryURL,
+      adminRoleGroupMapping: typeof site.ldapAdminRoleGroupMapping == 'string' ? JSON.parse(site.ldapAdminRoleGroupMapping) : site.ldapAdminRoleGroupMapping,
       credentials: typeof site.ldapCredentials == 'string' ? crypto.decrypt(site.ldapCredentials) : site.ldapCredentials || {}
     }
 
@@ -79,11 +81,27 @@ class Site {
 
       ldapDirectoryName: this.ldap.directoryName,
       ldapDirectoryURL: this.ldap.directoryUrl,
+      ldapAdminRoleGroupMapping: JSON.stringify(this.ldap.adminRoleGroupMapping),
       ldapCredentials: crypto.encrypt(this.ldap.credentials)
+
     }
   }
 
   toJSON() {
+    let fromAddress = this.smtp.fromAddress?.split('@')
+    let fromTemplate = fromAddress?.[0]
+    let fromDomain = fromAddress?.[1]
+    switch (fromTemplate) {
+      case '<%- cluster.name %>':
+          fromTemplate = '<clusterName>'
+        break;
+      case '<%- site.name %>':
+        fromTemplate = '<siteName>'
+        break;
+
+      default:
+        break;
+    }
     return {
       id: this.id,
       name: this.name,
@@ -97,7 +115,9 @@ class Site {
 
       smtp: {
         address: this.smtp.address,
-        fromAddress: this.smtp.fromAddress,
+        fromAddress: `${fromTemplate}@${fromDomain}`,
+        fromTemplate: fromTemplate,
+        fromDomain: fromDomain,
         port: this.smtp.port,
         securityMode: this.smtp.securityMode,
         // Leave structure there but they are write only in the API
@@ -110,6 +130,7 @@ class Site {
       ldap: {
         directoryName: this.ldap.directoryName,
         directoryUrl: this.ldap.directoryUrl,
+        adminRoleGroupMapping: this.ldap.adminRoleGroupMapping,
         // Leave structure there but they are write only in the API
         credentials: {
           username: '',

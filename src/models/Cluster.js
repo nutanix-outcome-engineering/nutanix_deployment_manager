@@ -164,7 +164,7 @@ class Cluster {
       prismCentral: this.prismCentral.toJSON?.() || this.prismCentral,
 
       nodes: this.nodes.map(node => node.toJSON()),
-      site: this.site.toJSON(),
+      site: this.site.toJSON?.(),
 
       hypervisor: this.hypervisor.toJSON?.() || this.hypervisor,
       aos: this.aos.toJSON?.() || this.aos,

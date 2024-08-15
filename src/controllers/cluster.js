@@ -81,7 +81,7 @@ module.exports = {
       clusterBuildFlow.addJobIdsToTasks(jobTree)
       await clusterBuildFlow.update()
     } catch (error) {
-      log.error(`Error trying to rebuild cluster ${cluster.name} with id ${req.params.id} ${err}`)
+      log.error(`Error trying to rebuild cluster ${cluster.name} with id ${req.params.id} ${error}`)
       await transaction.rollback()
       next(`Error trying to rebuild cluster ${cluster.name}`)
     }

@@ -19,11 +19,22 @@ class ClusterBuildTask {
     const jobData = job.data
 
     if (!jobData.fvm) {
+      const imageResults = Object.values(await job.getChildrenValues())[0]
       const transaction = await db.transaction()
-      let fvm
+      let fvm, cluster
       try {
-        const cluster = await Cluster.getById(jobData.cluster.id, true)
-        fvm = await Foundation.findAvailable(cluster.site.id, transaction)
+        /***
+         * If imageResults is not undefined/null that means we have imaged nodes in the previous step and are reusing the
+         * FVM. Else it is implied that the nodes are already imaged and we need to request an unused FVM.
+         */
+        if (imageResults){
+          fvm = await Foundation.getById(imageResults.fvm)
+          cluster = await Cluster.getById(imageResults.cluster.id, true)
+          jobData.cluster = {id: imageResults.cluster.id}
+        } else {
+          cluster = await Cluster.getById(jobData.cluster.id, true)
+          fvm = await Foundation.findAvailable(cluster.site.id, transaction)
+        }
         if (!fvm) {
           await job.log('Waiting for Foundation VM')
           log.warning(`Waiting on Foundation VM for cluster ${cluster.name} with id ${cluster.id}`)
@@ -31,7 +42,7 @@ class ClusterBuildTask {
           throw new DelayedError('Waiting for Foundation VM.')
         }
         jobData.fvm_session_id = (await fvm.imageNodes(cluster, undefined, {imageNodes: false, formCluster: true})).session_id
-        fvm.status = 'imaging'
+        fvm.status = 'createCluster'
         await fvm.update(transaction)
         await transaction.commit()
       } catch (err) {
@@ -50,19 +61,23 @@ class ClusterBuildTask {
         throw new Error(`Failed to build cluster`)
       } else if (!progress.imaging_stopped && progress.aggregate_percent_complete != 100){
         await job.moveToDelayed(Date.now() + ms('1m'), token)
-        fvm.status = 'idle'
         await fvm.update()
         throw new DelayedError('Waiting for cluster build to complete.')
       } else {
         fvm.status = 'idle'
+        const cluster = await Cluster.getById(jobData.cluster.id)
         await fvm.update()
-        return progress
+        return cluster
       }
     }
   }
 }
 
 class ImageNodesTask {
+  /***
+   * Expects a cluster ID to work. Possible improvement would be to make it work
+   * with arbitrary number of nodes.
+   */
   constructor() {
   }
 
@@ -78,13 +93,15 @@ class ImageNodesTask {
       let fvm
       try {
         const cluster = await Cluster.getById(jobData.cluster.id, true)
-        fvm = await Foundation.findAvailable(transaction)
+        fvm = await Foundation.findAvailable(cluster.site.id, transaction)
         if (!fvm) {
+          await job.log('Waiting for Foundation VM')
+          log.warning(`Waiting on Foundation VM for cluster ${cluster.name} with id ${cluster.id}`)
           await job.moveToDelayed(Date.now() + ms('1m'), token)
           throw new DelayedError('Waiting for Foundation VM.')
         }
         jobData.fvm_session_id = (await fvm.imageNodes(cluster, undefined, {imageNodes: true, formCluster: false})).session_id
-        fvm.status = 'imaging'
+        fvm.status = 'imagingNodes'
         await fvm.update(transaction)
         await transaction.commit()
       } catch (err) {
@@ -98,12 +115,20 @@ class ImageNodesTask {
     } else {
       const fvm = await Foundation.getById(jobData.fvm)
       const progress = await fvm.progress()
-      await job.progress(progress.aggregate_percent_complete)
+      await job.updateProgress(progress.aggregate_percent_complete)
       if (progress.imaging_stopped && progress.aggregate_percent_complete != 100) {
         throw new Error(`Failed to build cluster`)
-      } else {
+      } else if (!progress.imaging_stopped && progress.aggregate_percent_complete != 100){
         await job.moveToDelayed(Date.now() + ms('1m'), token)
-        throw new DelayedError('Waiting for cluster build to complete.')
+        await fvm.update()
+        throw new DelayedError('Waiting for node imaging to complete.')
+      } else {
+        if(!job.parent) {
+          fvm.status = 'idle'
+          await fvm.update()
+        }
+        const cluster = await Cluster.getById(jobData.cluster.id)
+        return {cluster, fvm: jobData.fvm}
       }
     }
   }

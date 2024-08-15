@@ -8,7 +8,11 @@ class ClusterBuildTaskFlow extends TaskFlow {
     let taskDefinition = {
       tasks: [
         {
-          name: 'ClusterBuild'
+          name: 'ImageNodes'
+        },
+        {
+          name: 'ClusterBuild',
+          needs: ['ImageNodes']
         }
       ]
     }

@@ -23,6 +23,10 @@ class ClusterBuildTask {
       const transaction = await db.transaction()
       let fvm, cluster
       try {
+        /***
+         * If imageResults is not undefined/null that means we have imaged nodes in the previous step and are reusing the
+         * FVM. Else it is implied that the nodes are already imaged and we need to request an unused FVM.
+         */
         if (imageResults){
           fvm = await Foundation.getById(imageResults.fvm)
           cluster = await Cluster.getById(imageResults.cluster.id, true)
@@ -70,6 +74,10 @@ class ClusterBuildTask {
 }
 
 class ImageNodesTask {
+  /***
+   * Expects a cluster ID to work. Possible improvement would be to make it work
+   * with arbitrary number of nodes.
+   */
   constructor() {
   }
 
@@ -115,9 +123,11 @@ class ImageNodesTask {
         await fvm.update()
         throw new DelayedError('Waiting for node imaging to complete.')
       } else {
-        fvm.status = 'idle'
+        if(!job.parent) {
+          fvm.status = 'idle'
+          await fvm.update()
+        }
         const cluster = await Cluster.getById(jobData.cluster.id)
-        await fvm.update()
         return {cluster, fvm: jobData.fvm}
       }
     }

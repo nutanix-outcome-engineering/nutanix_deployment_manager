@@ -550,8 +550,9 @@ async function keyFileChanged(event) {
               v-model="form.site.smtp.address"
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
-            <!-- TODO: fromAddressTemplatingfor="smtpServerFromAddress"  -->
-            <label class="mr-2">From Address:
+            <label class="mr-2" v-tippy
+              content="Configure the email address template that clusters (or PC) will use when sending email alerts. @your.domain will configure each cluster or PC with their respective unique names under your domain 'your.domain'"
+            >From Address:
               <div class="flex flex-row justify-center content-center space-x-2">
                 <Combobox class="w-full max-w-[50%]" v-model="form.smtp.templateString">
                   <Option value="<siteName>">&lt;SiteName&gt;</Option>
@@ -561,7 +562,7 @@ async function keyFileChanged(event) {
                 <input
                   type="text"
                   id="smtpServerFromAddress"
-                  placeholder="fromemail@example.com"
+                  placeholder="your.domain"
                   v-model="form.smtp.domain"
                   class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full max-w-[50%] rounded-md sm:text-sm border-gray-300"
                 />
@@ -590,7 +591,7 @@ async function keyFileChanged(event) {
             <input
               type="text"
               id="ldapDirectoryUrl"
-              placeholder="LDAP URL"
+              placeholder="ldaps://your.domain"
               v-model="form.site.ldap.directoryUrl"
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />

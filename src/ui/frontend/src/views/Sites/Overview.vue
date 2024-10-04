@@ -385,8 +385,8 @@ async function keyFileChanged(event) {
       <input type="text" id="name" class="pt-2 pb-2 text-base text-gray-700 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md  border-gray-300" v-model="form.site.name" placeholder="mySiteName" label="Name" v-on:keydown.enter.prevent/>
 
       <div class="grid grid-cols-2 mt-2 gap-2">
-        <TextList label="NTP Servers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter an NTP server" v-model="form.site.ntpServers" />
-        <TextList label="DNS Servers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter a DNS server" v-model="form.site.dnsServers" />
+        <TextList label="NTP Servers" id="ntpServers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter an NTP server" v-model="form.site.ntpServers" />
+        <TextList label="DNS Servers" id="dnsServers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter a DNS server" v-model="form.site.dnsServers" />
         <!-- PC Servers Start -->
         <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
           <span class="block pt-2 pb-2 text-sm font-medium">Prism Central Servers</span>
@@ -611,7 +611,7 @@ async function keyFileChanged(event) {
               v-model="form.site.ldap.credentials.password"
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
-            <TextList label="Admin Groups" class="pt-2 pb-2 px-2 col-span-1" placeholder="Group Name" hint="Enter LDAP groups to map to the Admin Role" v-model="form.site.ldap.adminRoleGroupMapping" />
+            <TextList label="Admin Groups" class="pt-2 pb-2 px-2 col-span-1" placeholder="Group Name" id="groupName" hint="Enter LDAP groups to map to the Admin Role" v-model="form.site.ldap.adminRoleGroupMapping" />
           </form>
         </div>
         <!-- LDAP Info End-->
@@ -656,7 +656,7 @@ async function keyFileChanged(event) {
             <label for="prismKey" class="mr-2">Key:</label>
             <input
               type="file"
-              id="vCenterDisplayName"
+              id="prismKey"
               @change="keyFileChanged"
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />

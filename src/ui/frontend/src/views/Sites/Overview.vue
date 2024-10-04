@@ -551,7 +551,7 @@ async function keyFileChanged(event) {
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
             <label class="mr-2" v-tippy
-              content="Configure the email address template that clusters (or PC) will use when sending email alerts. @your.domain will configure each cluster or PC with their respective unique names under your domain 'your.domain'"
+              content="Configure the email address template that clusters (or PC) will use when sending email alerts. <ClusterName>@your.domain will configure each cluster or PC with their respective unique names under your domain. <SiteName>@your.domain will configure each cluster or PC to use the Site they are in.'"
             >From Address:
               <div class="flex flex-row justify-center content-center space-x-2">
                 <Combobox class="w-full max-w-[50%]" v-model="form.smtp.templateString">

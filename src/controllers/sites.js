@@ -1,6 +1,7 @@
 const { Site, PrismCentral, vCenter, AOS, Hypervisor }  = require('../models')
 const db = require('../database')
 const config = require('../lib/config')
+const { extractKeyDetails } = require('../lib/crypto-utils')
 const { v4: uuid} = require('uuid')
 const { mkdir } = require('fs/promises')
 const { resolve } = require('path')
@@ -42,6 +43,20 @@ function validateBody(body) {
     let err = new Error('Multiple default vCenters detected')
     err.status = 400
     throw err
+  }
+  if (body.smtp.fromTemplate) {
+    switch (body.smtp.fromTemplate) {
+      case '<clusterName>':
+      case '<siteName>':
+
+        break;
+
+      default:
+        const error = new Error('Unrecognized template option')
+        err.status = 400
+        throw err
+        break;
+    }
   }
 }
 
@@ -100,6 +115,51 @@ module.exports = {
       existing.dnsServers = req.body.dnsServers || existing.dnsServers
       existing.ntpServers = req.body.ntpServers || existing.ntpServers
       existing.infraCluster = req.body.infraCluster || existing.infraCluster
+      let fromAddress
+      if (req.body.smtp.fromTemplate && req.body.smtp.fromDomain) {
+        switch (req.body.smtp.fromTemplate) {
+          case '<clusterName>':
+            fromAddress = `<%- cluster.name %>`
+            break;
+          case '<siteName>':
+            fromAddress = `<%- site.name %>`
+            break;
+        }
+        fromAddress = `${fromAddress}@${req.body.smtp.fromDomain}`
+      }
+      existing.smtp = {
+        address: req.body.smtp.address || existing.smtp.address,
+        fromAddress: fromAddress || req.body.smtp.fromAddress || existing.smtp.fromAddress,
+        port: req.body.smtp.port || existing.smtp.port,
+        securityMode: req.body.smtp.port || existing.smtp.port,
+        credentials: {
+          username: req.body.smtp.credentials.username || existing.smtp.credentials.username,
+          password: req.body.smtp.credentials.password || existing.smtp.credentials.password,
+        }
+      }
+      existing.lcmDarksiteUrl = req.body.lcmDarksiteUrl || existing.lcmDarksiteUrl
+
+      existing.ldap = {
+        directoryName: req.body.ldap.directoryName || existing.ldap.directoryName,
+        directoryUrl: req.body.ldap.directoryUrl || existing.ldap.directoryUrl,
+        adminRoleGroupMapping: req.body.ldap.adminRoleGroupMapping || existing.ldap.adminRoleGroupMapping,
+        credentials: {
+          username: req.body.ldap.credentials.username || existing.ldap.credentials.username,
+          password: req.body.ldap.credentials.password || existing.ldap.credentials.password,
+        }
+      }
+
+      if (req.body.prism.caChain) {
+        existing.prism.caChain = req.body.prism.caChain
+      }
+      if (req.body.prism.certificate) {
+        existing.prism.certificate = req.body.prism.certificate
+      }
+      if (req.body.prism.key) {
+        existing.prism.key = req.body.prism.key
+        const keyDetails = extractKeyDetails(req.body.prism.key)
+        existing.prism.keyType = `${keyDetails.type.toUpperCase()}_${keyDetails.length}`
+      }
 
       // Site PC management code
       let newPCServers = []

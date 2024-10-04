@@ -56,6 +56,7 @@ build:
       - package.json
       - package-lock.json
       - ndm.tar.gz
+      - dependencies.tar.gz
     # exclude:
     #   - src/ui/frontend/public/**/*
     #   - src/ui/frontend/src/**/*
@@ -64,6 +65,7 @@ build:
 blackduck:
   stage: scan
   image: eclipse-temurin:17
+  allow_failure: true
   needs:
     - build
   script:

@@ -4,6 +4,7 @@ import { ArrowUpTrayIcon, XMarkIcon, PlusIcon, ArrowPathIcon } from '@heroicons/
 import Dialog from '@/components/Core/Dialog.vue'
 import Button from '@/components/Core/Button.vue'
 import TextList from '@/components/Core/Form/TextList.vue'
+import PasswordField from '@/components/Core/Form/PasswordField.vue'
 
 const emit = defineEmits(['handleSubmit'])
 
@@ -328,7 +329,7 @@ const isvCenterAlreadyInDB = computed(() => {
                 class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
               />
               <label for="pcPassword" class="mr-2">Password:</label>
-              <input
+              <PasswordField
                 type="text"
                 :required="!isPCAlreadyInDB && form.pc.displayName.length > 0"
                 id="pcPassword"
@@ -404,7 +405,7 @@ const isvCenterAlreadyInDB = computed(() => {
                 class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
               />
               <label for="vCenterPassword" class="mr-2">Password:</label>
-              <input
+              <PasswordField
                 type="text"
                 :required="!isvCenterAlreadyInDB && form.vCenter.displayName.length > 0"
                 id="vCenterPassword"

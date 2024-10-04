@@ -1,6 +1,6 @@
 <script setup>
 import { ref, unref, watch, computed } from 'vue'
-import { ArrowUpTrayIcon, XMarkIcon, PlusIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { ArrowUpTrayIcon, XMarkIcon, PlusIcon, ArrowPathIcon, CheckCircleIcon } from '@heroicons/vue/24/outline'
 import { startCase } from 'lodash'
 import { useRoute, onBeforeRouteUpdate } from 'vue-router'
 import AOSModal from './AOSModal.vue'
@@ -8,12 +8,14 @@ import HypervisorModal from './HypervisorModal.vue'
 import Button from '@/components/Core/Button.vue'
 import Badge from '@/components/Core/Badge.vue'
 import TextList from '@/components/Core/Form/TextList.vue'
+import PasswordField from '@/components/Core/Form/PasswordField.vue'
+import { Combobox, Option } from '@/components/Core/Combobox'
 import useSites from '@/composables/useSites.js'
 
 const { sites, getSite, site, editSite } = useSites()
 const route = useRoute()
 
-const form = ref(null)
+const form = ref({})
 
 //Nested form element refs
 const pcForm = ref(null)
@@ -26,7 +28,7 @@ const isLoading = ref(true)
 
 function formDefault() {
   return {
-    site:{
+    site: {
       name: '',
       infraCluster: undefined,
       ntpServers: [],
@@ -34,7 +36,32 @@ function formDefault() {
       pcServers: [],
       vCenterServers: [],
       aosList: [],
-      hypervisorList: []
+      hypervisorList: [],
+      prism: {
+        certificate: '',
+        caChain: '',
+        key: ''
+      },
+      lcmDarksiteUrl: '',
+      smtp: {
+        address: '',
+        fromAddress: '',
+        port: '',
+        securityMode: '',
+        credentials: {
+          username: '',
+          password: ''
+        }
+      },
+      ldap: {
+        directoryName: '',
+        directoryUrl: '',
+        credentials: {
+          username: '',
+          password: ''
+        },
+        adminRoleGroupMapping: []
+      }
     },
     pc: {
       displayName: '',
@@ -55,6 +82,10 @@ function formDefault() {
         password: ''
       },
       idx: null
+    },
+    smtp: {
+      templateString: '',
+      domain: ''
     }
   }
 }
@@ -72,19 +103,35 @@ function hydrateForm() {
       vCenterServers: [...site.value.vCenterServers],
       aosList: [...site.value.aosList],
       hypervisorList: [...site.value.hypervisorList],
+      lcmDarksiteUrl: site.value.lcmDarksiteUrl,
+      prism: site.value.prism || form.site.prism,
+      smtp: site.value.smtp,
+      ldap: site.value.ldap
     }
+    form.smtp.templateString = site.value.smtp.fromTemplate
+    form.smtp.domain = site.value.smtp.fromDomain
   }
   return form
 }
+
+const certsProvided = computed(() => {
+  return site.value.prism.certificate && site.value.prism.caChain
+})
 
 watch(() => route.params.id, async () => {
   await getSite(route.params.id)
   form.value = hydrateForm()
   isLoading.value = false
-}, { immediate: true },
-site, async () => {
+  }, { immediate: true }
+)
+
+watch(site, async () => {
   form.value = hydrateForm()
-}
+}, { immediate: true })
+
+watch(() => form.value.smtp, () => {
+    form.value.site.smtp.fromAddress = `${form.value.smtp.templateString}@${form.value.smtp.domain}`
+  }, { deep: true },
 )
 
 async function handleSubmit() {
@@ -307,6 +354,20 @@ function statusColor(status) {
 
   return color
 }
+
+async function fileChanged(file) {
+  return await file.text()
+}
+
+async function certificateFileChanged(event) {
+  form.value.site.prism.certificate = await fileChanged(event.target.files[0])
+}
+async function caChainFileChanged(event) {
+  form.value.site.prism.caChain = await fileChanged(event.target.files[0])
+}
+async function keyFileChanged(event) {
+  form.value.site.prism.key = await fileChanged(event.target.files[0])
+}
 </script>
 
 <template>
@@ -324,8 +385,8 @@ function statusColor(status) {
       <input type="text" id="name" class="pt-2 pb-2 text-base text-gray-700 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md  border-gray-300" v-model="form.site.name" placeholder="mySiteName" label="Name" v-on:keydown.enter.prevent/>
 
       <div class="grid grid-cols-2 mt-2 gap-2">
-        <TextList label="NTP Servers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter an NTP server" v-model="form.site.ntpServers" />
-        <TextList label="DNS Servers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter a DNS server" v-model="form.site.dnsServers" />
+        <TextList label="NTP Servers" id="ntpServers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter an NTP server" v-model="form.site.ntpServers" />
+        <TextList label="DNS Servers" id="dnsServers" class="pt-2 pb-2 px-2 col-span-1" placeholder="x.x.x.x" hint="Enter a DNS server" v-model="form.site.dnsServers" />
         <!-- PC Servers Start -->
         <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
           <span class="block pt-2 pb-2 text-sm font-medium">Prism Central Servers</span>
@@ -360,7 +421,7 @@ function statusColor(status) {
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
             <label for="pcPassword" class="mr-2">Password:</label>
-            <input
+            <PasswordField
               type="text"
               :required="!isPCAlreadyInDB && form.pc.displayName.length > 0"
               id="pcPassword"
@@ -436,7 +497,7 @@ function statusColor(status) {
               class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
             />
             <label for="vCenterPassword" class="mr-2">Password:</label>
-            <input
+            <PasswordField
               type="text"
               :required="!isvCenterAlreadyInDB && form.vCenter.displayName.length > 0"
               id="vCenterPassword"
@@ -477,6 +538,131 @@ function statusColor(status) {
           </div>
         </div>
         <!-- VCSA Servers End-->
+        <!-- SMTP Info Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <span class="block pt-2 pb-2 text-sm font-medium">SMTP Config</span>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="smtpServerAddress" class="mr-2">Server Address:</label>
+            <input
+              type="text"
+              id="smtpServerAddress"
+              placeholder="SMTP Server Address"
+              v-model="form.site.smtp.address"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label class="mr-2" v-tippy
+              content="Configure the email address template that clusters (or PC) will use when sending email alerts. <ClusterName>@your.domain will configure each cluster or PC with their respective unique names under your domain. <SiteName>@your.domain will configure each cluster or PC to use the Site they are in.'"
+            >From Address:
+              <div class="flex flex-row justify-center content-center space-x-2">
+                <Combobox class="w-full max-w-[50%]" v-model="form.smtp.templateString">
+                  <Option value="<siteName>">&lt;SiteName&gt;</Option>
+                  <Option value="<clusterName>">&lt;ClusterName&gt;</Option>
+                </Combobox>
+                <div class="flex items-center">@</div>
+                <input
+                  type="text"
+                  id="smtpServerFromAddress"
+                  placeholder="your.domain"
+                  v-model="form.smtp.domain"
+                  class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full max-w-[50%] rounded-md sm:text-sm border-gray-300"
+                />
+              </div>
+              <div class="flex flex-row space-x-2">
+                <span>Example:</span>
+                <span class="text-gray-600">{{ form.site.smtp.fromAddress }}</span>
+              </div>
+            </label>
+          </form>
+        </div>
+        <!-- SMTP Info End-->
+        <!-- LDAP Info Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <span class="block pt-2 pb-2 text-sm font-medium">LDAP Config</span>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="ldapDirectoryName" class="mr-2">Directory Name:</label>
+            <input
+              type="text"
+              id="ldapDirectoryName"
+              placeholder="LDAP Directory Name"
+              v-model="form.site.ldap.directoryName"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="ldapDirectoryUrl" class="mr-2">Directory URL:</label>
+            <input
+              type="text"
+              id="ldapDirectoryUrl"
+              placeholder="ldaps://your.domain"
+              v-model="form.site.ldap.directoryUrl"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="ldapUsername" class="mr-2">Username:</label>
+            <input
+              type="text"
+              id="ldapUsername"
+              placeholder="Username"
+              v-model="form.site.ldap.credentials.username"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="ldapPassword" class="mr-2">Password:</label>
+            <PasswordField
+              type="text"
+              id="ldapPassword"
+              placeholder="Password"
+              v-model="form.site.ldap.credentials.password"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <TextList label="Admin Groups" class="pt-2 pb-2 px-2 col-span-1" placeholder="Group Name" id="groupName" hint="Enter LDAP groups to map to the Admin Role" v-model="form.site.ldap.adminRoleGroupMapping" />
+          </form>
+        </div>
+        <!-- LDAP Info End-->
+        <!-- LCM Darksite Info Start -->
+        <div v-if="false" class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <span class="block pt-2 pb-2 text-sm font-medium">LCM Darksite</span>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="lcmDarksiteUrl" class="mr-2">Server Address:</label>
+            <input
+              type="text"
+              id="lcmDarksiteUrl"
+              placeholder="http(s)://IPorFQDN/release/"
+              v-model="form.site.lcmDarksiteUrl"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+          </form>
+        </div>
+        <!-- LCM Darksite End-->
+        <!-- Prism Certificate Info Start -->
+        <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium">
+          <div class="flex items-center">
+            <span class="block pt-2 pb-2 text-sm font-medium">Prism Certificate</span>
+            <div v-if="certsProvided" v-tippy content="Certificate information saved.">
+              <CheckCircleIcon class="w-8 h-8 text-green-700"/>
+            </div>
+          </div>
+          <form ref="vCenterForm" class="grid grid-flow-rows items-center gap-y-1 gap-x-1">
+            <label for="prismCertificate" class="mr-2">Certificate:</label>
+            <input
+              type="file"
+              id="prismCertificate"
+              @change="certificateFileChanged"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="prismCAChain" class="mr-2">CA Chain:</label>
+            <input
+              type="file"
+              id="prismCAChain"
+              @change="caChainFileChanged"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+            <label for="prismKey" class="mr-2">Key:</label>
+            <input
+              type="file"
+              id="prismKey"
+              @change="keyFileChanged"
+              class="invalid:bg-red-100 focus:ring-blue-500 focus:border-blue-500 block w-full rounded-md sm:text-sm border-gray-300"
+            />
+          </form>
+        </div>
+        <!-- Prism Certificate Info End-->
         <!-- AOS List Start -->
         <div class="bg-gray-100 rounded-md py-2 px-2 text-sm font-medium space-y-2">
           <div class="flex justify-between">

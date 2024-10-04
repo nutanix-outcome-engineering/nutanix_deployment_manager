@@ -1,12 +1,12 @@
 <template>
   <div class="bg-gray-100 rounded-md">
-    <label v-if="label" for="share" class="block text-sm font-medium text-gray-700">{{ label }}</label>
+    <label v-if="label" :for="id" class="block text-sm font-medium text-gray-700">{{ label }}</label>
     <form @submit="addItem" class="mt-1 flex rounded-md shadow-sm">
       <div class="relative flex items-stretch flex-grow focus-within:z-10">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <ClipboardDocumentListIcon outline class="h-5 w-5 text-gray-400" />
         </div>
-        <input type="text" v-model="form.text" :placeholder="placeholder" id="share" class="focus:ring-blue-500 focus:border-blue-500 block w-full rounded-none rounded-l-md pl-10 sm:text-sm border-gray-300">
+        <input type="text" v-model="form.text" :placeholder="placeholder" :id="id" class="focus:ring-blue-500 focus:border-blue-500 block w-full rounded-none rounded-l-md pl-10 sm:text-sm border-gray-300">
         <div v-if="form.text.length > 0" class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" >
         <template v-if="isValid">
         <CheckIcon outline class="h-5 w-5 text-green-400"></CheckIcon>
@@ -53,6 +53,7 @@ export default {
     label: String,
     hint: String,
     placeholder: String,
+    id: String,
     validator: {
       type: Function,
       default: val => val.length > 0

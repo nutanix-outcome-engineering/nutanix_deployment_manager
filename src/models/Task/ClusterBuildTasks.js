@@ -6,6 +6,7 @@ const Cluster = require('../Cluster')
 const db = require('../../database')
 const log = require('../../lib/logger.js')
 const config = require('../../lib/config')
+const { exec } = require('../../lib/ssh.js')
 
 class ClusterBuildTask {
   constructor() {
@@ -147,8 +148,37 @@ class RegisterToPCTask {
   }
 }
 
+class ChangeDefaultPasswordsTask {
+  constructor() {
+  }
+
+  static get type() {
+    return this.name
+  }
+
+  static async process(job, token) {
+    const jobData = job.data
+    if (!jobData.cluster) {
+      const imageResults = Object.values(await job.getChildrenValues())[0]
+      jobData.cluster = { id: imageResults.id }
+      await job.updateData(jobData)
+    }
+    const cluster = await Cluster.getById(jobData.cluster.id, true)
+    const escapedPassword = cluster.site.ldap.credentials.password.replace(/[[{}()*+?^$|!@#&-<>\,\]\.\\\=\`\~\;\:]/g, "\\$&")
+    const commands = [
+      `/home/nutanix/prism/cli/ncli user reset-password user-name='admin' password='${escapedPassword}'`,
+      `for z in \`svmips\`; do ssh nutanix@$z 'cpass="${escapedPassword}" ; echo $cpass | sudo passwd nutanix --stdin';done`,
+      `echo '' > /home/nutanix/.bash_history && history -c`
+    ]
+    await exec({host: cluster.cluster.ip, username: 'nutanix', password: 'nutanix/4u'}, commands.join('\n'))
+    return {cluster: {id: jobData.cluster.id}}
+  }
+}
+
 
 module.exports = {
   ClusterBuildTask,
-  ImageNodesTask
+  ImageNodesTask,
+  ChangeDefaultPasswordsTask,
+  RegisterToPCTask
 }

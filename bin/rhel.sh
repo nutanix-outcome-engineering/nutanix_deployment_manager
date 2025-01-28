@@ -3,6 +3,17 @@
 #exit if anything fails
 set -e
 
+if grep -q '^VERSION.*8.*' /etc/os-release; then
+  redisVersion=6
+elif grep -q '^VERSION.*9.*' /etc/os-release; then
+  redisVersion=7
+else
+  redisVersion=7
+fi
+
+dependenciesTar=""
+useMariaDBRepo=0
+mariaDBPackageList="mariadb-server mariadb"
 INSTALLDIR=/opt/nutanix/ndm
 
 randstr() { < /dev/urandom tr -dc '@%#$_A-Za-z0-9' | head -c 12; echo; }
@@ -55,12 +66,13 @@ installDependencies() {
   # install required apps
   dnf -y install git nfs-utils vim
   dnf -y module install nodejs:20/common
-  dnf -y module install redis:7/common
+  dnf -y module install redis:$redisVersion/common
 
   echo "node version: $(node -v)"
   echo "npm version: $(npm -v)"
 
   ## Uncomment this if we need to use the MariaDB provided repo
+  if [ $useMariaDBRepo -eq 1 ]; then
 cat <<EOF > /etc/yum.repos.d/MariaDB.repo
 # MariaDB 10.11 RedHatEnterpriseLinux repository list
 # https://mariadb.org/download/
@@ -72,8 +84,10 @@ gpgkey = https://rpm.mariadb.org/RPM-GPG-KEY-MariaDB
 # gpgkey = https://mirror.its.dal.ca/mariadb/yum/RPM-GPG-KEY-MariaDB
 gpgcheck = 1
 EOF
+  fi
 
-  dnf -y  install MariaDB-server MariaDB-client
+  dnf -y  install ${mariaDBPackageList}
+
 }
 
 setupDependencies() {
@@ -99,6 +113,7 @@ EOF
   sed -i "s/NDM_MYSQL_PASSWORD.*$/NDM_MYSQL_PASSWORD=\"$sqlPass\"/g" src/.env
   #TODO: ^ input this into my.cnf and secure my.cnf, swap user that sql uses away from root
 
+  if [ $useMariaDBRepo -eq 1 ]; then
 mysql -su root <<EOS
 UPDATE mysql.global_priv SET priv=json_set(priv, '$.plugin', 'mysql_native_password', '$.authentication_string', PASSWORD('$sqlPass')) WHERE User='root';
 DELETE FROM mysql.user WHERE User='';
@@ -108,6 +123,18 @@ DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
 FLUSH PRIVILEGES;
 CREATE DATABASE ndm;
 EOS
+  else
+mysql -su root <<EOS
+UPDATE mysql.user SET Password=PASSWORD('$sqlPass') WHERE User='root';
+DELETE FROM mysql.user WHERE User='';
+DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
+DROP DATABASE IF EXISTS test;
+DELETE FROM mysql.db WHERE Db='test' OR Db='test\\_%';
+FLUSH PRIVILEGES;
+CREATE DATABASE ndm;
+EOS
+  fi
+
 }
 
 uninstall() {
@@ -121,9 +148,9 @@ uninstall() {
 
   dnf -y  remove git nfs-utils vim
   dnf -y  module remove nodejs:20/common
-  dnf -y  module remove redis:7/common
+  dnf -y  module remove redis:$redisVersion/common
   dnf -y remove nfs-utils
-  dnf -y  remove MariaDB-server MariaDB-client
+  dnf -y  remove ${mariaDBPackageList}
 }
 
 update() {
@@ -153,10 +180,17 @@ setupNDM() {
   local initialInstall=${1:-0}
   cp -r . ${INSTALLDIR}
   cd ${INSTALLDIR}
-  npm install
+  if [ -f $dependenciesTar ]; then
+    tar -xf $dependenciesTar
+  else
+    npm install
+  fi
+  npm run build
   npm run db:migrate
   if [ $initialInstall -eq 1 ]; then
     npm run db:seed
+    cd -
+    rm src/.env src/ndm_ssh*
   fi
 }
 
@@ -170,10 +204,35 @@ setupSystemd() {
   systemctl enable ndm-taskProcessor.service
 }
 
+parseArguments() {
+  while :; do
+    case $1 in
+      --depedencies|-d)
+        shift
+        if [ -f $1 ]; then
+          dependenciesTar=$(readlink -f 1)
+        else
+          exit 3
+        fi
+      ;;
+      --use-mariadb-repo)
+        useMariaDBRepo=1
+        mariaDBPackageList="MariaDB-server MariaDB-client"
+      ;;
+      *)
+        echo "Unexpected option: $1"
+      break
+    esac
+    shift
+  done
+}
+
 
 
 case $1 in
   install)
+    shift
+    parseArguments $@
     install
   ;;
   setup)
@@ -207,15 +266,22 @@ case $1 in
     done
 
     uninstall
-    if [ -f "src/.env" ]; then
-      mv src/.env src/.env.cleanup.bk
+    if [ -f "$INSTALLDIR/src/.env" ]; then
+      mv "$INSTALLDIR/src/.env" .env.cleanup.bk
+    fi
+    if [ -f "$INSTALLDIR/src/ndm_ssh" ]; then
+      mv "$INSTALLDIR/src/ndm_ssh" ndm_ssh.bk
+      mv "$INSTALLDIR/src/ndm_ssh.pub" ndm_ssh.pub.bk
     fi
     if [ $delete -eq 1 ]; then
+      rm -rf $INSTALLDIR
       rm -rf /var/lib/mysql
       rm -f /etc/redis/redis.conf
     fi
   ;;
   update)
+    shift
+    parseArguments $@
     update
   ;;
   *)

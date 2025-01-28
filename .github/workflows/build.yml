@@ -1,5 +1,7 @@
 name: 'Test and Build Pipeline'
-on: [push]
+on: 
+ - push
+ - workflow_dispatch
 env:
   NDM_SKIP_UNSET_CHECK: ${{ vars.NDM_SKIP_UNSET_CHECK }}
 jobs:

@@ -163,6 +163,7 @@ update() {
 
 fixPermissions() {
   chown -R ndm:ndm ${INSTALLDIR}
+  chmod +x /opt/nutanix
   chmod -R og-rw ${INSTALLDIR}
   chown -R ndm:ndm /srv/ndm
   chmod -R 777 /srv/ndm/exports
@@ -210,7 +211,7 @@ parseArguments() {
       --depedencies|-d)
         shift
         if [ -f $1 ]; then
-          dependenciesTar=$(readlink -f 1)
+          dependenciesTar=$(readlink -f $1)
         else
           exit 3
         fi

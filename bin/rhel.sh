@@ -16,7 +16,7 @@ useMariaDBRepo=0
 mariaDBPackageList="mariadb-server mariadb"
 INSTALLDIR=/opt/nutanix/ndm
 
-randstr() { < /dev/urandom tr -dc '@%#$_A-Za-z0-9' | head -c 12; echo; }
+randstr() { < /dev/urandom tr -dc '@#$_A-Za-z0-9' | head -c 12; echo; }
 
 [ "$UID" -eq 0 ] || exec sudo -E bash "$0" "$@"
 

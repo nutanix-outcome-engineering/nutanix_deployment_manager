@@ -13,6 +13,10 @@ class ClusterBuildTaskFlow extends TaskFlow {
         {
           name: 'ClusterBuild',
           needs: ['ImageNodes']
+        },
+        {
+          name: 'ChangeDefaultPasswords',
+          needs: ['ClusterBuild']
         }
       ]
     }
